@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -25,9 +27,18 @@ android {
             )
         }
     }
+
+    buildFeatures {
+        compose = true
+    }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
 
@@ -37,6 +48,12 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.ui)
+    implementation(libs.ui.tooling)
+    implementation(libs.material3)
+    implementation(libs.runtime)
+    implementation(libs.activity.compose)
+    implementation(libs.core.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
