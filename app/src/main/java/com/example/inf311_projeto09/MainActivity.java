@@ -9,6 +9,6 @@ public class MainActivity extends ComponentActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MyComposeLauncher.launch(this);
+        MyComposeLauncher.launch(this, ScreenType.CLASS_INFOS);
     }
 }

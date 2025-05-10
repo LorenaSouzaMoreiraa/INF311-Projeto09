@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.runtime)
     implementation(libs.activity.compose)
     implementation(libs.core.ktx)
+    implementation(libs.material.icons.extended)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
