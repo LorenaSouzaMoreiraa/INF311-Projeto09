@@ -28,6 +28,6 @@ Este projeto foi desenvolvido como parte da disciplina **INF311 – Desenvolvime
 O aplicativo Presente representa o esforço conjunto dos alunos para aplicar conceitos modernos de desenvolvimento mobile, com foco em experiências reais de uso e integração com o mercado.
 
 
-##📄 Licença
+## 📄 Licença
 Todo o conteúdo deste repositório é de **propriedade exclusiva dos autores** e foi desenvolvido com fins acadêmicos.  
 **Não é permitida a reprodução, redistribuição ou modificação** sem autorização expressa dos responsáveis pelo projeto.
