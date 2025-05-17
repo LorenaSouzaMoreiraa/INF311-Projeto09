@@ -1,10 +1,11 @@
-package com.example.inf311_projeto09
+package com.example.inf311_projeto09.ui
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.inf311_projeto09.ui.ClassInfosScreen
+import com.example.inf311_projeto09.ui.screens.WelcomeScreen
 
 enum class ScreenType {
+    WELCOME,
     CLASS_INFOS,
     HOME,
     CHECK_IN,
@@ -16,7 +17,8 @@ object MyComposeLauncher {
     fun launch(activity: ComponentActivity, screenType: ScreenType) {
         activity.setContent {
             when (screenType) {
-                ScreenType.CLASS_INFOS -> ClassInfosScreen()
+                ScreenType.WELCOME -> WelcomeScreen()
+                ScreenType.CLASS_INFOS -> TODO()
                 ScreenType.HOME -> TODO()
                 ScreenType.CHECK_IN -> TODO()
                 ScreenType.PROFILE -> TODO()
