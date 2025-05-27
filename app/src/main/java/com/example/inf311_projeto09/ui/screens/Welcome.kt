@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.ui.utils.AppFonts
+import com.example.inf311_projeto09.ui.utils.AppColors
 
 @Composable
 fun WelcomeScreen(
@@ -35,12 +35,12 @@ fun WelcomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF003612)),
+            .background(AppColors().darkGreen),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
-                .background(Color(0xFF003612))
+                .background(AppColors().darkGreen)
                 .padding(40.dp)
         ) {
             Image(
@@ -76,11 +76,11 @@ fun WelcomeScreen(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    Color.Transparent,
-                                    Color(0xFF003612),
-                                    Color(0xFF003612),
-                                    Color(0xFF003612),
-                                    Color(0xFF003612)
+                                    AppColors().transparent,
+                                    AppColors().darkGreen,
+                                    AppColors().darkGreen,
+                                    AppColors().darkGreen,
+                                    AppColors().darkGreen
                                 )
                             )
                         )
@@ -90,7 +90,7 @@ fun WelcomeScreen(
                     text = "Sua\nparticipação\ncomeça aqui",
                     fontFamily = AppFonts().montserrat,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
+                    color = AppColors().white,
                     fontSize = 40.sp,
                     lineHeight = 35.sp,
                     modifier = Modifier
@@ -103,7 +103,7 @@ fun WelcomeScreen(
                     text = "Gerencie e registre presenças em eventos de forma simples e rápida, sem papelada ou complicações.",
                     fontFamily = AppFonts().montserrat,
                     fontWeight = FontWeight.Medium,
-                    color = Color.White,
+                    color = AppColors().lightGrey,
                     fontSize = 12.sp,
                     textAlign = TextAlign.Justify,
                     modifier = Modifier
@@ -115,8 +115,8 @@ fun WelcomeScreen(
                 Button(
                     onClick = onClick,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD4FB51),
-                        contentColor = Color.Black
+                        containerColor = AppColors().lightGreen,
+                        contentColor = AppColors().black
                     ),
                     shape = RoundedCornerShape(60),
                     modifier = Modifier

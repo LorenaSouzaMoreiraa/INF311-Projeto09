@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.inf311_projeto09"
-        minSdk = 21
+        minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.activity.compose)
     implementation(libs.core.ktx)
     implementation(libs.material.icons.extended)
+    implementation(libs.lucide.icons)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
