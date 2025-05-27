@@ -98,7 +98,7 @@ fun UserRoleScreen(
                             .width(280.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(40.dp))
+                    Spacer(modifier = Modifier.height(30.dp))
 
                     RoleSelectionCard(
                         title = "Organizador(a)",
@@ -110,11 +110,11 @@ fun UserRoleScreen(
                         }
                     )
 
-                    Spacer(modifier = Modifier.height(40.dp))
+                    Spacer(modifier = Modifier.height(30.dp))
 
                     RoleSelectionCard(
                         title = "Participante",
-                        description = "Estudantes, colaboradores, convidados e participantes de eventos\n",
+                        description = "Estudantes, colaboradores, convidados e participantes de eventos",
                         isSelected = selectedRole == "participant",
                         onClick = {
                             selectedRole = "participant"
@@ -159,7 +159,8 @@ fun RoleSelectionCard(
     val borderStroke = if (isSelected) 3.5.dp else 1.dp
 
     Column(
-        modifier = Modifier.width(280.dp)
+        modifier = Modifier
+            .width(280.dp)
             .border(
                 BorderStroke(borderStroke, currentBorderColor),
                 RoundedCornerShape(15.dp)
