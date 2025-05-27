@@ -11,14 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import com.jihan.lucide_icons.lucide
 
 class AppIcons {
     @Composable
-    fun outlineCircleCheck(boxSize: Dp, colorIcon: Color) {
+    fun OutlineCircleCheck(boxSize: Dp, colorIcon: Color) {
         Box(
             modifier = Modifier
                 .size(boxSize)
@@ -36,7 +35,7 @@ class AppIcons {
     }
 
     @Composable
-    fun filledCircleCheck(boxSize: Dp, colorIcon: Color, backgroundColorIcon: Color) {
+    fun FilledCircleCheck(boxSize: Dp, colorIcon: Color, backgroundColorIcon: Color) {
         Box(
             modifier = Modifier
                 .size(boxSize)
@@ -52,7 +51,4 @@ class AppIcons {
             )
         }
     }
-
-    @Composable
-    fun filledCircleCheck(): Painter = painterResource(id = lucide.circle_check)
 }
