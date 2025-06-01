@@ -11,44 +11,128 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import com.jihan.lucide_icons.lucide
 
 class AppIcons {
-    @Composable
-    fun OutlineCircleCheck(boxSize: Dp, colorIcon: Color) {
-        Box(
-            modifier = Modifier
-                .size(boxSize)
-                .background(color = AppColors().transparent, shape = CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = lucide.circle_check),
-                contentDescription = "Selecionado",
-                modifier = Modifier.fillMaxSize()
-                    .scale(1f),
-                tint = colorIcon
-            )
+
+    object Outline {
+        @Composable
+        fun CircleCheck(boxSize: Dp, colorIcon: Color) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.circle_check),
+                    contentDescription = "Círculo de verificação",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun CircleArrowLeft(boxSize: Dp, colorIcon: Color) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.circle_arrow_left),
+                    contentDescription = "Seta para esquerda",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun Mail(boxSize: Dp, colorIcon: Color) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.mail),
+                    contentDescription = "Email",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun KeyRound(boxSize: Dp, colorIcon: Color) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.key_round),
+                    contentDescription = "Chave",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun EyeClosed(boxSize: Dp, colorIcon: Color) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.eye_closed),
+                    contentDescription = "Olho fechado",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
         }
     }
 
-    @Composable
-    fun FilledCircleCheck(boxSize: Dp, colorIcon: Color, backgroundColorIcon: Color) {
-        Box(
-            modifier = Modifier
-                .size(boxSize)
-                .background(color = colorIcon, shape = CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = lucide.circle_check),
-                contentDescription = "Selecionado",
-                modifier = Modifier.fillMaxSize()
-                    .scale(1.2f),
-                tint = backgroundColorIcon
-            )
+    object Filled {
+        @Composable
+        fun CircleCheck(boxSize: Dp, colorIcon: Color, backgroundColorIcon: Color) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = colorIcon, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.circle_check),
+                    contentDescription = "Círculo de verificação",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1.2f),
+                    tint = backgroundColorIcon
+                )
+            }
         }
     }
 }

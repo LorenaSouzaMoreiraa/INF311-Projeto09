@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -51,97 +50,94 @@ fun UserRoleScreen(
     ) {
         Column(
             modifier = Modifier
-                .background(AppColors().darkGreen)
-                .padding(40.dp),
+                .fillMaxWidth()
+                .padding(vertical = 50.dp, horizontal = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(id = R.drawable.extended_logo),
                 contentDescription = "Logotipo extendida",
                 modifier = Modifier
+                    .fillMaxWidth(0.7f)
                     .align(Alignment.CenterHorizontally)
             )
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            Box(
+            Column(
                 modifier = Modifier
-                    .height(600.dp)
-                    .width(400.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth(0.9f)
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = "Quem é\nvocê?",
-                        fontFamily = AppFonts().montserrat,
-                        fontWeight = FontWeight.SemiBold,
-                        color = AppColors().white,
-                        fontSize = 40.sp,
-                        lineHeight = 35.sp,
-                        modifier = Modifier
-                            .width(280.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(5.dp))
-
-                    Text(
-                        text = "Selecione o perfil que melhor descreve sua função na plataforma. Isso nos ajudará a personalizar sua experiência com os recursos mais adequados ao seu uso.",
-                        fontFamily = AppFonts().montserrat,
-                        fontWeight = FontWeight.Medium,
-                        color = AppColors().lightGrey,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Justify,
-                        modifier = Modifier
-                            .width(280.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(30.dp))
-
-                    RoleSelectionCard(
-                        title = "Organizador(a)",
-                        description = "Professores, coordenadores, instituições de ensino e organizadores de eventos",
-                        isSelected = selectedRole == "organizer",
-                        onClick = {
-                            selectedRole = "organizer"
-                            onClickCard("organizer")
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(30.dp))
-
-                    RoleSelectionCard(
-                        title = "Participante",
-                        description = "Estudantes, colaboradores, convidados e participantes de eventos",
-                        isSelected = selectedRole == "participant",
-                        onClick = {
-                            selectedRole = "participant"
-                            onClickCard("participant")
-                        }
-                    )
-                }
-
-                Button(
-                    onClick = onClickButton,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors().lightGreen,
-                        contentColor = AppColors().black
-                    ),
-                    shape = RoundedCornerShape(60),
+                Text(
+                    text = "Quem é\nvocê?",
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppColors().white,
+                    fontSize = 40.sp,
+                    lineHeight = 35.sp,
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .height(50.dp)
-                        .align(Alignment.BottomCenter)
-                ) {
-                    Text(
-                        text = "Vamos começar",
-                        fontFamily = AppFonts().montserrat,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp
-                    )
-                }
+                        .fillMaxWidth()
+                        .padding(bottom = 5.dp)
+                )
+
+                Text(
+                    text = "Selecione o perfil que melhor descreve sua função na plataforma. Isso nos ajudará a personalizar sua experiência com os recursos mais adequados ao seu uso.",
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.Medium,
+                    color = AppColors().lightGrey,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Justify,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 30.dp)
+                )
+
+                RoleSelectionCard(
+                    title = "Organizador(a)",
+                    description = "Professores, coordenadores, instituições de ensino e organizadores de eventos",
+                    isSelected = selectedRole == "organizer",
+                    onClick = {
+                        selectedRole = "organizer"
+                        onClickCard("organizer")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                RoleSelectionCard(
+                    title = "Participante",
+                    description = "Estudantes, colaboradores, convidados e participantes de eventos",
+                    isSelected = selectedRole == "participant",
+                    onClick = {
+                        selectedRole = "participant"
+                        onClickCard("participant")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Button(
+                onClick = onClickButton,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AppColors().lightGreen,
+                    contentColor = AppColors().black
+                ),
+                shape = RoundedCornerShape(60),
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(50.dp)
+            ) {
+                Text(
+                    text = "Vamos começar",
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp
+                )
             }
         }
     }
@@ -152,15 +148,14 @@ fun RoleSelectionCard(
     title: String,
     description: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val currentBorderColor = if (isSelected) AppColors().lightGreen else AppColors().white
-
     val borderStroke = if (isSelected) 3.5.dp else 1.dp
 
     Column(
-        modifier = Modifier
-            .width(280.dp)
+        modifier = modifier
             .border(
                 BorderStroke(borderStroke, currentBorderColor),
                 RoundedCornerShape(15.dp)
@@ -182,9 +177,9 @@ fun RoleSelectionCard(
             )
 
             if (isSelected) {
-                AppIcons().FilledCircleCheck(20.dp, AppColors().green, AppColors().darkGreen)
+                AppIcons.Filled.CircleCheck(20.dp, AppColors().green, AppColors().darkGreen)
             } else {
-                AppIcons().OutlineCircleCheck(20.dp, AppColors().white)
+                AppIcons.Outline.CircleCheck(20.dp, AppColors().white)
             }
         }
 
