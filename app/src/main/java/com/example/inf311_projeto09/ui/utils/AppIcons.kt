@@ -14,13 +14,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
+import com.example.inf311_projeto09.R
 import com.jihan.lucide_icons.lucide
 
 class AppIcons {
 
     object Outline {
         @Composable
-        fun CircleCheck(boxSize: Dp, colorIcon: Color) {
+        fun CircleCheck(boxSize: Dp, colorIcon: Color = AppColors().white) {
             Box(
                 modifier = Modifier
                     .size(boxSize)
@@ -39,7 +40,7 @@ class AppIcons {
         }
 
         @Composable
-        fun CircleArrowLeft(boxSize: Dp, colorIcon: Color) {
+        fun CircleArrowLeft(boxSize: Dp, colorIcon: Color = AppColors().white) {
             Box(
                 modifier = Modifier
                     .size(boxSize)
@@ -58,7 +59,7 @@ class AppIcons {
         }
 
         @Composable
-        fun Mail(boxSize: Dp, colorIcon: Color) {
+        fun Mail(boxSize: Dp, colorIcon: Color = AppColors().white) {
             Box(
                 modifier = Modifier
                     .size(boxSize)
@@ -77,7 +78,7 @@ class AppIcons {
         }
 
         @Composable
-        fun KeyRound(boxSize: Dp, colorIcon: Color) {
+        fun KeyRound(boxSize: Dp, colorIcon: Color = AppColors().white) {
             Box(
                 modifier = Modifier
                     .size(boxSize)
@@ -96,7 +97,7 @@ class AppIcons {
         }
 
         @Composable
-        fun EyeClosed(boxSize: Dp, colorIcon: Color) {
+        fun EyeClosed(boxSize: Dp, colorIcon: Color = AppColors().white) {
             Box(
                 modifier = Modifier
                     .size(boxSize)
@@ -106,6 +107,25 @@ class AppIcons {
                 Icon(
                     painter = painterResource(id = lucide.eye_closed),
                     contentDescription = "Olho fechado",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun Eye(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.eye),
+                    contentDescription = "Olho aberto",
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(1f),

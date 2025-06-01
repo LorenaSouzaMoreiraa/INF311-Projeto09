@@ -136,7 +136,7 @@ fun UserRoleScreen(
                     text = "Vamos começar",
                     fontFamily = AppFonts().montserrat,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp
+                    fontSize = 16.sp
                 )
             }
         }
@@ -179,7 +179,7 @@ fun RoleSelectionCard(
             if (isSelected) {
                 AppIcons.Filled.CircleCheck(20.dp, AppColors().green, AppColors().darkGreen)
             } else {
-                AppIcons.Outline.CircleCheck(20.dp, AppColors().white)
+                AppIcons.Outline.CircleCheck(20.dp)
             }
         }
 

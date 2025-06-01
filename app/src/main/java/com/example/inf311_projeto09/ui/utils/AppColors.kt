@@ -9,5 +9,6 @@ class AppColors {
     val white = Color.White
     val black = Color.Black
     val lightGrey = Color(0xFFC5C5C5)
+    val grey = Color(0xFF848484)
     val transparent = Color.Transparent
 }
