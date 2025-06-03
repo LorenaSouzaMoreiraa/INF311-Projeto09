@@ -154,5 +154,24 @@ class AppIcons {
                 )
             }
         }
+
+        @Composable
+        fun CircleClose(boxSize: Dp, colorIcon: Color, backgroundColorIcon: Color, modifier: Modifier = Modifier) {
+            Box(
+                modifier = modifier
+                    .size(boxSize)
+                    .background(color = colorIcon, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.circle_x),
+                    contentDescription = "X para sair da tela",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1.2f),
+                    tint = backgroundColorIcon
+                )
+            }
+        }
     }
 }
