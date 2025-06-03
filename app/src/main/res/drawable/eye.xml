@@ -3,8 +3,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-  
-  <!-- Contorno do olho -->
+
   <path
       android:pathData="M1,12C1,12 5,4 12,4s11,8 11,8-4,8-11,8S1,12,1,12Z"
       android:fillColor="#00000000"
@@ -13,7 +12,6 @@
       android:strokeLineCap="round"
       android:strokeLineJoin="round" />
 
-  <!-- Íris -->
   <path
       android:pathData="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
       android:fillColor="#00000000"
