@@ -73,8 +73,9 @@ fun VerificationCodeScreen(
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .align(Alignment.Center)
+                .fillMaxSize()
                 .padding(horizontal = 24.dp)
         ) {
             Row(
@@ -133,7 +134,7 @@ fun VerificationCodeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(80.dp))
 
             Text(
                 text = "Para prosseguir com a confirmação de sua presença, solicitamos que insira o código de verificação correspondente",
@@ -144,7 +145,7 @@ fun VerificationCodeScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth(1f)
-                    .padding(top = 80.dp)
+                    //.padding(top = 80.dp)
             )
         }
     }
