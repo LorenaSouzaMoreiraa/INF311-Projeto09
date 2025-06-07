@@ -45,15 +45,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.model.Event
-import com.example.inf311_projeto09.ui.screens.cardSection.EmptyEventCard
-import com.example.inf311_projeto09.ui.screens.cardSection.EventCard
+import com.example.inf311_projeto09.ui.components.EmptyEventCard
+import com.example.inf311_projeto09.ui.components.EventCard
+import com.example.inf311_projeto09.ui.components.NavBar
+import com.example.inf311_projeto09.ui.components.NavBarOption
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateFormatter
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Calendar
 
 @Composable
 fun HomeScreen(
@@ -117,11 +118,7 @@ fun HomeScreen(
             }
         }
 
-        BottomNavBar(
-            onProfileClick = onProfileClick,
-            onHomeClick = onHomeClick,
-            onCalendarClick = onCalendarClick
-        )
+        NavBar(onProfileClick, onHomeClick, onCalendarClick, NavBarOption.HOME)
     }
 }
 
@@ -336,46 +333,6 @@ fun CarouselDot(
     )
 }
 
-@Composable
-fun BottomNavBar(
-    onProfileClick: () -> Unit,
-    onHomeClick: () -> Unit,
-    onCalendarClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .background(AppColors().darkGreen),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // TODO: colocar foto do usuário
-        Box(
-            modifier = Modifier
-                .size(30.dp)
-                .clickable { onProfileClick() }
-        ) {
-            AppIcons.Outline.CircleUserRound(30.dp)
-        }
-
-        Box(
-            modifier = Modifier
-                .size(30.dp)
-                .clickable { onHomeClick() }
-        ) {
-            AppIcons.Outline.House(30.dp, AppColors().lightGreen)
-        }
-
-        Box(
-            modifier = Modifier
-                .size(30.dp)
-                .clickable { onCalendarClick() }
-        ) {
-            AppIcons.Outline.Calendar(30.dp)
-        }
-    }
-}
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

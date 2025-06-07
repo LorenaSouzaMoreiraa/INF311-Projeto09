@@ -1,4 +1,4 @@
-package com.example.inf311_projeto09.ui.screens.cardSection
+package com.example.inf311_projeto09.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -306,7 +306,7 @@ private fun EventActionCountdownStatus(
             val eventStartMillis = eventTime.time
 
             val diffSeconds = if (eventStarted) (now - eventStartMillis) / 1000
-                else (eventStartMillis - now) / 1000
+            else (eventStartMillis - now) / 1000
 
             if (diffSeconds > 0) {
                 remainingSeconds = diffSeconds
