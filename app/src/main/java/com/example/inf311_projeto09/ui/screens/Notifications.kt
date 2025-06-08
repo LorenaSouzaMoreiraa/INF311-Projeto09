@@ -30,6 +30,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.model.Notification
 import com.example.inf311_projeto09.model.NotificationsMock
+import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
@@ -90,21 +91,32 @@ fun NotificationsScreen(
                 )
             }
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                items(notificationsMock.getNotificationsList()) { notification ->
-                    NotificationItem(
-                        notification = notification,
-                        onNotificationClick = { clickedNotification ->
-                            if (!clickedNotification.isRead) {
-                                notificationsMock.markNotificationAsRead(clickedNotification.id)
+            if (notificationsMock.getNotificationsList().isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    EmptyEventCard("Não existem notificações no momento.")
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    items(notificationsMock.getNotificationsList()) { notification ->
+                        NotificationItem(
+                            notification = notification,
+                            onNotificationClick = { clickedNotification ->
+                                if (!clickedNotification.isRead) {
+                                    notificationsMock.markNotificationAsRead(clickedNotification.id)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
