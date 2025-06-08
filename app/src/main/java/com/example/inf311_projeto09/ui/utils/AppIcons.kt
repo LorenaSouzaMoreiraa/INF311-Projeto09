@@ -266,6 +266,25 @@ class AppIcons {
                 )
             }
         }
+
+        @Composable
+        fun Clock(boxSize: Dp, colorIcon: Color = AppColors().darkGreen) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.clock),
+                    contentDescription = "Relógio",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
     }
 
     object Filled {
