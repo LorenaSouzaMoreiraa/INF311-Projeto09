@@ -7,11 +7,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.getCurrentEvent
 import com.example.inf311_projeto09.model.getNextEvents
 import com.example.inf311_projeto09.ui.screens.CalendarScreen
 import com.example.inf311_projeto09.ui.screens.HomeScreen
 import com.example.inf311_projeto09.ui.screens.LoginScreen
+import com.example.inf311_projeto09.ui.screens.NotificationsScreen
 import com.example.inf311_projeto09.ui.screens.UserRoleScreen
 import com.example.inf311_projeto09.ui.screens.WelcomeScreen
 
@@ -21,8 +23,11 @@ enum class ScreenType(val route: String) {
     LOGIN("login"),
     HOME("home"),
     PROFILE("profile"),
-    CALENDAR("calendar")
+    CALENDAR("calendar"),
+    NOTIFICATIONS("notifications")
 }
+
+val notificationsMock = NotificationsMock()
 
 object MyComposeLauncher {
     @JvmStatic
@@ -95,6 +100,14 @@ fun AppNavHost(navController: NavHostController) {
             HomeScreen(
                 currentEvent = getCurrentEvent(),
                 nextEvents = getNextEvents(),
+                navController = navController
+            )
+        }
+
+        composable(ScreenType.NOTIFICATIONS.route) {
+            // TODO: apagar mock
+            NotificationsScreen(
+                notificationsMock = notificationsMock,
                 navController = navController
             )
         }

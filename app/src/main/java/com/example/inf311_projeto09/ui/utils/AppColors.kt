@@ -6,6 +6,9 @@ class AppColors {
     val green = Color(0xFFA2D95B)
     val darkGreen = Color(0xFF003612)
     val lightGreen = Color(0xFFD4FB51)
+    val lightYellow = Color(0xFFF2FFC7)
+    val red = Color(0xFFE63946)
+    val offWhite = Color(0xFFF8F5EE)
     val white = Color.White
     val black = Color.Black
     val lightGrey = Color(0xFFC5C5C5)
