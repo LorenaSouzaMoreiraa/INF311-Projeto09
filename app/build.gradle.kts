@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.material.icons.extended)
     implementation(libs.lucide.icons)
+    implementation(libs.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

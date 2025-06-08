@@ -109,18 +109,18 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
             ) {
                 EventActionButton(
                     label = "Check-in",
-                    eventTime = event.beginTime,
+                    eventTime = event.checkInEnable,
                     checkTime = event.checkInTime,
-                    isEnabled = event.checkInEnable,
+                    isEnabled = event.checkInEnable != null,
                     isCurrentEvent = isCurrentEvent,
                     modifier = Modifier.weight(1f)
                 ) {}
 
                 EventActionButton(
                     label = "Check-out",
-                    eventTime = event.endTime,
+                    eventTime = event.checkOutEnable,
                     checkTime = event.checkOutTime,
-                    isEnabled = event.checkOutEnable,
+                    isEnabled = event.checkOutEnable != null,
                     isCurrentEvent = isCurrentEvent,
                     modifier = Modifier.weight(1f)
                 ) {}

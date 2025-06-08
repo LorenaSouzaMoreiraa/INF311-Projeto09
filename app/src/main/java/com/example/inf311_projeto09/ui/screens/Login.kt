@@ -57,9 +57,9 @@ import com.example.inf311_projeto09.ui.utils.AppIcons
 
 @Composable
 fun LoginScreen(
-    onBackClick: () -> Unit = {},
+    onBack: () -> Unit = {},
+    onLoginSuccess: (Boolean) -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {},
     onSignUpClick: () -> Unit = {},
 ) {
     var email by remember { mutableStateOf("") }
@@ -112,7 +112,7 @@ fun LoginScreen(
                 .padding(top = 50.dp, start = 30.dp, end = 30.dp)
         ) {
             IconButton(
-                onClick = onBackClick,
+                onClick = onBack,
                 modifier = Modifier.size(30.dp)
             ) {
                 AppIcons.Outline.CircleArrowLeft(30.dp, AppColors().white)
@@ -251,7 +251,8 @@ fun LoginScreen(
                             colors = CheckboxDefaults.colors(
                                 checkedColor = AppColors().lightGreen
                             ),
-                            modifier = Modifier.padding(end = 10.dp)
+                            modifier = Modifier
+                                .padding(end = 10.dp)
                                 .size(20.dp)
                         )
                         Text(
@@ -287,7 +288,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(30.dp))
 
                     Button(
-                        onClick = onLoginClick,
+                        onClick = { onLoginSuccess(rememberMe) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = AppColors().lightGreen,
                             contentColor = AppColors().black

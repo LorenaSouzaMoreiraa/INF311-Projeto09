@@ -37,7 +37,7 @@ import com.example.inf311_projeto09.ui.utils.AppIcons
 
 @Composable
 fun UserRoleScreen(
-    onClickButton: () -> Unit = {},
+    onRoleSelected: () -> Unit = {},
     onClickCard: (String) -> Unit = {}
 ) {
     var selectedRole by remember { mutableStateOf<String?>(null) }
@@ -122,7 +122,7 @@ fun UserRoleScreen(
             Spacer(modifier = Modifier.height(30.dp))
 
             Button(
-                onClick = onClickButton,
+                onClick = onRoleSelected,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppColors().lightGreen,
                     contentColor = AppColors().black

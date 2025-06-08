@@ -18,7 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.inf311_projeto09.R
+import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppIcons
 
@@ -30,9 +32,7 @@ enum class NavBarOption {
 
 @Composable
 fun NavBar(
-    onProfileClick: () -> Unit,
-    onHomeClick: () -> Unit,
-    onCalendarClick: () -> Unit,
+    navController: NavHostController,
     navBarOption: NavBarOption
 ) {
     Row(
@@ -43,17 +43,17 @@ fun NavBar(
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ProfileIcon(onProfileClick, navBarOption == NavBarOption.PROFILE)
+        ProfileIcon(navController, navBarOption == NavBarOption.PROFILE)
 
-        HomeIcon(onHomeClick, navBarOption == NavBarOption.HOME)
+        HomeIcon(navController, navBarOption == NavBarOption.HOME)
 
-        CalendarIcon(onCalendarClick, navBarOption == NavBarOption.CALENDAR)
+        CalendarIcon(navController, navBarOption == NavBarOption.CALENDAR)
     }
 }
 
 @Composable
 private fun ProfileIcon(
-    onProfileClick: () -> Unit,
+    navController: NavHostController,
     isProfileSelected: Boolean
 ) {
     // TODO: colocar foto do usuário
@@ -63,7 +63,15 @@ private fun ProfileIcon(
     Box(
         modifier = Modifier
             .size(30.dp)
-            .clickable { onProfileClick() },
+            .clickable {
+                navController.navigate(ScreenType.PROFILE.route) {
+                    launchSingleTop = true
+                    restoreState = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                }
+            },
         contentAlignment = Alignment.Center
     ) {
         if (profileImage == null) {
@@ -100,14 +108,22 @@ private fun ProfileIcon(
 
 @Composable
 private fun HomeIcon(
-    onHomeClick: () -> Unit,
+    navController: NavHostController,
     isHomeSelected: Boolean
 ) {
     // TODO: mudar as rotas do clique
     Box(
         modifier = Modifier
             .size(30.dp)
-            .clickable { onHomeClick() },
+            .clickable {
+                navController.navigate(ScreenType.HOME.route) {
+                    launchSingleTop = true
+                    restoreState = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                }
+            },
         contentAlignment = Alignment.Center
     ) {
         AppIcons.Outline.House(
@@ -119,14 +135,22 @@ private fun HomeIcon(
 
 @Composable
 private fun CalendarIcon(
-    onCalendarClick: () -> Unit,
+    navController: NavHostController,
     isCalendarSelected: Boolean
 ) {
 // TODO: mudar as rotas do clique
     Box(
         modifier = Modifier
             .size(30.dp)
-            .clickable { onCalendarClick() },
+            .clickable {
+                navController.navigate(ScreenType.CALENDAR.route) {
+                    launchSingleTop = true
+                    restoreState = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                }
+            },
         contentAlignment = Alignment.Center
     ) {
         AppIcons.Outline.Calendar(

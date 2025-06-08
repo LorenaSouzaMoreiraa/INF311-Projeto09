@@ -31,7 +31,7 @@ import com.example.inf311_projeto09.ui.utils.AppFonts
 
 @Composable
 fun WelcomeScreen(
-    onClick: () -> Unit = {}
+    onContinue: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -120,7 +120,7 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Button(
-                onClick = onClick,
+                onClick = onContinue,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppColors().lightGreen,
                     contentColor = AppColors().black

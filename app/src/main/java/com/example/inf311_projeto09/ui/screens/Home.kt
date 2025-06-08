@@ -43,6 +43,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
@@ -60,9 +62,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     userName: String = "Erick", // TODO: pegar nome do banco de dados
     onBellClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
-    onHomeClick: () -> Unit = {},
-    onCalendarClick: () -> Unit = {},
+    navController: NavHostController,
     currentEvent: Event? = null,
     nextEvents: List<Event> = emptyList()
 ) {
@@ -118,7 +118,7 @@ fun HomeScreen(
             }
         }
 
-        NavBar(onProfileClick, onHomeClick, onCalendarClick, NavBarOption.HOME)
+        NavBar(navController, NavBarOption.HOME)
     }
 }
 
@@ -337,5 +337,5 @@ fun CarouselDot(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(currentEvent = null, nextEvents = listOf())
+    HomeScreen(currentEvent = null, nextEvents = listOf(), navController = rememberNavController())
 }

@@ -8,8 +8,8 @@ data class Event(
     val beginTime: Date,
     val endTime: Date,
     val type: String,
-    val checkInEnable: Boolean,
+    val checkInEnable: Date?,
     val checkInTime: Date?,
-    val checkOutEnable: Boolean,
+    val checkOutEnable: Date?,
     val checkOutTime: Date?,
 )

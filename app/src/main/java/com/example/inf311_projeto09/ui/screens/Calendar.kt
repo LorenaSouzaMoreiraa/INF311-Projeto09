@@ -41,6 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.getMockEventsForDate
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
@@ -58,9 +60,7 @@ import java.util.Date
 
 @Composable
 fun CalendarScreen(
-    onProfileClick: () -> Unit = {},
-    onHomeClick: () -> Unit = {},
-    onCalendarClick: () -> Unit = {}
+    navController: NavHostController
 ) {
     val today = remember { Calendar.getInstance() }
     val calendarViewModel = remember { CalendarViewModel() }
@@ -133,9 +133,7 @@ fun CalendarScreen(
         }
 
         NavBar(
-            onProfileClick = onProfileClick,
-            onHomeClick = onHomeClick,
-            onCalendarClick = onCalendarClick,
+            navController = navController,
             NavBarOption.CALENDAR
         )
     }
@@ -493,5 +491,5 @@ class CalendarViewModel {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun CalendarScreenPreview() {
-    CalendarScreen()
+    CalendarScreen(navController = rememberNavController())
 }
