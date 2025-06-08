@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -47,10 +48,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.model.Event
+import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.components.EventCard
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
+import com.example.inf311_projeto09.ui.notificationsMock
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateFormatter
 import com.example.inf311_projeto09.ui.utils.AppFonts
@@ -61,7 +64,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     userName: String = "Erick", // TODO: pegar nome do banco de dados
-    onBellClick: () -> Unit = {},
     navController: NavHostController,
     currentEvent: Event? = null,
     nextEvents: List<Event> = emptyList()
@@ -71,7 +73,7 @@ fun HomeScreen(
             .fillMaxSize()
             .background(AppColors().darkGreen)
     ) {
-        TopBarSection(userName, onBellClick)
+        TopBarSection(userName, navController)
 
         Spacer(modifier = Modifier.height(15.dp))
 
@@ -125,7 +127,7 @@ fun HomeScreen(
 @Composable
 fun TopBarSection(
     userName: String,
-    onBellClick: () -> Unit
+    navController: NavHostController
 ) {
     Row(
         modifier = Modifier
@@ -140,11 +142,19 @@ fun TopBarSection(
             modifier = Modifier.height(40.dp)
         )
 
+        // TODO: colocar bolinha vermelha quando tem notificação não lida
         IconButton(
-            onClick = onBellClick,
+            onClick = { navController.navigate(ScreenType.NOTIFICATIONS.route) },
             modifier = Modifier.size(30.dp)
         ) {
             AppIcons.Outline.Bell(30.dp)
+            if (!notificationsMock.areAllNotificationsRead())
+                Box(
+                    modifier = Modifier
+                        .size(11.dp)
+                        .offset(x = 6.dp, y = (-7).dp)
+                        .background(AppColors().red, CircleShape)
+                )
         }
     }
 
