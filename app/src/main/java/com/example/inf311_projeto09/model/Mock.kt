@@ -172,7 +172,7 @@ fun getCurrentEvent(): Event {
         beginTime = AppDateFormatter().getTime(10, 0, 0),
         endTime = AppDateFormatter().getTime(11, 40, 0),
         checkInEnable = AppDateFormatter().getTime(10, 10, 0),
-        checkOutEnable = AppDateFormatter().getTime(11, 38, 0),
+        checkOutEnable = AppDateFormatter().getTime(11, 30, 0),
         checkInTime = AppDateFormatter().getTime(10, 11, 4),
         checkOutTime = null
     )
@@ -202,8 +202,8 @@ fun getNextEvents(): List<Event> {
             type = "Aula",
             beginTime = AppDateFormatter().getTime(16, 0, 0),
             endTime = AppDateFormatter().getTime(17, 40, 0),
-            checkInEnable = null,
-            checkOutEnable = null,
+            checkInEnable = AppDateFormatter().getTime(16, 0, 0),
+            checkOutEnable = AppDateFormatter().getTime(17, 40, 0),
             checkInTime = null,
             checkOutTime = null
         )

@@ -316,9 +316,12 @@ fun DayEventsSection(
         ) {
             sortedEvents.forEach { event ->
                 // TODO: verificar qual é o evento atual para apenas ele ter borda
-                DayEventsSectionItem(event.checkInTime, "Check-in", event.title)
+                DayEventsSectionItem(event.checkInTime, "Check-in", event.title, false)
 
-                DayEventsSectionItem(event.checkOutTime, "Check-out", event.title)
+                if (Integer.valueOf(event.id) == 3)
+                    DayEventsSectionItem(event.checkOutTime, "Check-out", event.title, true)
+                else
+                    DayEventsSectionItem(event.checkOutTime, "Check-out", event.title, false)
             }
         }
     } else {
@@ -330,7 +333,8 @@ fun DayEventsSection(
 fun DayEventsSectionItem(
     checkTime: Date?,
     checkType: String,
-    eventTitle: String
+    eventTitle: String,
+    isCurrentEvent: Boolean
 ) {
     Row(
         modifier = Modifier
@@ -363,7 +367,7 @@ fun DayEventsSectionItem(
                 .border(
                     BorderStroke(
                         width = 1.dp,
-                        color = AppColors().darkGreen
+                        color = if (isCurrentEvent) AppColors().darkGreen else AppColors().transparent
                     ),
                     shape = RoundedCornerShape(15.dp)
                 )
