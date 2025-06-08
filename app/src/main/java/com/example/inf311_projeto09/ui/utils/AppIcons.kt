@@ -59,6 +59,25 @@ class AppIcons {
         }
 
         @Composable
+        fun CircleArrowRight(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.circle_arrow_right),
+                    contentDescription = "Seta para esquerda",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
         fun Mail(boxSize: Dp, colorIcon: Color = AppColors().white) {
             Box(
                 modifier = Modifier
@@ -192,6 +211,25 @@ class AppIcons {
         }
 
         @Composable
+        fun CalendarDays(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.calendar_days),
+                    contentDescription = "Pino",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
         fun CircleUserRound(boxSize: Dp, colorIcon: Color = AppColors().white) {
             Box(
                 modifier = Modifier
@@ -202,6 +240,25 @@ class AppIcons {
                 Icon(
                     painter = painterResource(id = lucide.circle_user_round),
                     contentDescription = "Círculo de usuário",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun Pin(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.pin),
+                    contentDescription = "Pino",
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(1f),
@@ -232,7 +289,12 @@ class AppIcons {
         }
 
         @Composable
-        fun CircleClose(boxSize: Dp, colorIcon: Color, backgroundColorIcon: Color, modifier: Modifier = Modifier) {
+        fun CircleClose(
+            boxSize: Dp,
+            colorIcon: Color,
+            backgroundColorIcon: Color,
+            modifier: Modifier = Modifier
+        ) {
             Box(
                 modifier = modifier
                     .size(boxSize)

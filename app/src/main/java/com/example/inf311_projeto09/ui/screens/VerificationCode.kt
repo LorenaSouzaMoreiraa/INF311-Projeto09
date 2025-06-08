@@ -145,7 +145,6 @@ fun VerificationCodeScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth(1f)
-                    //.padding(top = 80.dp)
             )
         }
     }
