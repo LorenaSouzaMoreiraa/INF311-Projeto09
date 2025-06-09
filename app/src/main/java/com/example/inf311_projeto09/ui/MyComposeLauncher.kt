@@ -10,15 +10,15 @@ import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.getCurrentEvent
 import com.example.inf311_projeto09.model.getNextEvents
-import com.example.inf311_projeto09.ui.screens.CalendarScreen
-import com.example.inf311_projeto09.ui.screens.HomeScreen
 import com.example.inf311_projeto09.ui.screens.LoginScreen
-import com.example.inf311_projeto09.ui.screens.NotificationsScreen
-import com.example.inf311_projeto09.ui.screens.QrScannerScreen
 import com.example.inf311_projeto09.ui.screens.RegisterScreen
-import com.example.inf311_projeto09.ui.screens.ProfileScreen
 import com.example.inf311_projeto09.ui.screens.UserRoleScreen
 import com.example.inf311_projeto09.ui.screens.WelcomeScreen
+import com.example.inf311_projeto09.ui.screens.user.CalendarScreen
+import com.example.inf311_projeto09.ui.screens.user.HomeScreen
+import com.example.inf311_projeto09.ui.screens.user.NotificationsScreen
+import com.example.inf311_projeto09.ui.screens.user.ProfileScreen
+import com.example.inf311_projeto09.ui.screens.user.QrScannerScreen
 
 enum class ScreenType(val route: String) {
     WELCOME("welcome"),
@@ -55,15 +55,6 @@ fun AppNavHost(navController: NavHostController) {
         composable(ScreenType.WELCOME.route) {
             WelcomeScreen(
                 onContinue = {
-                    navController.navigate(ScreenType.USER_ROLE.route)
-                }
-            )
-        }
-
-        composable(ScreenType.USER_ROLE.route) {
-            // TODO: precisa ter uma opção selecionada
-            UserRoleScreen(
-                onRoleSelected = {
                     navController.navigate(ScreenType.LOGIN.route)
                 }
             )
@@ -74,12 +65,46 @@ fun AppNavHost(navController: NavHostController) {
             // TODO: precisa ter os dados preenchidos e verificar
             // TODO: fazer a tela de login e esqueci senha?
             LoginScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
                 onLoginSuccess = { rememberUser ->
                     navController.navigate(ScreenType.HOME.route) {
                         popUpTo(ScreenType.WELCOME.route) { inclusive = true }
+                    }
+                },
+                onSignUpClick = {
+                    navController.navigate(ScreenType.USER_ROLE.route)
+                }
+            )
+        }
+
+        composable(ScreenType.USER_ROLE.route) {
+            // TODO: precisa ter uma opção selecionada
+            UserRoleScreen(
+                onBack = {
+                    navController.popBackStack()
+                },
+                onRoleSelected = {
+                    navController.navigate(ScreenType.REGISTER.route)
+                }
+            )
+        }
+
+        composable(ScreenType.REGISTER.route) {
+            // TODO: apagar mock
+            RegisterScreen(
+                onBack = {
+                    navController.popBackStack()
+                },
+                onSignUpSuccess = { signUpSuccess ->
+                    if (signUpSuccess)
+                        navController.navigate(ScreenType.LOGIN.route) {
+                            popUpTo(ScreenType.LOGIN.route) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                },
+                onLoginClick = {
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(ScreenType.LOGIN.route) { inclusive = false }
+                        launchSingleTop = true
                     }
                 }
             )
@@ -101,27 +126,28 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable(ScreenType.PROFILE.route) {
-            ProfileScreen(navController = navController)
+            ProfileScreen(
+                navController = navController
+            )
         }
 
         composable(ScreenType.NOTIFICATIONS.route) {
             // TODO: apagar mock
             NotificationsScreen(
-                notificationsMock = notificationsMock,
-                navController = navController
+                onBack = {
+                    navController.popBackStack()
+                },
+                notificationsMock = notificationsMock
             )
         }
 
         composable(ScreenType.QR_SCANNER.route) {
             // TODO: apagar mock
             QrScannerScreen(
-                navController = navController
+                onBack = {
+                    navController.popBackStack()
+                }
             )
-        }
-
-        composable(ScreenType.REGISTER.route) {
-            // TODO: apagar mock
-            RegisterScreen()
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.inf311_projeto09.ui.screens
+package com.example.inf311_projeto09.ui.screens.user
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background

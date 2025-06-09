@@ -367,11 +367,10 @@ class AppIcons {
         fun CircleClose(
             boxSize: Dp,
             colorIcon: Color,
-            backgroundColorIcon: Color,
-            modifier: Modifier = Modifier
+            backgroundColorIcon: Color
         ) {
             Box(
-                modifier = modifier
+                modifier = Modifier
                     .size(boxSize)
                     .background(color = colorIcon, shape = CircleShape),
                 contentAlignment = Alignment.Center

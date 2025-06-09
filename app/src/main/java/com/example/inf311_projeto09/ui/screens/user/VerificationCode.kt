@@ -1,6 +1,7 @@
-package com.example.inf311_projeto09.ui.screens
+package com.example.inf311_projeto09.ui.screens.user
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -12,10 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -28,6 +31,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -36,12 +40,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 
 @Composable
 fun VerificationCodeScreen(
+    onBack: () -> Unit = {}
 ) {
     val code = remember { mutableStateListOf("", "", "", "") }
     val focusRequesters = remember { List(4) { FocusRequester() } }
@@ -51,25 +57,32 @@ fun VerificationCodeScreen(
             .fillMaxSize()
             .background(AppColors().darkGreen)
     ) {
-        AppIcons.Filled.CircleClose(
-            boxSize = 30.dp,
-            colorIcon = AppColors().lightGreen,
-            backgroundColorIcon = AppColors().darkGreen,
+        Box(
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 50.dp, start = 24.dp)
-        )
+                .fillMaxWidth()
+                .padding(top = 50.dp, start = 24.dp, end = 24.dp)
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.size(30.dp)
+            ) {
+                AppIcons.Filled.CircleClose(
+                    boxSize = 30.dp,
+                    colorIcon = AppColors().lightGreen,
+                    backgroundColorIcon = AppColors().darkGreen
+                )
+            }
 
-        Text(
-            text = "Check-in",
-            fontFamily = AppFonts().montserrat,
-            fontWeight = FontWeight.SemiBold,
-            color = AppColors().white,
-            fontSize = 26.sp,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 50.dp)
-        )
+            Text(
+                text = "Check-in",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors().white,
+                fontSize = 26.sp,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+            )
+        }
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

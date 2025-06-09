@@ -1,4 +1,4 @@
-package com.example.inf311_projeto09.ui.screens
+package com.example.inf311_projeto09.ui.screens.user
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -8,15 +8,19 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,29 +34,24 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.example.inf311_projeto09.ui.utils.AppFonts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.IconButton
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateFormatter
+import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.delay
 
 @Composable
-fun QrScannerScreen(navController: NavHostController) {
+fun QrScannerScreen(
+    onBack: () -> Unit = {}
+) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     var cameraPermissionGranted by remember {
         mutableStateOf(
@@ -95,7 +94,7 @@ fun QrScannerScreen(navController: NavHostController) {
                     cameraProviderFuture.addListener({
                         val cameraProvider = cameraProviderFuture.get()
                         val preview = androidx.camera.core.Preview.Builder().build().also {
-                            it.setSurfaceProvider(previewView.surfaceProvider)
+                            it.surfaceProvider = previewView.surfaceProvider
                         }
                         val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
                         try {
@@ -111,7 +110,9 @@ fun QrScannerScreen(navController: NavHostController) {
             )
         } else {
             Box(
-                modifier = Modifier.fillMaxSize().background(Color.Black),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -139,14 +140,13 @@ fun QrScannerScreen(navController: NavHostController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = onBack,
                     modifier = Modifier.size(30.dp)
                 ) {
                     AppIcons.Filled.CircleClose(
                         boxSize = 30.dp,
                         colorIcon = AppColors().lightGreen,
-                        backgroundColorIcon = AppColors().darkGreen,
-                        modifier = Modifier
+                        backgroundColorIcon = AppColors().darkGreen
                     )
                 }
 
@@ -281,5 +281,5 @@ fun QrScannerScreen(navController: NavHostController) {
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun QrScannerScreenPreview() {
-    QrScannerScreen(navController = rememberNavController())
+    QrScannerScreen()
 }

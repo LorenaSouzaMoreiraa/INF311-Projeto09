@@ -57,7 +57,6 @@ import com.example.inf311_projeto09.ui.utils.AppIcons
 
 @Composable
 fun LoginScreen(
-    onBack: () -> Unit = {},
     onLoginSuccess: (Boolean) -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onSignUpClick: () -> Unit = {},
@@ -111,13 +110,6 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .padding(top = 50.dp, start = 30.dp, end = 30.dp)
         ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier.size(30.dp)
-            ) {
-                AppIcons.Outline.CircleArrowLeft(30.dp, AppColors().white)
-            }
-
             Image(
                 painter = painterResource(id = R.drawable.extended_logo),
                 contentDescription = "Logotipo extendida",

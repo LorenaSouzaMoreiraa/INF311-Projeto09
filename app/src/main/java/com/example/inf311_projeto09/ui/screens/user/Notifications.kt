@@ -1,4 +1,4 @@
-package com.example.inf311_projeto09.ui.screens
+package com.example.inf311_projeto09.ui.screens.user
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,7 +26,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.model.Notification
 import com.example.inf311_projeto09.model.NotificationsMock
@@ -37,7 +36,7 @@ import com.example.inf311_projeto09.ui.utils.AppIcons
 
 @Composable
 fun NotificationsScreen(
-    navController: NavHostController,
+    onBack: () -> Unit = {},
     notificationsMock: NotificationsMock
 ) {
     Box(
@@ -59,7 +58,7 @@ fun NotificationsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
-                        onClick = { navController.popBackStack() },
+                        onClick = onBack,
                         modifier = Modifier.size(30.dp)
                     ) {
                         AppIcons.Outline.CircleArrowLeft(30.dp, AppColors().darkGreen)
@@ -185,5 +184,7 @@ fun NotificationItem(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun NotificationsScreenPreview() {
-    NotificationsScreen(notificationsMock = NotificationsMock(), navController = rememberNavController())
+    NotificationsScreen(
+        notificationsMock = NotificationsMock()
+    )
 }

@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,6 +39,7 @@ import com.example.inf311_projeto09.ui.utils.AppIcons
 
 @Composable
 fun UserRoleScreen(
+    onBack: () -> Unit = {},
     onRoleSelected: () -> Unit = {},
     onClickCard: (String) -> Unit = {}
 ) {
@@ -51,22 +54,34 @@ fun UserRoleScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 50.dp, horizontal = 40.dp),
+                .padding(vertical = 50.dp, horizontal = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.extended_logo),
-                contentDescription = "Logotipo extendida",
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .align(Alignment.CenterHorizontally)
-            )
+                    .fillMaxWidth()
+            ) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.size(30.dp)
+                ) {
+                    AppIcons.Outline.CircleArrowLeft(30.dp, AppColors().white)
+                }
+
+                Image(
+                    painter = painterResource(id = R.drawable.extended_logo),
+                    contentDescription = "Logotipo extendida",
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .align(Alignment.Center)
+                )
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
+                    .fillMaxWidth()
                     .weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
