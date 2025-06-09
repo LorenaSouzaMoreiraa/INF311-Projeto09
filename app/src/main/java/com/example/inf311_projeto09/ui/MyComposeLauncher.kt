@@ -14,6 +14,7 @@ import com.example.inf311_projeto09.ui.screens.CalendarScreen
 import com.example.inf311_projeto09.ui.screens.HomeScreen
 import com.example.inf311_projeto09.ui.screens.LoginScreen
 import com.example.inf311_projeto09.ui.screens.NotificationsScreen
+import com.example.inf311_projeto09.ui.screens.QrScannerScreen
 import com.example.inf311_projeto09.ui.screens.ProfileScreen
 import com.example.inf311_projeto09.ui.screens.UserRoleScreen
 import com.example.inf311_projeto09.ui.screens.WelcomeScreen
@@ -25,7 +26,8 @@ enum class ScreenType(val route: String) {
     HOME("home"),
     PROFILE("profile"),
     CALENDAR("calendar"),
-    NOTIFICATIONS("notifications")
+    NOTIFICATIONS("notifications"),
+    QR_SCANNER("qr_scanner")
 }
 
 val notificationsMock = NotificationsMock()
@@ -104,6 +106,13 @@ fun AppNavHost(navController: NavHostController) {
             // TODO: apagar mock
             NotificationsScreen(
                 notificationsMock = notificationsMock,
+                navController = navController
+            )
+        }
+
+        composable(ScreenType.QR_SCANNER.route) {
+            // TODO: apagar mock
+            QrScannerScreen(
                 navController = navController
             )
         }

@@ -1,5 +1,6 @@
 package com.example.inf311_projeto09.model
 
+// TODO substituir timeAgo para Data
 data class Notification(
     val id: Int,
     val title: String,
