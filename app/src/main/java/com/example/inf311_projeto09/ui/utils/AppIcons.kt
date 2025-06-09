@@ -220,7 +220,7 @@ class AppIcons {
             ) {
                 Icon(
                     painter = painterResource(id = lucide.calendar_days),
-                    contentDescription = "Pino",
+                    contentDescription = "Dias do calendário",
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(1f),
@@ -278,6 +278,25 @@ class AppIcons {
                 Icon(
                     painter = painterResource(id = lucide.clock),
                     contentDescription = "Relógio",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun ArrowDown(boxSize: Dp, colorIcon: Color = AppColors().grey) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.chevron_down),
+                    contentDescription = "Expandir",
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(1f),
