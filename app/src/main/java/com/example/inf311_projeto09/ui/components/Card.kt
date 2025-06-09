@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,8 +41,10 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateFormatter
@@ -380,6 +383,97 @@ fun EmptyEventCard(message: String) {
                 color = AppColors().grey,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun StatisticCard(number: Int, message: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier
+            .aspectRatio(1.5f)
+            .border(
+                BorderStroke(
+                    width = 1.dp,
+                    color = AppColors().darkGreen
+                ),
+                shape = RoundedCornerShape(5.dp)
+            ),
+        shape = RoundedCornerShape(5.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors().mediumGreen)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(15.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = number.toString(),
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors().black,
+                fontSize = 40.sp,
+                textAlign = TextAlign.Start
+            )
+
+            Text(
+                text = message,
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors().black,
+                fontSize = 10.sp,
+                textAlign = TextAlign.Start
+            )
+        }
+    }
+}
+
+@Composable
+fun SeeEventsCard(
+    modifier: Modifier = Modifier,
+    navController: NavHostController
+) {
+    Card(
+        modifier = modifier
+            .aspectRatio(1.5f)
+            .drawBehind {
+                val cornerRadiusPx = 5.dp.toPx()
+                val borderWidthPx = 1.dp.toPx()
+
+                drawRoundRect(
+                    color = AppColors().darkGreen,
+                    topLeft = Offset(borderWidthPx / 2, borderWidthPx / 2),
+                    size = Size(size.width - borderWidthPx, size.height - borderWidthPx),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(
+                        cornerRadiusPx,
+                        cornerRadiusPx
+                    ),
+                    style = Stroke(
+                        width = borderWidthPx,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 5f), 0f)
+                    )
+                )
+            },
+        shape = RoundedCornerShape(5.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors().transparent)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(15.dp)
+                .clickable { /* TODO: navController.navigate(ScreenType.EVENTS?.route) */ },
+            contentAlignment = Alignment.BottomStart
+        ) {
+            Text(
+                text = "Visualizar meus\neventos >>",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors().darkGreen,
+                fontSize = 10.sp,
+                textDecoration = TextDecoration.Underline,
+                textAlign = TextAlign.Start
             )
         }
     }

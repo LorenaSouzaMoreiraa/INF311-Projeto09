@@ -4,7 +4,11 @@ import androidx.compose.ui.graphics.Color
 
 class AppColors {
     val green = Color(0xFFA2D95B)
+    val mediumGreen = Color(0xFFE9FFA0)
     val darkGreen = Color(0xFF003612)
+    val darkPastelGreen = Color(0xFF248845)
+    val pastelGreen = Color(0xFF46B069)
+    val lightPastelGreen = Color(0xFFA8FFC5)
     val lightGreen = Color(0xFFD4FB51)
     val lightYellow = Color(0xFFF2FFC7)
     val red = Color(0xFFE63946)
@@ -14,5 +18,6 @@ class AppColors {
     val lightGrey = Color(0xFFC5C5C5)
     val grey = Color(0xFF848484)
     val greyTransparent = Color(0x1AD9D9D9)
+    val darkGrey = Color(0xFFD9D9D9)
     val transparent = Color.Transparent
 }

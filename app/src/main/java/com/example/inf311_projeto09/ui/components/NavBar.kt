@@ -57,7 +57,7 @@ private fun ProfileIcon(
     isProfileSelected: Boolean
 ) {
     // TODO: colocar foto do usuário
-    val profileImage = null
+    val profileImage = 1
 
     // TODO: mudar as rotas do clique
     Box(
@@ -95,7 +95,7 @@ private fun ProfileIcon(
                     .clip(CircleShape)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.logo),
+                    painter = painterResource(id = R.drawable.perfil),
                     contentDescription = "Foto do usuário",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier

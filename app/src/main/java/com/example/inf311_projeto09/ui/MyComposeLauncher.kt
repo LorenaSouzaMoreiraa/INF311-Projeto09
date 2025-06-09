@@ -14,6 +14,7 @@ import com.example.inf311_projeto09.ui.screens.CalendarScreen
 import com.example.inf311_projeto09.ui.screens.HomeScreen
 import com.example.inf311_projeto09.ui.screens.LoginScreen
 import com.example.inf311_projeto09.ui.screens.NotificationsScreen
+import com.example.inf311_projeto09.ui.screens.ProfileScreen
 import com.example.inf311_projeto09.ui.screens.UserRoleScreen
 import com.example.inf311_projeto09.ui.screens.WelcomeScreen
 
@@ -96,12 +97,7 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable(ScreenType.PROFILE.route) {
-            // TODO: mudar rota do perfil
-            HomeScreen(
-                currentEvent = getCurrentEvent(),
-                nextEvents = getNextEvents(),
-                navController = navController
-            )
+            ProfileScreen(navController = navController)
         }
 
         composable(ScreenType.NOTIFICATIONS.route) {

@@ -266,6 +266,44 @@ class AppIcons {
                 )
             }
         }
+
+        @Composable
+        fun LogOut(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.log),
+                    contentDescription = "Pino",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun Settings(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.settings),
+                    contentDescription = "Pino",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
     }
 
     object Filled {
