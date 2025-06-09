@@ -1,5 +1,6 @@
 package com.example.inf311_projeto09;
 
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +18,28 @@ public class MainActivity extends ComponentActivity {
         super.onCreate(savedInstanceState);
 
         MyComposeLauncher.launch(this);
+
+        final View decorView = this.getWindow().getDecorView();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            decorView.setOnApplyWindowInsetsListener((v, insets) -> {
+                if (!insets.isVisible(WindowInsets.Type.ime())) {
+                    this.hideSystemUI();
+                }
+                return v.onApplyWindowInsets(insets);
+            });
+        } else {
+            decorView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+                final Rect r = new Rect();
+                decorView.getWindowVisibleDisplayFrame(r);
+                final int screenHeight = decorView.getRootView().getHeight();
+                final int keypadHeight = screenHeight - r.bottom;
+
+                if (keypadHeight < screenHeight * 0.15) {
+                    this.hideSystemUI();
+                }
+            });
+        }
     }
 
     @Override
