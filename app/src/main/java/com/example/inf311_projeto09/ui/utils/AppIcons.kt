@@ -68,7 +68,7 @@ class AppIcons {
             ) {
                 Icon(
                     painter = painterResource(id = lucide.circle_arrow_right),
-                    contentDescription = "Seta para esquerda",
+                    contentDescription = "Seta para direita",
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(1f),
@@ -287,7 +287,11 @@ class AppIcons {
         }
 
         @Composable
-        fun ArrowDown(boxSize: Dp, colorIcon: Color = AppColors().grey, modifier: Modifier = Modifier) {
+        fun ArrowDown(
+            boxSize: Dp,
+            colorIcon: Color = AppColors().grey,
+            modifier: Modifier = Modifier
+        ) {
             Box(
                 modifier = modifier
                     .size(boxSize)
@@ -314,7 +318,7 @@ class AppIcons {
             ) {
                 Icon(
                     painter = painterResource(id = lucide.log),
-                    contentDescription = "Pino",
+                    contentDescription = "Deslogar",
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(1f),
@@ -333,7 +337,26 @@ class AppIcons {
             ) {
                 Icon(
                     painter = painterResource(id = lucide.settings),
-                    contentDescription = "Pino",
+                    contentDescription = "Configurações",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun Target(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.target),
+                    contentDescription = "Alvo",
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(1f),

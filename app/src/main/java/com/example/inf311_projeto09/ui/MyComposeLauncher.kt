@@ -19,17 +19,19 @@ import com.example.inf311_projeto09.ui.screens.user.HomeScreen
 import com.example.inf311_projeto09.ui.screens.user.NotificationsScreen
 import com.example.inf311_projeto09.ui.screens.user.ProfileScreen
 import com.example.inf311_projeto09.ui.screens.user.QrScannerScreen
+import com.example.inf311_projeto09.ui.screens.user.VerificationCodeScreen
 
 enum class ScreenType(val route: String) {
     WELCOME("welcome"),
-    USER_ROLE("user_role"),
     LOGIN("login"),
+    USER_ROLE("user_role"),
+    REGISTER("register"),
     HOME("home"),
     PROFILE("profile"),
     CALENDAR("calendar"),
     NOTIFICATIONS("notifications"),
     QR_SCANNER("qr_scanner"),
-    REGISTER("register")
+    VERIFICATION_CODE("verification_code")
 }
 
 val notificationsMock = NotificationsMock()
@@ -144,6 +146,15 @@ fun AppNavHost(navController: NavHostController) {
         composable(ScreenType.QR_SCANNER.route) {
             // TODO: apagar mock
             QrScannerScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(ScreenType.VERIFICATION_CODE.route) {
+            // TODO: apagar mock
+            VerificationCodeScreen(
                 onBack = {
                     navController.popBackStack()
                 }

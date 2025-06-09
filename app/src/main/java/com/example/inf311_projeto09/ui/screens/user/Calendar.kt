@@ -45,6 +45,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.getMockEventsForDate
+import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
@@ -83,59 +84,79 @@ fun CalendarScreen(
         scrollToToday()
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColors().darkGreen)
     ) {
-        CalendarTopBarSection(
-            onPinClick = scrollToToday,
-            selectedDate = selectedDate,
-            onDateSelected = { date ->
-                selectedDate = date
-                // TODO: pegar eventos reais
-                eventsForSelectedDay.value = getMockEventsForDate(date.time)
-                calendarViewModel.setToWeekOf(date)
-            },
-            calendarViewModel = calendarViewModel
-        )
-
-        Spacer(modifier = Modifier.height(15.dp))
-
-        DaySelectorSection(
-            selectedDay = selectedDate,
-            calendarViewModel = calendarViewModel,
-            lazyListState = lazyListState,
-            onDaySelected = { date ->
-                selectedDate = date
-                // TODO: pegar eventos reais
-                eventsForSelectedDay.value = getMockEventsForDate(date.time)
-            }
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(
-                    AppColors().white,
-                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
-                )
-                .padding(horizontal = 30.dp)
-                .padding(top = 20.dp)
-                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
         ) {
-            DayEventsSection(events = eventsForSelectedDay.value)
+            CalendarTopBarSection(
+                onPinClick = scrollToToday,
+                selectedDate = selectedDate,
+                onDateSelected = { date ->
+                    selectedDate = date
+                    // TODO: pegar eventos reais
+                    eventsForSelectedDay.value = getMockEventsForDate(date.time)
+                    calendarViewModel.setToWeekOf(date)
+                },
+                calendarViewModel = calendarViewModel
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            DaySelectorSection(
+                selectedDay = selectedDate,
+                calendarViewModel = calendarViewModel,
+                lazyListState = lazyListState,
+                onDaySelected = { date ->
+                    selectedDate = date
+                    // TODO: pegar eventos reais
+                    eventsForSelectedDay.value = getMockEventsForDate(date.time)
+                }
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(
+                        AppColors().white,
+                        shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+                    )
+                    .padding(horizontal = 30.dp)
+                    .padding(top = 20.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                DayEventsSection(events = eventsForSelectedDay.value)
+
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            NavBar(
+                navController = navController,
+                NavBarOption.CALENDAR
+            )
         }
 
-        NavBar(
-            navController = navController,
-            NavBarOption.CALENDAR
-        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = 80.dp)
+                .size(50.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(AppColors().darkGreen)
+                .clickable {
+                    navController.navigate(ScreenType.VERIFICATION_CODE.route)
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            AppIcons.Outline.Target(25.dp, AppColors().lightGreen)
+        }
     }
 }
 

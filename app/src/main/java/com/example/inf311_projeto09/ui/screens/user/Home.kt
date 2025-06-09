@@ -68,59 +68,79 @@ fun HomeScreen(
     currentEvent: Event? = null,
     nextEvents: List<Event> = emptyList()
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColors().darkGreen)
     ) {
-        TopBarSection(userName, navController)
-
-        Spacer(modifier = Modifier.height(15.dp))
-
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(
-                    AppColors().white,
-                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
-                )
-                .padding(horizontal = 30.dp)
-                .padding(top = 20.dp)
-                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
         ) {
-            DateTimeSection()
+            TopBarSection(userName, navController)
+
+            Spacer(modifier = Modifier.height(15.dp))
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .background(
+                        AppColors().white,
+                        shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+                    )
+                    .padding(horizontal = 30.dp)
+                    .padding(top = 20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(
-                    text = "Acontecendo agora",
-                    fontFamily = AppFonts().montserrat,
-                    fontWeight = FontWeight.SemiBold,
-                    color = AppColors().darkGreen,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 15.dp)
-                )
+                DateTimeSection()
 
-                if (currentEvent != null) {
-                    EventCard(event = currentEvent, isCurrentEvent = true)
-                } else {
-                    EmptyEventCard("Nenhum evento acontecendo")
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text = "Acontecendo agora",
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        color = AppColors().darkGreen,
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(bottom = 15.dp)
+                    )
+
+                    if (currentEvent != null) {
+                        EventCard(event = currentEvent, isCurrentEvent = true)
+                    } else {
+                        EmptyEventCard("Nenhum evento acontecendo")
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    NextEventsSection(nextEvents = nextEvents)
+
+                    Spacer(modifier = Modifier.weight(1f))
                 }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                NextEventsSection(nextEvents = nextEvents)
-
-                Spacer(modifier = Modifier.weight(1f))
             }
+
+            NavBar(navController, NavBarOption.HOME)
         }
 
-        NavBar(navController, NavBarOption.HOME)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = 80.dp)
+                .size(50.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(AppColors().darkGreen)
+                .clickable {
+                    navController.navigate(ScreenType.QR_SCANNER.route)
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            AppIcons.Outline.Target(25.dp, AppColors().lightGreen)
+        }
     }
 }
 
