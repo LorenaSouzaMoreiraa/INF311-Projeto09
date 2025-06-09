@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -47,7 +48,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -198,7 +201,9 @@ fun RegisterScreen(
 
                     OutlinedTextField(
                         value = cpf,
-                        onValueChange = { cpf = it },
+                        onValueChange = { newValue ->
+                            cpf = newValue.filter { it.isDigit() }.take(11)
+                        },
                         label = {
                             Text(
                                 "CPF",
@@ -217,6 +222,9 @@ fun RegisterScreen(
                         ),
                         shape = RoundedCornerShape(8.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        visualTransformation = VisualTransformation { text ->
+                            text.text.toCpfMasked()
+                        },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -491,6 +499,42 @@ fun RegisterScreen(
             }
         }
     }
+}
+
+fun formatCpf(cpf: String): String {
+    val trimmed = if (cpf.length >= 11) cpf.substring(0..10) else cpf
+    var out = ""
+    for (i in trimmed.indices) {
+        out += trimmed[i]
+        if (i == 2 || i == 5) out += "."
+        if (i == 8) out += "-"
+    }
+    return out
+}
+
+fun createCpfOffsetMapping(): OffsetMapping {
+    return object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int {
+            if (offset <= 2) return offset
+            if (offset <= 5) return offset + 1
+            if (offset <= 8) return offset + 2
+            return offset + 3
+        }
+
+        override fun transformedToOriginal(offset: Int): Int {
+            if (offset <= 3) return offset
+            if (offset <= 7) return offset - 1
+            if (offset <= 11) return offset - 2
+            return offset - 3
+        }
+    }
+}
+
+fun String.toCpfMasked(): TransformedText {
+    val originalCpfDigits = this.filter { it.isDigit() }.take(11)
+    val maskedCpf = formatCpf(originalCpfDigits)
+    val offsetMapping = createCpfOffsetMapping()
+    return TransformedText(AnnotatedString(maskedCpf), offsetMapping)
 }
 
 @Preview(showBackground = true, showSystemUi = true)
