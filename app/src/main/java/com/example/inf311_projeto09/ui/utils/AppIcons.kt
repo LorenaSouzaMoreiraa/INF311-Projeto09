@@ -287,9 +287,9 @@ class AppIcons {
         }
 
         @Composable
-        fun ArrowDown(boxSize: Dp, colorIcon: Color = AppColors().grey) {
+        fun ArrowDown(boxSize: Dp, colorIcon: Color = AppColors().grey, modifier: Modifier = Modifier) {
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .size(boxSize)
                     .background(color = AppColors().transparent, shape = RectangleShape),
                 contentAlignment = Alignment.Center
@@ -298,8 +298,7 @@ class AppIcons {
                     painter = painterResource(id = lucide.chevron_down),
                     contentDescription = "Expandir",
                     modifier = Modifier
-                        .fillMaxSize()
-                        .scale(1f),
+                        .fillMaxSize(),
                     tint = colorIcon
                 )
             }

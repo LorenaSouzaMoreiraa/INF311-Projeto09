@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +22,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -33,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -51,15 +56,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inf311_projeto09.R
+import com.example.inf311_projeto09.model.UniversitiesMock
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     onBack: () -> Unit = {},
     onSignUpSuccess: (Boolean) -> Unit = {},
     onLoginClick: () -> Unit = {},
+    universitiesMock: UniversitiesMock = UniversitiesMock(),
 ) {
     var cpf by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
@@ -70,8 +78,21 @@ fun RegisterScreen(
     var passwordVisibility by remember { mutableStateOf(false) }
     var confirmPasswordVisibility by remember { mutableStateOf(false) }
 
+    var expanded by remember { mutableStateOf(false) }
+    val universities = remember { universitiesMock.getUniversitiesList() }
+
     val focusManager: FocusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
+
+    val maxVisibleItems = 5
+    val itemHeight = 50.dp
+    val dropdownMaxHeight = itemHeight * maxVisibleItems
+    val customDropdownShape = RoundedCornerShape(
+        topStart = 0.dp,
+        topEnd = 0.dp,
+        bottomStart = 8.dp,
+        bottomEnd = 8.dp
+    )
 
     val annotatedTermsAndPrivacy = buildAnnotatedString {
         append("Ao prosseguir, você declara estar de acordo com os ")
@@ -226,34 +247,72 @@ fun RegisterScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    OutlinedTextField(
-                        value = university,
-                        onValueChange = { university = it },
-                        label = {
-                            Text(
-                                "Instituição de Ensino",
-                                fontFamily = AppFonts().montserrat,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp,
-                                color = AppColors().grey
-                            )
-                        },
-                        trailingIcon = {
-                            AppIcons.Outline.ArrowDown(24.dp)
-                        },
-                        readOnly = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = AppColors().black,
-                            unfocusedTextColor = AppColors().black,
-                            focusedBorderColor = AppColors().lightGrey,
-                            unfocusedBorderColor = AppColors().lightGrey,
-                            cursorColor = AppColors().black
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { /* TODO: Abrir seletor de universidade */ }
-                    )
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = university,
+                            onValueChange = { university = it },
+                            readOnly = true,
+                            label = {
+                                Text(
+                                    "Instituição de Ensino",
+                                    fontFamily = AppFonts().montserrat,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp,
+                                    color = AppColors().grey
+                                )
+                            },
+                            trailingIcon = {
+                                AppIcons.Outline.ArrowDown(
+                                    boxSize = 24.dp,
+                                    colorIcon = AppColors().grey,
+                                    modifier = Modifier.graphicsLayer(rotationZ = if (expanded) 180f else 0f)
+                                )
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = AppColors().black,
+                                unfocusedTextColor = AppColors().black,
+                                focusedBorderColor = AppColors().lightGrey,
+                                unfocusedBorderColor = AppColors().lightGrey,
+                                cursorColor = AppColors().black
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier
+                                .background(AppColors().white)
+                                .heightIn(max = dropdownMaxHeight),
+                            shape = customDropdownShape
+                        ) {
+                            universities.forEachIndexed { index, selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(selectionOption) },
+                                    onClick = {
+                                        university = selectionOption
+                                        expanded = false
+                                    }
+                                )
+
+                                if (index < universities.size - 1) {
+                                    Spacer(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(0.8.dp)
+                                            .background(AppColors().lightGrey)
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
 

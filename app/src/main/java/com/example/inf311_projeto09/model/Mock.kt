@@ -258,3 +258,23 @@ class NotificationsMock {
         return notifications.all { it.isRead }
     }
 }
+
+class UniversitiesMock {
+    private val universities = mutableStateListOf<String>().apply {
+        addAll(
+            listOf(
+                "Universidade Federal de Viçosa (UFV)",
+                "Universidade Federal de Minas Gerais (UFMG)",
+                "Universidade de São Paulo (USP)",
+                "Universidade Estadual de Campinas (UNICAMP)",
+                "Universidade Federal do Rio de Janeiro (UFRJ)",
+                "Universidade Federal de Ouro Preto (UFOP)",
+                "Pontifícia Universidade Católica de Minas Gerais (PUC Minas)"
+            )
+        )
+    }
+
+    fun getUniversitiesList(): List<String> {
+        return universities
+    }
+}
