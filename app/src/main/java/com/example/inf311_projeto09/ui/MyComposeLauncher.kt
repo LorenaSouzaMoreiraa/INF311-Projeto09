@@ -11,6 +11,7 @@ import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.getCurrentEvent
 import com.example.inf311_projeto09.model.getNextEvents
 import com.example.inf311_projeto09.ui.screens.LoginScreen
+import com.example.inf311_projeto09.ui.screens.RecoverPasswordScreen
 import com.example.inf311_projeto09.ui.screens.RegisterScreen
 import com.example.inf311_projeto09.ui.screens.UserRoleScreen
 import com.example.inf311_projeto09.ui.screens.WelcomeScreen
@@ -31,7 +32,8 @@ enum class ScreenType(val route: String) {
     CALENDAR("calendar"),
     NOTIFICATIONS("notifications"),
     QR_SCANNER("qr_scanner"),
-    VERIFICATION_CODE("verification_code")
+    VERIFICATION_CODE("verification_code"),
+    RECOVER_PASSWORD("recover_password")
 }
 
 val notificationsMock = NotificationsMock()
@@ -74,6 +76,20 @@ fun AppNavHost(navController: NavHostController) {
                 },
                 onSignUpClick = {
                     navController.navigate(ScreenType.USER_ROLE.route)
+                },
+                onForgotPasswordClick = {
+                    navController.navigate(ScreenType.RECOVER_PASSWORD.route)
+                }
+            )
+        }
+
+        composable(ScreenType.RECOVER_PASSWORD.route) {
+            RecoverPasswordScreen(
+                onSendRecoveryLinkClick = { email ->
+                    // TODO: Talvez fazer o envio real de um link para esse email
+                },
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }
