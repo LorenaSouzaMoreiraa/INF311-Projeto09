@@ -4,7 +4,11 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -44,8 +48,11 @@ import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateFormatter
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalGetImage::class)
 @Composable
 fun QrScannerScreen(
     onBack: () -> Unit = {}
@@ -87,191 +94,223 @@ fun QrScannerScreen(
             .background(Color.Black)
     ) {
         if (cameraPermissionGranted) {
-            AndroidView(
-                factory = { ctx ->
-                    val previewView = PreviewView(ctx)
-                    val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-                    cameraProviderFuture.addListener({
-                        val cameraProvider = cameraProviderFuture.get()
-                        val preview = androidx.camera.core.Preview.Builder().build().also {
-                            it.surfaceProvider = previewView.surfaceProvider
-                        }
-                        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                        try {
-                            cameraProvider.unbindAll()
-                            cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
-                        } catch (exc: Exception) {
-                            println("Falha ao iniciar CameraX: ${exc.message}")
-                        }
-                    }, ContextCompat.getMainExecutor(ctx))
-                    previewView
-                },
-                modifier = Modifier.fillMaxSize()
-            )
+            CameraPreview(context, lifecycleOwner)
         } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Permissão da câmera necessária para escanear QR Code.",
-                    fontFamily = AppFonts().montserrat,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 30.dp)
-                )
-            }
+            CameraPermissionText()
         }
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 50.dp, start = 20.dp, end = 20.dp),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.size(30.dp)
-                ) {
-                    AppIcons.Filled.CircleClose(
-                        boxSize = 30.dp,
-                        colorIcon = AppColors().lightGreen,
-                        backgroundColorIcon = AppColors().darkGreen
-                    )
+        QrScannerUI(onBack, currentTime.value)
+    }
+}
+
+@Composable
+fun CameraPreview(ctx: android.content.Context, lifecycleOwner: androidx.lifecycle.LifecycleOwner) {
+    AndroidView(
+        factory = {
+            val previewView = PreviewView(ctx)
+            val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+            cameraProviderFuture.addListener({
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = Preview.Builder().build().also {
+                    it.surfaceProvider = previewView.surfaceProvider
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                val barcodeScanner = BarcodeScanning.getClient()
+
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+
+                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(ctx)) { imageProxy ->
+                    analyzeImage(imageProxy, ctx, barcodeScanner)
+                }
+
+                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                try {
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageAnalysis)
+                } catch (exc: Exception) {
+                    println("Falha ao iniciar CameraX: ${exc.message}")
+                }
+            }, ContextCompat.getMainExecutor(ctx))
+            previewView
+        },
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+@OptIn(ExperimentalGetImage::class)
+fun analyzeImage(imageProxy: androidx.camera.core.ImageProxy, ctx: android.content.Context, barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner) {
+    val mediaImage = imageProxy.image
+    if (mediaImage != null) {
+        val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+        barcodeScanner.process(image)
+            .addOnSuccessListener { barcodes ->
+                for (barcode in barcodes) {
+                    val rawValue = barcode.rawValue ?: continue
+                    val boundingBox = barcode.boundingBox ?: continue
+
+                    val imageWidth = image.width
+                    val imageHeight = image.height
+
+                    val dpToPx = ctx.resources.displayMetrics.density
+                    val boxSizePx = 250 * dpToPx
+
+                    val imageCenterX = imageWidth / 2
+                    val imageCenterY = imageHeight / 2
+
+                    val scanAreaLeft = imageCenterX - boxSizePx / 2
+                    val scanAreaTop = imageCenterY - boxSizePx / 2
+                    val scanAreaRight = imageCenterX + boxSizePx / 2
+                    val scanAreaBottom = imageCenterY + boxSizePx / 2
+
+                    val centerX = boundingBox.centerX().toFloat()
+                    val centerY = boundingBox.centerY().toFloat()
+
+                    val insideScanArea = centerX in scanAreaLeft..scanAreaRight &&
+                            centerY in scanAreaTop..scanAreaBottom
+
+                    if (insideScanArea) {
+                        println("✅ QR Code central lido: $rawValue")
+                    } else {
+                        println("❌ QR Code fora da área de leitura central")
+                    }
+                }
             }
+            .addOnFailureListener {
+                println("Erro na leitura: ${it.message}")
+            }
+            .addOnCompleteListener {
+                imageProxy.close()
+            }
+    } else {
+        imageProxy.close()
+    }
+}
 
-            Spacer(modifier = Modifier.height(50.dp))
+@Composable
+fun CameraPermissionText() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Permissão da câmera necessária para escanear QR Code.",
+            fontFamily = AppFonts().montserrat,
+            fontWeight = FontWeight.Medium,
+            color = Color.White,
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 30.dp)
+        )
+    }
+}
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .background(Color(0xAA333333), RoundedCornerShape(8.dp))
-                    .padding(vertical = 12.dp, horizontal = 20.dp),
-                contentAlignment = Alignment.Center
+@Composable
+fun QrScannerUI(onBack: () -> Unit, currentTime: String) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 50.dp, start = 20.dp, end = 20.dp),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.size(30.dp)
             ) {
-                Text(
-                    text = "Encontre um código para escanear",
-                    fontFamily = AppFonts().montserrat,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center
+                AppIcons.Filled.CircleClose(
+                    boxSize = 30.dp,
+                    colorIcon = AppColors().lightGreen,
+                    backgroundColorIcon = AppColors().darkGreen
                 )
             }
 
-            Spacer(modifier = Modifier.height(100.dp))
-
-            Box(
-                modifier = Modifier
-                    .size(250.dp)
-                    .drawBehind {
-                        val cornerSize = 30.dp.toPx()
-                        val strokeWidth = 3.dp.toPx()
-                        val cornerColor = AppColors().lightGreen
-
-                        drawLine(
-                            color = cornerColor,
-                            start = Offset(0f, cornerSize),
-                            end = Offset(0f, 0f),
-                            strokeWidth = strokeWidth
-                        )
-                        drawLine(
-                            color = cornerColor,
-                            start = Offset(cornerSize, 0f),
-                            end = Offset(0f, 0f),
-                            strokeWidth = strokeWidth
-                        )
-
-                        drawLine(
-                            color = cornerColor,
-                            start = Offset(size.width, cornerSize),
-                            end = Offset(size.width, 0f),
-                            strokeWidth = strokeWidth
-                        )
-                        drawLine(
-                            color = cornerColor,
-                            start = Offset(size.width - cornerSize, 0f),
-                            end = Offset(size.width, 0f),
-                            strokeWidth = strokeWidth
-                        )
-
-                        drawLine(
-                            color = cornerColor,
-                            start = Offset(0f, size.height - cornerSize),
-                            end = Offset(0f, size.height),
-                            strokeWidth = strokeWidth
-                        )
-                        drawLine(
-                            color = cornerColor,
-                            start = Offset(cornerSize, size.height),
-                            end = Offset(0f, size.height),
-                            strokeWidth = strokeWidth
-                        )
-
-                        drawLine(
-                            color = cornerColor,
-                            start = Offset(size.width, size.height - cornerSize),
-                            end = Offset(size.width, size.height),
-                            strokeWidth = strokeWidth
-                        )
-                        drawLine(
-                            color = cornerColor,
-                            start = Offset(size.width - cornerSize, size.height),
-                            end = Offset(size.width, size.height),
-                            strokeWidth = strokeWidth
-                        )
-                    }
-            )
-
             Spacer(modifier = Modifier.weight(1f))
+        }
 
-            Box(
-                modifier = Modifier
-                    .padding(bottom = 60.dp)
-                    .width(220.dp)
-                    .height(55.dp)
-                    .background(AppColors().lightGreen, RoundedCornerShape(25.dp)),
-                contentAlignment = Alignment.Center
+        Spacer(modifier = Modifier.height(50.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .background(Color(0xAA333333), RoundedCornerShape(8.dp))
+                .padding(vertical = 12.dp, horizontal = 20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Encontre um código para escanear",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                color = Color.White,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(modifier = Modifier.height(100.dp))
+
+        Box(
+            modifier = Modifier
+                .size(250.dp)
+                .drawBehind {
+                    val cornerSize = 30.dp.toPx()
+                    val strokeWidth = 3.dp.toPx()
+                    val cornerColor = AppColors().lightGreen
+
+                    drawLine(cornerColor, Offset(0f, cornerSize), Offset(0f, 0f), strokeWidth)
+                    drawLine(cornerColor, Offset(cornerSize, 0f), Offset(0f, 0f), strokeWidth)
+                    drawLine(cornerColor, Offset(size.width, cornerSize), Offset(size.width, 0f), strokeWidth)
+                    drawLine(cornerColor, Offset(size.width - cornerSize, 0f), Offset(size.width, 0f), strokeWidth)
+                    drawLine(cornerColor, Offset(0f, size.height - cornerSize), Offset(0f, size.height), strokeWidth)
+                    drawLine(cornerColor, Offset(cornerSize, size.height), Offset(0f, size.height), strokeWidth)
+                    drawLine(cornerColor, Offset(size.width, size.height - cornerSize), Offset(size.width, size.height), strokeWidth)
+                    drawLine(cornerColor, Offset(size.width - cornerSize, size.height), Offset(size.width, size.height), strokeWidth)
+                }
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Box(
+            modifier = Modifier
+                .padding(bottom = 60.dp)
+                .width(220.dp)
+                .height(55.dp)
+                .background(AppColors().lightGreen, RoundedCornerShape(25.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AppIcons.Outline.Clock(30.dp, Color.Black)
+                AppIcons.Outline.Clock(30.dp, Color.Black)
 
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier.padding(start = 10.dp)
-                    ) {
-                        Text(
-                            text = currentTime.value,
-                            fontFamily = AppFonts().montserrat,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.Black,
-                            fontSize = 16.sp
-                        )
-                        Text(
-                            text = "Brasil (UTC-3), Brasília",
-                            fontFamily = AppFonts().montserrat,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.Black.copy(alpha = 0.7f),
-                            fontSize = 10.sp
-                        )
-                    }
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier.padding(start = 10.dp)
+                ) {
+                    Text(
+                        text = currentTime,
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "Brasil (UTC-3), Brasília",
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black.copy(alpha = 0.7f),
+                        fontSize = 10.sp
+                    )
                 }
             }
         }

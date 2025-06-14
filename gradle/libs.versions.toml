@@ -1,6 +1,7 @@
 [versions]
 accompanistPermissions = "0.34.0"
 agp = "8.9.2"
+barcodeScanning = "17.3.0"
 cameraCamera2 = "1.4.2"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -22,7 +23,9 @@ ui = "1.8.1"
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
+barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
 camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
+camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCamera2" }
 camera-extensions = { module = "androidx.camera:camera-extensions", version.ref = "cameraCamera2" }
 camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCamera2" }
 camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCamera2" }
