@@ -7,9 +7,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.NotificationsMock
-import com.example.inf311_projeto09.model.getCurrentEvent
-import com.example.inf311_projeto09.model.getNextEvents
 import com.example.inf311_projeto09.ui.screens.LoginScreen
 import com.example.inf311_projeto09.ui.screens.RecoverPasswordScreen
 import com.example.inf311_projeto09.ui.screens.RegisterScreen
@@ -51,6 +50,7 @@ object MyComposeLauncher {
 @Composable
 fun AppNavHost(navController: NavHostController) {
     val initialScreen = ScreenType.WELCOME.route
+    val userEvents = RubeusApi.listUserEvents(22)
 
     NavHost(
         navController = navController,
@@ -131,15 +131,16 @@ fun AppNavHost(navController: NavHostController) {
         composable(ScreenType.HOME.route) {
             // TODO: apagar mock
             HomeScreen(
-                currentEvent = getCurrentEvent(),
-                nextEvents = getNextEvents(),
+                currentEvent = userEvents.first(),
+                nextEvents = userEvents,
                 navController = navController
             )
         }
 
         composable(ScreenType.CALENDAR.route) {
             CalendarScreen(
-                navController = navController
+                navController = navController,
+                allEvents = userEvents
             )
         }
 

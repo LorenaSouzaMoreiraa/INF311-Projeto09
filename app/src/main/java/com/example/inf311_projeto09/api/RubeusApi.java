@@ -1,6 +1,6 @@
 package com.example.inf311_projeto09.api;
 
-import com.example.inf311_projeto09.model.EventJava;
+import com.example.inf311_projeto09.model.Event;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,13 +32,13 @@ public final class RubeusApi {
         return null;
     }
 
-    public static List<EventJava> listUserEvents(final int userId) {
-        final Function<List<EventJava.RawEventResponse>, List<EventJava>> toCustomList = events -> events.stream()
+    public static List<Event> listUserEvents(final int userId) {
+        final Function<List<Event.RawEventResponse>, List<Event>> toCustomList = events -> events.stream()
                 .filter(event -> "Eventos Aluno".equals(event.processoNome()))
                 .map(event -> {
                     final Map<String, Object> customFields = event.camposPersonalizados();
 
-                    return new EventJava(event.id(),
+                    return new Event(event.id(),
                             (String) customFields.get(RubeusFields.UserEvent.TITLE.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.DESCRIPTION.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.TYPE.getIdentifier()),
@@ -49,7 +49,8 @@ public final class RubeusApi {
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_ENABLED.getIdentifier())),
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_ENABLED.getIdentifier())),
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier())),
-                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier())));
+                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier())),
+                            Event.EventStage.CURRENT);
                 })
                 .collect(Collectors.toList());
 

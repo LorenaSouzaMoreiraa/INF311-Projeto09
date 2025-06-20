@@ -44,14 +44,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.model.Event
-import com.example.inf311_projeto09.model.getMockEventsForDate
+import com.example.inf311_projeto09.model.Event.EventStage
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
 import com.example.inf311_projeto09.ui.components.ReusableDatePickerDialog
 import com.example.inf311_projeto09.ui.utils.AppColors
-import com.example.inf311_projeto09.ui.utils.AppDateFormatter
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.launch
@@ -61,22 +61,21 @@ import java.util.Date
 
 @Composable
 fun CalendarScreen(
-    navController: NavHostController
+    navController: NavHostController,
+    allEvents: List<Event>
 ) {
     val today = remember { Calendar.getInstance() }
     val calendarViewModel = remember { CalendarViewModel() }
     var selectedDate by remember { mutableStateOf(today) }
     val lazyListState = rememberLazyListState()
 
-    // TODO: pegar eventos reais
     val eventsForSelectedDay = remember(selectedDate) {
-        mutableStateOf(getMockEventsForDate(selectedDate.time))
+        mutableStateOf(AppDateHelper().getEventsForDate(allEvents, selectedDate.time))
     }
 
     val scrollToToday: () -> Unit = {
         selectedDate = today
-        // TODO: pegar eventos reais
-        eventsForSelectedDay.value = getMockEventsForDate(today.time)
+        eventsForSelectedDay.value = AppDateHelper().getEventsForDate(allEvents, today.time)
         calendarViewModel.setToWeekOf(today)
     }
 
@@ -98,8 +97,8 @@ fun CalendarScreen(
                 selectedDate = selectedDate,
                 onDateSelected = { date ->
                     selectedDate = date
-                    // TODO: pegar eventos reais
-                    eventsForSelectedDay.value = getMockEventsForDate(date.time)
+                    eventsForSelectedDay.value =
+                        AppDateHelper().getEventsForDate(allEvents, date.time)
                     calendarViewModel.setToWeekOf(date)
                 },
                 calendarViewModel = calendarViewModel
@@ -113,8 +112,8 @@ fun CalendarScreen(
                 lazyListState = lazyListState,
                 onDaySelected = { date ->
                     selectedDate = date
-                    // TODO: pegar eventos reais
-                    eventsForSelectedDay.value = getMockEventsForDate(date.time)
+                    eventsForSelectedDay.value =
+                        AppDateHelper().getEventsForDate(allEvents, date.time)
                 }
             )
 
@@ -271,7 +270,7 @@ fun DaySelectorSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 items(calendarViewModel.allDays) { dayItem ->
-                    val isSelected = AppDateFormatter().isSameDay(dayItem.time, selectedDay.time)
+                    val isSelected = AppDateHelper().isSameDay(dayItem.time, selectedDay.time)
 
                     DayItemCard(dayItem = dayItem, isSelected = isSelected) {
                         onDaySelected(dayItem)
@@ -306,7 +305,7 @@ fun DayItemCard(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = AppDateFormatter().getWeekdayLetter(dayItem),
+            text = AppDateHelper().getWeekdayLetter(dayItem),
             fontFamily = AppFonts().montserrat,
             fontWeight = FontWeight.Medium,
             color = subtitleTextColor,
@@ -316,7 +315,7 @@ fun DayItemCard(
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = AppDateFormatter().getDayNumber(dayItem),
+            text = AppDateHelper().getDayNumber(dayItem),
             fontFamily = AppFonts().montserrat,
             fontWeight = FontWeight.SemiBold,
             color = titleTextColor,
@@ -336,13 +335,19 @@ fun DayEventsSection(
             modifier = Modifier.fillMaxWidth()
         ) {
             sortedEvents.forEach { event ->
-                // TODO: verificar qual é o evento atual para apenas ele ter borda
-                DayEventsSectionItem(event.checkInTime, "Check-in", event.title, false)
+                DayEventsSectionItem(
+                    event.checkInTime,
+                    "Check-in",
+                    event.title,
+                    event.eventStage == EventStage.CURRENT
+                )
 
-                if (Integer.valueOf(event.id) == 3)
-                    DayEventsSectionItem(event.checkOutTime, "Check-out", event.title, true)
-                else
-                    DayEventsSectionItem(event.checkOutTime, "Check-out", event.title, false)
+                DayEventsSectionItem(
+                    event.checkOutTime,
+                    "Check-out",
+                    event.title,
+                    event.eventStage == EventStage.CURRENT
+                )
             }
         }
     } else {
@@ -396,7 +401,7 @@ fun DayEventsSectionItem(
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             Text(
-                text = AppDateFormatter().getTimeFormattedWithSeconds(checkTime),
+                text = AppDateHelper().getTimeFormattedWithSeconds(checkTime),
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.SemiBold,
                 color = AppColors().darkGreen,
@@ -508,7 +513,7 @@ class CalendarViewModel {
     }
 
     private fun getMonthName(month: Int): String {
-        val locale = AppDateFormatter.LOCALE_PT_BR
+        val locale = AppDateHelper.LOCALE_PT_BR
         return DateFormatSymbols(locale).months[month].replaceFirstChar { it.uppercaseChar() }
     }
 }
@@ -516,5 +521,5 @@ class CalendarViewModel {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun CalendarScreenPreview() {
-    CalendarScreen(navController = rememberNavController())
+    CalendarScreen(navController = rememberNavController(), allEvents = emptyList())
 }

@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.ui.utils.AppColors
-import com.example.inf311_projeto09.ui.utils.AppDateFormatter
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.delay
@@ -93,9 +93,9 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
 
             Text(
                 text = "${
-                    AppDateFormatter().getTimeFormatted(event.beginTime)
+                    AppDateHelper().getTimeFormatted(event.beginTime)
                 } - ${
-                    AppDateFormatter().getTimeFormatted(event.endTime)
+                    AppDateHelper().getTimeFormatted(event.endTime)
                 } | ${event.type}",
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.Normal,
@@ -112,18 +112,18 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
             ) {
                 EventActionButton(
                     label = "Check-in",
-                    eventTime = event.checkInEnable,
+                    eventTime = event.checkInEnabled,
                     checkTime = event.checkInTime,
-                    isEnabled = event.checkInEnable != null,
+                    isEnabled = event.checkInEnabled != null,
                     isCurrentEvent = isCurrentEvent,
                     modifier = Modifier.weight(1f)
                 ) {}
 
                 EventActionButton(
                     label = "Check-out",
-                    eventTime = event.checkOutEnable,
+                    eventTime = event.checkOutEnabled,
                     checkTime = event.checkOutTime,
-                    isEnabled = event.checkOutEnable != null,
+                    isEnabled = event.checkOutEnabled != null,
                     isCurrentEvent = isCurrentEvent,
                     modifier = Modifier.weight(1f)
                 ) {}
@@ -270,7 +270,7 @@ private fun EventActionNormalStatus(
     else "no horário"
 
     Text(
-        text = AppDateFormatter().getTimeFormattedWithSeconds(checkTime),
+        text = AppDateHelper().getTimeFormattedWithSeconds(checkTime),
         fontFamily = AppFonts().montserrat,
         fontWeight = FontWeight.Medium,
         color = titleColor,

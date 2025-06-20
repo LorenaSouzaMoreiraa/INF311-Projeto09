@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.example.inf311_projeto09.ui.utils.AppColors
-import com.example.inf311_projeto09.ui.utils.AppDateFormatter
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -75,7 +75,7 @@ fun QrScannerScreen(
         cameraPermissionGranted = isGranted
     }
 
-    val currentTime = remember { mutableStateOf(AppDateFormatter().getCurrentTimeWithSeconds()) }
+    val currentTime = remember { mutableStateOf(AppDateHelper().getCurrentTimeWithSeconds()) }
 
     LaunchedEffect(Unit) {
         if (!cameraPermissionGranted) {
@@ -83,7 +83,7 @@ fun QrScannerScreen(
         }
 
         while (true) {
-            currentTime.value = AppDateFormatter().getCurrentTimeWithSeconds()
+            currentTime.value = AppDateHelper().getCurrentTimeWithSeconds()
             delay(1000)
         }
     }
@@ -128,7 +128,12 @@ fun CameraPreview(ctx: android.content.Context, lifecycleOwner: androidx.lifecyc
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
                 try {
                     cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageAnalysis)
+                    cameraProvider.bindToLifecycle(
+                        lifecycleOwner,
+                        cameraSelector,
+                        preview,
+                        imageAnalysis
+                    )
                 } catch (exc: Exception) {
                     println("Falha ao iniciar CameraX: ${exc.message}")
                 }
@@ -140,7 +145,11 @@ fun CameraPreview(ctx: android.content.Context, lifecycleOwner: androidx.lifecyc
 }
 
 @OptIn(ExperimentalGetImage::class)
-fun analyzeImage(imageProxy: androidx.camera.core.ImageProxy, ctx: android.content.Context, barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner) {
+fun analyzeImage(
+    imageProxy: androidx.camera.core.ImageProxy,
+    ctx: android.content.Context,
+    barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner
+) {
     val mediaImage = imageProxy.image
     if (mediaImage != null) {
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
@@ -267,12 +276,42 @@ fun QrScannerUI(onBack: () -> Unit, currentTime: String) {
 
                     drawLine(cornerColor, Offset(0f, cornerSize), Offset(0f, 0f), strokeWidth)
                     drawLine(cornerColor, Offset(cornerSize, 0f), Offset(0f, 0f), strokeWidth)
-                    drawLine(cornerColor, Offset(size.width, cornerSize), Offset(size.width, 0f), strokeWidth)
-                    drawLine(cornerColor, Offset(size.width - cornerSize, 0f), Offset(size.width, 0f), strokeWidth)
-                    drawLine(cornerColor, Offset(0f, size.height - cornerSize), Offset(0f, size.height), strokeWidth)
-                    drawLine(cornerColor, Offset(cornerSize, size.height), Offset(0f, size.height), strokeWidth)
-                    drawLine(cornerColor, Offset(size.width, size.height - cornerSize), Offset(size.width, size.height), strokeWidth)
-                    drawLine(cornerColor, Offset(size.width - cornerSize, size.height), Offset(size.width, size.height), strokeWidth)
+                    drawLine(
+                        cornerColor,
+                        Offset(size.width, cornerSize),
+                        Offset(size.width, 0f),
+                        strokeWidth
+                    )
+                    drawLine(
+                        cornerColor,
+                        Offset(size.width - cornerSize, 0f),
+                        Offset(size.width, 0f),
+                        strokeWidth
+                    )
+                    drawLine(
+                        cornerColor,
+                        Offset(0f, size.height - cornerSize),
+                        Offset(0f, size.height),
+                        strokeWidth
+                    )
+                    drawLine(
+                        cornerColor,
+                        Offset(cornerSize, size.height),
+                        Offset(0f, size.height),
+                        strokeWidth
+                    )
+                    drawLine(
+                        cornerColor,
+                        Offset(size.width, size.height - cornerSize),
+                        Offset(size.width, size.height),
+                        strokeWidth
+                    )
+                    drawLine(
+                        cornerColor,
+                        Offset(size.width - cornerSize, size.height),
+                        Offset(size.width, size.height),
+                        strokeWidth
+                    )
                 }
         )
 

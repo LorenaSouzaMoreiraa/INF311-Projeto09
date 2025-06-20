@@ -55,7 +55,7 @@ import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
 import com.example.inf311_projeto09.ui.notificationsMock
 import com.example.inf311_projeto09.ui.utils.AppColors
-import com.example.inf311_projeto09.ui.utils.AppDateFormatter
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.delay
@@ -204,13 +204,13 @@ fun TopBarSection(
 
 @Composable
 fun DateTimeSection() {
-    val currentTime = remember { mutableStateOf(AppDateFormatter().getCurrentTimeWithSeconds()) }
-    val currentDayAndDate = remember { mutableStateOf(AppDateFormatter().getCurrentDayAndDate()) }
-    val currentMonthYear = remember { mutableStateOf(AppDateFormatter().getCurrentMonthYear()) }
+    val currentTime = remember { mutableStateOf(AppDateHelper().getCurrentTimeWithSeconds()) }
+    val currentDayAndDate = remember { mutableStateOf(AppDateHelper().getCurrentDayAndDate()) }
+    val currentMonthYear = remember { mutableStateOf(AppDateHelper().getCurrentMonthYear()) }
 
     LaunchedEffect(Unit) {
         while (true) {
-            currentTime.value = AppDateFormatter().getCurrentTimeWithSeconds()
+            currentTime.value = AppDateHelper().getCurrentTimeWithSeconds()
             delay(1000)
         }
     }

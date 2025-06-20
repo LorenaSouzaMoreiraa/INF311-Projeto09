@@ -1,12 +1,13 @@
 package com.example.inf311_projeto09.ui.utils
 
+import com.example.inf311_projeto09.model.Event
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-class AppDateFormatter {
+class AppDateHelper {
     // TODO: Considerar localidade atual
     companion object {
         val LOCALE_PT_BR: Locale = Locale("pt", "BR")
@@ -125,5 +126,15 @@ class AppDateFormatter {
         calendar[Calendar.SECOND] = 0
         calendar[Calendar.MILLISECOND] = 0
         return calendar.time
+    }
+
+    fun getEventsForDate(events: List<Event>, date: Date): List<Event> {
+        val cal1 = Calendar.getInstance().apply { time = date }
+
+        return events.filter { event ->
+            val cal2 = Calendar.getInstance().apply { time = event.beginTime }
+            cal1[Calendar.YEAR] == cal2[Calendar.YEAR] &&
+                    cal1[Calendar.DAY_OF_YEAR] == cal2[Calendar.DAY_OF_YEAR]
+        }
     }
 }
