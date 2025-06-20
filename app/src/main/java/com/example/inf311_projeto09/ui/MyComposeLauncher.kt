@@ -3,6 +3,7 @@ package com.example.inf311_projeto09.ui
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,6 +21,8 @@ import com.example.inf311_projeto09.ui.screens.user.NotificationsScreen
 import com.example.inf311_projeto09.ui.screens.user.ProfileScreen
 import com.example.inf311_projeto09.ui.screens.user.QrScannerScreen
 import com.example.inf311_projeto09.ui.screens.user.VerificationCodeScreen
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
+import java.util.Calendar
 
 enum class ScreenType(val route: String) {
     WELCOME("welcome"),
@@ -50,7 +53,10 @@ object MyComposeLauncher {
 @Composable
 fun AppNavHost(navController: NavHostController) {
     val initialScreen = ScreenType.WELCOME.route
+
     val userEvents = RubeusApi.listUserEvents(22)
+    val today = remember { Calendar.getInstance() }
+    val todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)
 
     NavHost(
         navController = navController,
@@ -129,10 +135,8 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable(ScreenType.HOME.route) {
-            // TODO: apagar mock
             HomeScreen(
-                currentEvent = userEvents.first(),
-                nextEvents = userEvents,
+                todayEvents = todayEvents,
                 navController = navController
             )
         }

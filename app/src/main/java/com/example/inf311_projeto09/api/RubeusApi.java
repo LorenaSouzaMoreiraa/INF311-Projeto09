@@ -51,6 +51,7 @@ public final class RubeusApi {
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier())),
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier())),
                             Event.EventStage.CURRENT);
+                    // TODO: precisa modificar esses estágios
                 })
                 .collect(Collectors.toList());
 

@@ -65,9 +65,14 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     userName: String = "Erick", // TODO: pegar nome do banco de dados
     navController: NavHostController,
-    currentEvent: Event? = null,
-    nextEvents: List<Event> = emptyList()
+    todayEvents: List<Event> = emptyList()
 ) {
+    val currentEvent = todayEvents.firstOrNull { it.eventStage == Event.EventStage.CURRENT }
+    val nextEvents = todayEvents.filter { event ->
+        event.eventStage != Event.EventStage.CURRENT &&
+                event.eventStage != Event.EventStage.ENDED
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -367,5 +372,5 @@ fun CarouselDot(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(currentEvent = null, nextEvents = listOf(), navController = rememberNavController())
+    HomeScreen(navController = rememberNavController())
 }
