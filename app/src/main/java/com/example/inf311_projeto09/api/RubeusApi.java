@@ -4,6 +4,7 @@ import com.example.inf311_projeto09.model.Event;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -20,6 +21,34 @@ public final class RubeusApi {
         //
     }
 
+    public static List<Event> listUserEvents(final int userId) {
+        final Function<List<Event.RawEventResponse>, List<Event>> toCustomList = events -> events.stream()
+                .filter(event -> "Eventos Aluno".equals(event.processoNome()))
+                .map(event -> {
+                    final Map<String, Object> customFields = event.camposPersonalizados();
+
+                    final Date beginTime = parseIsoDate(customFields.get(RubeusFields.UserEvent.BEGIN_TIME.getIdentifier()));
+                    final Date endTime = parseIsoDate(customFields.get(RubeusFields.UserEvent.END_TIME.getIdentifier()));
+
+                    return new Event(event.id(),
+                            (String) customFields.get(RubeusFields.UserEvent.TITLE.getIdentifier()),
+                            (String) customFields.get(RubeusFields.UserEvent.DESCRIPTION.getIdentifier()),
+                            (String) customFields.get(RubeusFields.UserEvent.TYPE.getIdentifier()),
+                            (String) customFields.get(RubeusFields.UserEvent.VERIFICATION_TYPE.getIdentifier()),
+                            Integer.parseInt((String) Objects.requireNonNull(customFields.get(RubeusFields.UserEvent.REFER_EVENT_ID.getIdentifier()))),
+                            beginTime,
+                            endTime,
+                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_ENABLED.getIdentifier())),
+                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_ENABLED.getIdentifier())),
+                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier())),
+                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier())),
+                            calculateEventStage(beginTime, endTime));
+                })
+                .collect(Collectors.toList());
+
+        return helper.executeRequest(helper.listUserEventsCall(userId), toCustomList, List::of);
+    }
+
     private static Date parseIsoDate(final Object value) {
         if (value instanceof final String string) {
             try {
@@ -32,29 +61,26 @@ public final class RubeusApi {
         return null;
     }
 
-    public static List<Event> listUserEvents(final int userId) {
-        final Function<List<Event.RawEventResponse>, List<Event>> toCustomList = events -> events.stream()
-                .filter(event -> "Eventos Aluno".equals(event.processoNome()))
-                .map(event -> {
-                    final Map<String, Object> customFields = event.camposPersonalizados();
+    private static Event.EventStage calculateEventStage(final Date beginTime, final Date endTime) {
+        final Date now = new Date();
+        final Date endTimePlus10 = addMinutes(endTime, 10);
 
-                    return new Event(event.id(),
-                            (String) customFields.get(RubeusFields.UserEvent.TITLE.getIdentifier()),
-                            (String) customFields.get(RubeusFields.UserEvent.DESCRIPTION.getIdentifier()),
-                            (String) customFields.get(RubeusFields.UserEvent.TYPE.getIdentifier()),
-                            (String) customFields.get(RubeusFields.UserEvent.VERIFICATION_TYPE.getIdentifier()),
-                            Integer.parseInt((String) Objects.requireNonNull(customFields.get(RubeusFields.UserEvent.REFER_EVENT_ID.getIdentifier()))),
-                            parseIsoDate(customFields.get(RubeusFields.UserEvent.BEGIN_TIME.getIdentifier())),
-                            parseIsoDate(customFields.get(RubeusFields.UserEvent.END_TIME.getIdentifier())),
-                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_ENABLED.getIdentifier())),
-                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_ENABLED.getIdentifier())),
-                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier())),
-                            parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier())),
-                            Event.EventStage.CURRENT);
-                    // TODO: precisa modificar esses estágios
-                })
-                .collect(Collectors.toList());
+        if (now.after(endTimePlus10)) {
+            return Event.EventStage.ENDED;
+        }
 
-        return helper.executeRequest(helper.listUserEventsCall(userId), toCustomList, List::of);
+        if (!now.before(beginTime) && !now.after(endTimePlus10)) {
+            return Event.EventStage.CURRENT;
+        }
+
+        return Event.EventStage.NEXT;
+    }
+
+    private static Date addMinutes(final Date date, final int minutes) {
+        if (date == null) return null;
+        final Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.MINUTE, minutes);
+        return cal.getTime();
     }
 }

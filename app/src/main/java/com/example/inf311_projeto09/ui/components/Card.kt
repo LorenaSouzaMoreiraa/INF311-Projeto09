@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
@@ -131,7 +132,7 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            val progressPercent = getEventProgressPercentage(event.beginTime, event.endTime)
+            val progressPercent by rememberUpdatedProgress(event.beginTime, event.endTime)
 
             LinearProgressIndicator(
                 progress = { progressPercent },
@@ -160,17 +161,30 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
 }
 
 @Composable
-fun getEventProgressPercentage(beginTime: Date, endTime: Date): Float {
-    val now = rememberUpdatedState(newValue = System.currentTimeMillis())
+fun rememberUpdatedProgress(beginTime: Date, endTime: Date): State<Float> {
+    val duration = endTime.time - beginTime.time
+    val percent = remember { mutableLongStateOf(0L) }
 
-    val totalDuration = endTime.time - beginTime.time
-    val elapsed = now.value - beginTime.time
+    LaunchedEffect(beginTime, endTime) {
+        while (true) {
+            val now = System.currentTimeMillis()
+            val elapsed = now - beginTime.time
 
-    return when {
-        now.value < beginTime.time -> 0f
-        now.value > endTime.time -> 1f
-        else -> elapsed.toFloat() / totalDuration
-    }.coerceIn(0f, 1f)
+            val value = when {
+                now < beginTime.time -> 0f
+                now > endTime.time -> 1f
+                else -> elapsed.toFloat() / duration
+            }.coerceIn(0f, 1f)
+
+            percent.longValue = (value * 10000).toLong()
+
+            if (value >= 1f) break
+
+            delay(1000)
+        }
+    }
+
+    return rememberUpdatedState(percent.longValue / 10000f)
 }
 
 @Composable

@@ -20,8 +20,6 @@ public record Event(int id,
     public enum EventStage {
         CURRENT,
         NEXT,
-        CHECKED_IN,
-        CHECKED_OUT,
         ENDED
     }
 

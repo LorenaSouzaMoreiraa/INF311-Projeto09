@@ -54,6 +54,7 @@ object MyComposeLauncher {
 fun AppNavHost(navController: NavHostController) {
     val initialScreen = ScreenType.WELCOME.route
 
+    // TODO: atualizar de tempos em tempos?
     val userEvents = RubeusApi.listUserEvents(22)
     val today = remember { Calendar.getInstance() }
     val todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)

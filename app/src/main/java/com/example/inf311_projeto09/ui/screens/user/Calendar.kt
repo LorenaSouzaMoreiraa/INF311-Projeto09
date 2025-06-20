@@ -339,14 +339,14 @@ fun DayEventsSection(
                     event.checkInTime,
                     "Check-in",
                     event.title,
-                    event.eventStage == EventStage.CURRENT
+                    event.eventStage == EventStage.CURRENT && event.checkInTime == null
                 )
 
                 DayEventsSectionItem(
                     event.checkOutTime,
                     "Check-out",
                     event.title,
-                    event.eventStage == EventStage.CURRENT
+                    event.eventStage == EventStage.CURRENT && event.checkInTime != null && event.checkOutTime == null
                 )
             }
         }
