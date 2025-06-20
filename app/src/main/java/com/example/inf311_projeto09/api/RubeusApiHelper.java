@@ -1,5 +1,7 @@
 package com.example.inf311_projeto09.api;
 
+import android.util.Log;
+
 import com.example.inf311_projeto09.BuildConfig;
 import com.example.inf311_projeto09.model.EventJava;
 
@@ -8,11 +10,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import retrofit2.Call;
 import retrofit2.HttpException;
@@ -20,13 +24,14 @@ import retrofit2.Response;
 
 final class RubeusApiHelper {
 
+    private static final String HTTP_REQUEST = "HTTP_REQUEST";
     private final RubeusService service;
 
     public RubeusApiHelper() {
         this.service = RetrofitClient.getInstance().create(RubeusService.class);
     }
 
-    public <T, R> R executeRequest(final Call<ApiResponse<T>> call, final Function<T, R> transform) throws IOException, HttpException, InterruptedException, ExecutionException {
+    public <T, R> R executeRequest(final Call<ApiResponse<T>> call, final Function<T, R> transform, final Supplier<R> fallback) {
         final Callable<R> task = () -> {
             final Response<ApiResponse<T>> response = call.execute();
 
@@ -44,18 +49,20 @@ final class RubeusApiHelper {
         } catch (final ExecutionException e) {
             final Throwable cause = e.getCause();
             if (cause instanceof final IOException ioException) {
-                throw ioException;
+                Log.e(HTTP_REQUEST, Objects.requireNonNull(ioException.getMessage()));
             } else if (cause instanceof final HttpException httpException) {
-                throw httpException;
+                Log.e(HTTP_REQUEST, Objects.requireNonNull(httpException.getMessage()));
             } else if (cause instanceof final RuntimeException runtimeException) {
-                throw runtimeException;
+                Log.e(HTTP_REQUEST, Objects.requireNonNull(runtimeException.getMessage()));
             } else {
-                throw e;
+                Log.e(HTTP_REQUEST, Objects.requireNonNull(e.getMessage()));
             }
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw e;
+            Log.e(HTTP_REQUEST, Objects.requireNonNull(e.getMessage()));
         }
+
+        return fallback.get();
     }
 
     public Map<String, Object> defaultBody() {
@@ -78,7 +85,7 @@ final class RubeusApiHelper {
         customFields.put("campos", campos);
 
         body.put("id", userId);
-        body.put("camposRetorno", List.of("id", customFields));
+        body.put("camposRetorno", List.of("id", "processoNome", customFields));
 
         return this.service.listUserEvents(body);
     }

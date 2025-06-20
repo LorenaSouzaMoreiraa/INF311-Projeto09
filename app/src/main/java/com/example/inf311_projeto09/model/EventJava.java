@@ -15,7 +15,8 @@ public record EventJava(int id,
                         Date checkOutEnabled,
                         Date checkInTime,
                         Date checkOutTime) {
-    public record RawEventResponse(int id, Map<String, Object> camposPersonalizados) {
+    public record RawEventResponse(int id, String processoNome,
+                                   Map<String, Object> camposPersonalizados) {
     }
 }
 

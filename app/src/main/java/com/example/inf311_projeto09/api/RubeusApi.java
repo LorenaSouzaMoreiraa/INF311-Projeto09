@@ -32,8 +32,9 @@ public final class RubeusApi {
         return null;
     }
 
-    public static List<EventJava> listUserEvents(final int userId) throws Exception {
+    public static List<EventJava> listUserEvents(final int userId) {
         final Function<List<EventJava.RawEventResponse>, List<EventJava>> toCustomList = events -> events.stream()
+                .filter(event -> "Eventos Aluno".equals(event.processoNome()))
                 .map(event -> {
                     final Map<String, Object> customFields = event.camposPersonalizados();
 
@@ -52,6 +53,6 @@ public final class RubeusApi {
                 })
                 .collect(Collectors.toList());
 
-        return helper.executeRequest(helper.listUserEventsCall(userId), toCustomList);
+        return helper.executeRequest(helper.listUserEventsCall(userId), toCustomList, List::of);
     }
 }
