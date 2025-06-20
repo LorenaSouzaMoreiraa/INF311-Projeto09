@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -16,6 +18,30 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { input ->
+                localProperties.load(input)
+            }
+        }
+
+        buildConfigField(
+            "String",
+            "RUBEUS_API_BASE_URL",
+            "\"${localProperties.getProperty("rubeus.api.base-url")}\""
+        )
+        buildConfigField(
+            "String",
+            "RUBEUS_API_ORIGIN",
+            "\"${localProperties.getProperty("rubeus.api.origin")}\""
+        )
+        buildConfigField(
+            "String",
+            "RUBEUS_API_TOKEN",
+            "\"${localProperties.getProperty("rubeus.api.token")}\""
+        )
     }
 
     buildTypes {
@@ -30,6 +56,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     compileOptions {
@@ -66,6 +93,10 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.barcode.scanning)
     implementation(libs.camera.core)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
