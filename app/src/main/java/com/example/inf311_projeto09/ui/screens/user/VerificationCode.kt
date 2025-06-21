@@ -38,13 +38,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 
 @Composable
 fun VerificationCodeScreen(
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    navController: NavHostController
 ) {
     val code = remember { mutableStateListOf("", "", "", "") }
     val focusRequesters = remember { List(4) { FocusRequester() } }
@@ -115,6 +118,15 @@ fun VerificationCodeScreen(
                                     if (newValue.text.isNotEmpty() && index < code.size - 1) {
                                         focusRequesters[index + 1].requestFocus()
                                     }
+
+                                    if (code.all { it.length == 1 }) {
+                                        val fullCode = code.joinToString("")
+                                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                                            "scannedCode",
+                                            fullCode
+                                        )
+                                        navController.popBackStack()
+                                    }
                                 }
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -163,5 +175,5 @@ fun VerificationCodeScreen(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun VerificationCodeScreenPreview() {
-    VerificationCodeScreen()
+    VerificationCodeScreen(navController = rememberNavController())
 }

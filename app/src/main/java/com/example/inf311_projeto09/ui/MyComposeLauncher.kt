@@ -150,6 +150,7 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable(ScreenType.PROFILE.route) {
+            // TODO: integrar
             ProfileScreen(
                 navController = navController
             )
@@ -166,20 +167,20 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable(ScreenType.QR_SCANNER.route) {
-            // TODO: apagar mock
             QrScannerScreen(
                 onBack = {
                     navController.popBackStack()
-                }
+                },
+                navController = navController
             )
         }
 
         composable(ScreenType.VERIFICATION_CODE.route) {
-            // TODO: apagar mock
             VerificationCodeScreen(
                 onBack = {
                     navController.popBackStack()
-                }
+                },
+                navController = navController
             )
         }
     }

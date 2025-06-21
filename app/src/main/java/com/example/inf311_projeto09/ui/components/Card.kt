@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.inf311_projeto09.model.Event
+import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
@@ -56,7 +58,12 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifier) {
+fun EventCard(
+    event: Event,
+    isCurrentEvent: Boolean,
+    modifier: Modifier = Modifier,
+    navController: NavHostController
+) {
     val backgroundCardColor = if (isCurrentEvent) AppColors().darkGreen else AppColors().transparent
     val titleColor = if (isCurrentEvent) AppColors().white else AppColors().darkGreen
     val subtitleColor = if (isCurrentEvent) AppColors().lightGrey else AppColors().grey
@@ -117,8 +124,16 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
                     checkTime = event.checkInTime,
                     isEnabled = event.checkInEnabled != null,
                     isCurrentEvent = isCurrentEvent,
-                    modifier = Modifier.weight(1f)
-                ) {}
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        handleCheckInClick(
+                            event.checkInEnabled,
+                            event.checkInTime,
+                            event.verificationMethod,
+                            navController
+                        )
+                    }
+                )
 
                 EventActionButton(
                     label = "Check-out",
@@ -126,8 +141,16 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
                     checkTime = event.checkOutTime,
                     isEnabled = event.checkOutEnabled != null,
                     isCurrentEvent = isCurrentEvent,
-                    modifier = Modifier.weight(1f)
-                ) {}
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        handleCheckInClick(
+                            event.checkOutEnabled,
+                            event.checkOutTime,
+                            event.verificationMethod,
+                            navController
+                        )
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -156,6 +179,23 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
                 fontSize = 8.sp,
                 modifier = Modifier.align(Alignment.End)
             )
+        }
+    }
+}
+
+fun handleCheckInClick(
+    checkEnabled: Date?,
+    checkTime: Date?,
+    verificationMethod: String,
+    navController: NavHostController
+) {
+    val now = Date()
+    val canCheckIn = checkEnabled != null && checkTime == null && now >= checkEnabled
+
+    if (canCheckIn) {
+        when (verificationMethod) {
+            "Código único" -> navController.navigate(ScreenType.VERIFICATION_CODE.route)
+            else -> navController.navigate(ScreenType.QR_SCANNER.route)
         }
     }
 }
@@ -315,22 +355,19 @@ private fun EventActionCountdownStatus(
     subtitleColor: Color
 ) {
     var remainingSeconds by remember { mutableLongStateOf(0L) }
-    val eventStarted = Date() > eventTime
+    var eventStarted by remember { mutableStateOf(Date() > eventTime) }
 
     LaunchedEffect(eventTime) {
         while (true) {
             val now = System.currentTimeMillis()
             val eventStartMillis = eventTime.time
 
+            eventStarted = now > eventStartMillis
+
             val diffSeconds = if (eventStarted) (now - eventStartMillis) / 1000
             else (eventStartMillis - now) / 1000
 
-            if (diffSeconds > 0) {
-                remainingSeconds = diffSeconds
-            } else {
-                remainingSeconds = 0L
-                break
-            }
+            remainingSeconds = diffSeconds.coerceAtLeast(0)
 
             delay(1000)
         }

@@ -1,13 +1,16 @@
 package com.example.inf311_projeto09.ui.screens.user
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -28,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,10 +48,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.delay
@@ -55,7 +63,8 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun QrScannerScreen(
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    navController: NavHostController
 ) {
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -75,6 +84,7 @@ fun QrScannerScreen(
         cameraPermissionGranted = isGranted
     }
 
+    val scannedState = remember { mutableStateOf(false) }
     val currentTime = remember { mutableStateOf(AppDateHelper().getCurrentTimeWithSeconds()) }
 
     LaunchedEffect(Unit) {
@@ -94,7 +104,7 @@ fun QrScannerScreen(
             .background(Color.Black)
     ) {
         if (cameraPermissionGranted) {
-            CameraPreview(context, lifecycleOwner)
+            CameraPreview(context, lifecycleOwner, navController, scannedState)
         } else {
             CameraPermissionText()
         }
@@ -104,7 +114,12 @@ fun QrScannerScreen(
 }
 
 @Composable
-fun CameraPreview(ctx: android.content.Context, lifecycleOwner: androidx.lifecycle.LifecycleOwner) {
+fun CameraPreview(
+    ctx: Context,
+    lifecycleOwner: LifecycleOwner,
+    navController: NavHostController,
+    scannedState: MutableState<Boolean>
+) {
     AndroidView(
         factory = {
             val previewView = PreviewView(ctx)
@@ -122,7 +137,13 @@ fun CameraPreview(ctx: android.content.Context, lifecycleOwner: androidx.lifecyc
                     .build()
 
                 imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(ctx)) { imageProxy ->
-                    analyzeImage(imageProxy, ctx, barcodeScanner)
+                    analyzeImage(
+                        imageProxy,
+                        ctx,
+                        barcodeScanner,
+                        navController,
+                        scannedState
+                    )
                 }
 
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -146,10 +167,17 @@ fun CameraPreview(ctx: android.content.Context, lifecycleOwner: androidx.lifecyc
 
 @OptIn(ExperimentalGetImage::class)
 fun analyzeImage(
-    imageProxy: androidx.camera.core.ImageProxy,
-    ctx: android.content.Context,
-    barcodeScanner: com.google.mlkit.vision.barcode.BarcodeScanner
+    imageProxy: ImageProxy,
+    ctx: Context,
+    barcodeScanner: BarcodeScanner,
+    navController: NavHostController,
+    scannedState: MutableState<Boolean>
 ) {
+    if (scannedState.value) {
+        imageProxy.close()
+        return
+    }
+
     val mediaImage = imageProxy.image
     if (mediaImage != null) {
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
@@ -180,14 +208,20 @@ fun analyzeImage(
                             centerY in scanAreaTop..scanAreaBottom
 
                     if (insideScanArea) {
-                        println("✅ QR Code central lido: $rawValue")
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            "scannedCode",
+                            rawValue
+                        )
+                        navController.popBackStack()
+                        scannedState.value = true
+                        break
                     } else {
-                        println("❌ QR Code fora da área de leitura central")
+                        Log.e("QR_SCANNER", "QR Code fora da área de leitura central")
                     }
                 }
             }
             .addOnFailureListener {
-                println("Erro na leitura: ${it.message}")
+                Log.e("QR_SCANNER", "Erro na leitura: ${it.message}")
             }
             .addOnCompleteListener {
                 imageProxy.close()
@@ -359,5 +393,5 @@ fun QrScannerUI(onBack: () -> Unit, currentTime: String) {
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun QrScannerScreenPreview() {
-    QrScannerScreen()
+    QrScannerScreen(navController = rememberNavController())
 }

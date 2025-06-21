@@ -73,6 +73,28 @@ fun HomeScreen(
                 event.eventStage != Event.EventStage.ENDED
     }
 
+    val scannedCode = remember {
+        mutableStateOf<String?>(null)
+    }
+
+    LaunchedEffect(navController) {
+        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+        savedStateHandle?.getLiveData<String>("scannedCode")?.observeForever { code ->
+            scannedCode.value = code
+            savedStateHandle.remove<String>("scannedCode")
+        }
+    }
+
+    LaunchedEffect(scannedCode.value) {
+        scannedCode.value?.let { code ->
+            if (currentEvent != null && code == currentEvent.checkInCode) {
+                // TODO: código válido
+            } else {
+                // TODO: código inválido
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -116,14 +138,18 @@ fun HomeScreen(
                     )
 
                     if (currentEvent != null) {
-                        EventCard(event = currentEvent, isCurrentEvent = true)
+                        EventCard(
+                            event = currentEvent,
+                            isCurrentEvent = true,
+                            navController = navController
+                        )
                     } else {
                         EmptyEventCard("Nenhum evento acontecendo")
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    NextEventsSection(nextEvents = nextEvents)
+                    NextEventsSection(nextEvents = nextEvents, navController = navController)
 
                     Spacer(modifier = Modifier.weight(1f))
                 }
@@ -277,7 +303,7 @@ fun DateTimeSection() {
 }
 
 @Composable
-fun NextEventsSection(nextEvents: List<Event>) {
+fun NextEventsSection(nextEvents: List<Event>, navController: NavHostController) {
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -316,7 +342,8 @@ fun NextEventsSection(nextEvents: List<Event>) {
                 EventCard(
                     event = event,
                     isCurrentEvent = false,
-                    modifier = Modifier.fillParentMaxWidth()
+                    modifier = Modifier.fillParentMaxWidth(),
+                    navController = navController
                 )
             }
         }

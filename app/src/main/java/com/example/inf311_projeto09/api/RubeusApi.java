@@ -35,6 +35,8 @@ public final class RubeusApi {
                             (String) customFields.get(RubeusFields.UserEvent.DESCRIPTION.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.TYPE.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.VERIFICATION_TYPE.getIdentifier()),
+                            (String) customFields.get(RubeusFields.UserEvent.CHECK_IN_CODE.getIdentifier()),
+                            (String) customFields.get(RubeusFields.UserEvent.CHECK_OUT_CODE.getIdentifier()),
                             Integer.parseInt((String) Objects.requireNonNull(customFields.get(RubeusFields.UserEvent.REFER_EVENT_ID.getIdentifier()))),
                             beginTime,
                             endTime,
