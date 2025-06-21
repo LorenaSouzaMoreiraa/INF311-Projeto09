@@ -1,5 +1,6 @@
 package com.example.inf311_projeto09.ui.utils
 
+import android.graphics.Camera
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -364,6 +365,25 @@ class AppIcons {
                 )
             }
         }
+
+        @Composable
+        fun EditIcon(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.square_arrow_out_up_left),
+                    contentDescription = "Editar",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
     }
 
     object Filled {
@@ -404,6 +424,25 @@ class AppIcons {
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(1.2f),
+                    tint = backgroundColorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun Camera(boxSize: Dp, colorIcon: Color, backgroundColorIcon: Color) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = colorIcon, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.camera),
+                    contentDescription = "Câmera",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1.0f),
                     tint = backgroundColorIcon
                 )
             }

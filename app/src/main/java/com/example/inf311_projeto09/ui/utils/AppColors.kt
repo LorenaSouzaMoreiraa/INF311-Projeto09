@@ -12,6 +12,7 @@ class AppColors {
     val lightGreen = Color(0xFFD4FB51)
     val lightYellow = Color(0xFFF2FFC7)
     val red = Color(0xFFE63946)
+    val lightRed = Color(0x4DE63946)
     val offWhite = Color(0xFFF8F5EE)
     val white = Color.White
     val black = Color.Black
