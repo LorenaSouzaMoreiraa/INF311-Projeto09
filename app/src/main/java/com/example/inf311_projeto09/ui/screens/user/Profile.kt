@@ -135,11 +135,10 @@ fun TopBarProfile(
             }
         }
 
-        // TODO: fazer tela de configurações
         Box(
             modifier = Modifier
                 .size(30.dp)
-                .clickable { /*navController.navigate(ScreenType.LOGIN.route)*/ },
+                .clickable { navController.navigate(ScreenType.EDIT_PROFILE.route) },
             contentAlignment = Alignment.Center
         ) {
             AppIcons.Outline.Settings(30.dp)
