@@ -59,7 +59,6 @@ private fun ProfileIcon(
     // TODO: colocar foto do usuário
     val profileImage = 1
 
-    // TODO: mudar as rotas do clique
     Box(
         modifier = Modifier
             .size(30.dp)
@@ -111,7 +110,6 @@ private fun HomeIcon(
     navController: NavHostController,
     isHomeSelected: Boolean
 ) {
-    // TODO: mudar as rotas do clique
     Box(
         modifier = Modifier
             .size(30.dp)
@@ -138,7 +136,6 @@ private fun CalendarIcon(
     navController: NavHostController,
     isCalendarSelected: Boolean
 ) {
-// TODO: mudar as rotas do clique
     Box(
         modifier = Modifier
             .size(30.dp)

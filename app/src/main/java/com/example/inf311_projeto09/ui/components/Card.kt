@@ -127,9 +127,7 @@ fun EventCard(
                     modifier = Modifier.weight(1f),
                     onClick = {
                         handleCheckInClick(
-                            event.checkInEnabled,
-                            event.checkInTime,
-                            event.verificationMethod,
+                            event,
                             navController
                         )
                     }
@@ -143,10 +141,8 @@ fun EventCard(
                     isCurrentEvent = isCurrentEvent,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        handleCheckInClick(
-                            event.checkOutEnabled,
-                            event.checkOutTime,
-                            event.verificationMethod,
+                        handleCheckOutClick(
+                            event,
                             navController
                         )
                     }
@@ -184,15 +180,33 @@ fun EventCard(
 }
 
 fun handleCheckInClick(
-    checkEnabled: Date?,
-    checkTime: Date?,
-    verificationMethod: String,
+    event: Event,
     navController: NavHostController
 ) {
     val now = Date()
-    val canCheckIn = checkEnabled != null && checkTime == null && now >= checkEnabled
+    val canCheckIn =
+        event.checkInEnabled != null && event.checkInTime == null && now >= event.checkInEnabled
 
-    if (canCheckIn) {
+    handleCheckClick(canCheckIn, event.verificationMethod, navController)
+}
+
+fun handleCheckOutClick(
+    event: Event,
+    navController: NavHostController
+) {
+    val now = Date()
+    val canCheckOut =
+        event.checkOutEnabled != null && event.checkInTime != null && event.checkOutTime == null && now >= event.checkOutEnabled
+
+    handleCheckClick(canCheckOut, event.verificationMethod, navController)
+}
+
+fun handleCheckClick(
+    canCheck: Boolean,
+    verificationMethod: String,
+    navController: NavHostController
+) {
+    if (canCheck) {
         when (verificationMethod) {
             "Código único" -> navController.navigate(ScreenType.VERIFICATION_CODE.route)
             else -> navController.navigate(ScreenType.QR_SCANNER.route)

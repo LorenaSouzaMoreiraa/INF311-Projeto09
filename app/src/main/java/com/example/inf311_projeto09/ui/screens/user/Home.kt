@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.R
+import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
@@ -86,11 +87,21 @@ fun HomeScreen(
     }
 
     LaunchedEffect(scannedCode.value) {
-        scannedCode.value?.let { code ->
+        val code = scannedCode.value
+        if (code != null) {
+            scannedCode.value = null
+
             if (currentEvent != null && code == currentEvent.checkInCode) {
-                // TODO: código válido
+                val checkTime = AppDateHelper().getCurrentCompleteTime()
+
+                if (currentEvent.checkInTime == null) {
+                    // TODO: pegar id do usuário
+                    RubeusApi.checkIn(22, currentEvent, checkTime)
+                } else if (currentEvent.checkOutTime == null) {
+                    RubeusApi.checkOut(22, currentEvent, checkTime)
+                }
             } else {
-                // TODO: código inválido
+                // TODO: código inválido, fazer também outras mensagens, igual checkout precisa de checkin
             }
         }
     }
@@ -166,6 +177,7 @@ fun HomeScreen(
                 .clip(RoundedCornerShape(12.dp))
                 .background(AppColors().darkGreen)
                 .clickable {
+                    // TODO: corrigir rota
                     navController.navigate(ScreenType.QR_SCANNER.route)
                 },
             contentAlignment = Alignment.Center

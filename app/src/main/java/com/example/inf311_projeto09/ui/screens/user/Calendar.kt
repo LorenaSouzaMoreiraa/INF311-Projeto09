@@ -150,6 +150,7 @@ fun CalendarScreen(
                 .clip(RoundedCornerShape(12.dp))
                 .background(AppColors().darkGreen)
                 .clickable {
+                    // TODO: corrigir rota
                     navController.navigate(ScreenType.VERIFICATION_CODE.route)
                 },
             contentAlignment = Alignment.Center
