@@ -15,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -85,7 +86,8 @@ fun EditProfileScreen(
 
         TopBarEditProfile(
             isEditingMode = isEditingMode,
-            onToggleEditMode = { isEditingMode = !isEditingMode }
+            onToggleEditMode = { isEditingMode = !isEditingMode },
+            onBack = { navController.popBackStack() }
         )
 
         Box(
@@ -201,7 +203,6 @@ fun EditProfileFields(
 
     val universities = remember { universitiesMock.getUniversitiesList() }
 
-    // Campos chamando as novas funções
     CpfField(cpf = cpf)
 
     Spacer(modifier = Modifier.height(18.dp))
@@ -219,7 +220,7 @@ fun EditProfileFields(
 
     Spacer(modifier = Modifier.height(18.dp))
 
-    EmailField(email = email, onEmailChange = { email = it }, isEditingMode = isEditingMode)
+    EmailField(email = email)
 
     Spacer(modifier = Modifier.height(18.dp))
 
@@ -252,8 +253,24 @@ fun EditProfileFields(
 fun CpfField(cpf: String) {
     OutlinedTextField(
         value = cpf,
-        onValueChange = { /* CPF é somente leitura */ },
-        label = { Text("CPF") },
+        onValueChange = {},
+        label = {
+            Text(
+                "CPF",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = AppColors().grey
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = AppColors().black,
+            unfocusedTextColor = AppColors().black,
+            focusedBorderColor = AppColors().lightGrey,
+            unfocusedBorderColor = AppColors().lightGrey,
+            cursorColor = AppColors().black
+        ),
+        shape = RoundedCornerShape(8.dp),
         modifier = Modifier.fillMaxWidth(),
         readOnly = true
     )
@@ -264,7 +281,23 @@ fun NameField(name: String, onNameChange: (String) -> Unit, isEditingMode: Boole
     OutlinedTextField(
         value = name,
         onValueChange = onNameChange,
-        label = { Text("Nome completo") },
+        label = {
+            Text(
+                "Nome completo",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = AppColors().grey
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = AppColors().black,
+            unfocusedTextColor = AppColors().black,
+            focusedBorderColor = AppColors().lightGrey,
+            unfocusedBorderColor = AppColors().lightGrey,
+            cursorColor = AppColors().black
+        ),
+        shape = RoundedCornerShape(8.dp),
         modifier = Modifier.fillMaxWidth(),
         readOnly = !isEditingMode
     )
@@ -278,7 +311,16 @@ fun UniversityField(
     isEditingMode: Boolean,
     universities: List<String>
 ) {
-    var expanded by remember { mutableStateOf(false) } // Estado interno para o dropdown
+    var expanded by remember { mutableStateOf(false) }
+    val maxVisibleItems = 5
+    val itemHeight = 50.dp
+    val dropdownMaxHeight = itemHeight * maxVisibleItems
+    val customDropdownShape = RoundedCornerShape(
+        topStart = 0.dp,
+        topEnd = 0.dp,
+        bottomStart = 8.dp,
+        bottomEnd = 8.dp
+    )
 
     if (isEditingMode) {
         ExposedDropdownMenuBox(
@@ -289,7 +331,23 @@ fun UniversityField(
                 value = university,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Instituição de Ensino") },
+                label = {
+                    Text(
+                        "Instituição de Ensino",
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                        color = AppColors().grey
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = AppColors().black,
+                    unfocusedTextColor = AppColors().black,
+                    focusedBorderColor = AppColors().lightGrey,
+                    unfocusedBorderColor = AppColors().lightGrey,
+                    cursorColor = AppColors().black
+                ),
+                shape = RoundedCornerShape(8.dp),
                 trailingIcon = {
                     AppIcons.Outline.ArrowDown(
                         boxSize = 24.dp,
@@ -303,16 +361,29 @@ fun UniversityField(
 
             ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .background(AppColors().white)
+                    .heightIn(max = dropdownMaxHeight),
+                shape = customDropdownShape
             ) {
-                universities.forEach {
+                universities.forEachIndexed { index, selectionOption ->
                     DropdownMenuItem(
-                        text = { Text(it) },
+                        text = { Text(selectionOption) },
                         onClick = {
-                            onUniversityChange(it) // Atualiza o estado da universidade
+                            onUniversityChange(selectionOption)
                             expanded = false
                         }
                     )
+
+                    if (index < universities.size - 1) {
+                        Spacer(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(0.8.dp)
+                                .background(AppColors().lightGrey)
+                        )
+                    }
                 }
             }
         }
@@ -320,24 +391,56 @@ fun UniversityField(
         OutlinedTextField(
             value = university,
             onValueChange = {},
-            readOnly = true,
-            label = { Text("Instituição de Ensino") },
-            modifier = Modifier.fillMaxWidth()
+            label = {
+                Text(
+                    "Instituição de Ensino",
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp,
+                    color = AppColors().grey
+                )
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = AppColors().black,
+                unfocusedTextColor = AppColors().black,
+                focusedBorderColor = AppColors().lightGrey,
+                unfocusedBorderColor = AppColors().lightGrey,
+                cursorColor = AppColors().black
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true
         )
     }
 }
 
 @Composable
-fun EmailField(email: String, onEmailChange: (String) -> Unit, isEditingMode: Boolean) {
+fun EmailField(email: String) {
     OutlinedTextField(
         value = email,
-        onValueChange = onEmailChange,
-        label = { Text("Email") },
+        onValueChange = {},
+        label = {
+            Text(
+                "Email",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = AppColors().grey
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = AppColors().black,
+            unfocusedTextColor = AppColors().black,
+            focusedBorderColor = AppColors().lightGrey,
+            unfocusedBorderColor = AppColors().lightGrey,
+            cursorColor = AppColors().black
+        ),
+        shape = RoundedCornerShape(8.dp),
         leadingIcon = {
             AppIcons.Outline.Mail(24.dp, AppColors().black)
         },
         modifier = Modifier.fillMaxWidth(),
-        readOnly = !isEditingMode
+        readOnly = true
     )
 }
 
@@ -352,7 +455,23 @@ fun PasswordField(
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
-        label = { Text("Senha") },
+        label = {
+            Text(
+                "Senha",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = AppColors().grey
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = AppColors().black,
+            unfocusedTextColor = AppColors().black,
+            focusedBorderColor = AppColors().lightGrey,
+            unfocusedBorderColor = AppColors().lightGrey,
+            cursorColor = AppColors().black
+        ),
+        shape = RoundedCornerShape(8.dp),
         visualTransformation = if (isEditingMode && passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         leadingIcon = {
             AppIcons.Outline.KeyRound(24.dp, AppColors().black)
