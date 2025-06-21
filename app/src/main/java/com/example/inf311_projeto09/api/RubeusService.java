@@ -1,6 +1,6 @@
 package com.example.inf311_projeto09.api;
 
-import com.example.inf311_projeto09.model.EventJava;
+import com.example.inf311_projeto09.model.Event;
 
 import java.util.List;
 import java.util.Map;
@@ -12,5 +12,5 @@ import retrofit2.http.POST;
 interface RubeusService {
 
     @POST("Contato/listarOportunidades")
-    Call<ApiResponse<List<EventJava.RawEventResponse>>> listUserEvents(@Body Map<String, Object> body);
+    Call<ApiResponse<List<Event.RawEventResponse>>> listUserEvents(@Body Map<String, Object> body);
 }

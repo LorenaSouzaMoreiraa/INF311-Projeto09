@@ -6,6 +6,8 @@ public class RubeusFields {
         DESCRIPTION("campopersonalizado_15_compl_proc"),
         TYPE("campopersonalizado_9_compl_proc"),
         VERIFICATION_TYPE("campopersonalizado_12_compl_proc"),
+        CHECK_IN_CODE("campopersonalizado_22_compl_proc"),
+        CHECK_OUT_CODE("campopersonalizado_23_compl_proc"),
         REFER_EVENT_ID("campopersonalizado_21_compl_proc"),
         BEGIN_TIME("campopersonalizado_10_compl_proc"),
         END_TIME("campopersonalizado_11_compl_proc"),

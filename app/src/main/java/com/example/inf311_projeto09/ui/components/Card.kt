@@ -24,8 +24,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -46,8 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.inf311_projeto09.model.Event
+import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.utils.AppColors
-import com.example.inf311_projeto09.ui.utils.AppDateFormatter
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.delay
@@ -55,7 +58,12 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifier) {
+fun EventCard(
+    event: Event,
+    isCurrentEvent: Boolean,
+    modifier: Modifier = Modifier,
+    navController: NavHostController
+) {
     val backgroundCardColor = if (isCurrentEvent) AppColors().darkGreen else AppColors().transparent
     val titleColor = if (isCurrentEvent) AppColors().white else AppColors().darkGreen
     val subtitleColor = if (isCurrentEvent) AppColors().lightGrey else AppColors().grey
@@ -93,9 +101,9 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
 
             Text(
                 text = "${
-                    AppDateFormatter().getTimeFormatted(event.beginTime)
+                    AppDateHelper().getTimeFormatted(event.beginTime)
                 } - ${
-                    AppDateFormatter().getTimeFormatted(event.endTime)
+                    AppDateHelper().getTimeFormatted(event.endTime)
                 } | ${event.type}",
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.Normal,
@@ -112,26 +120,42 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
             ) {
                 EventActionButton(
                     label = "Check-in",
-                    eventTime = event.checkInEnable,
+                    eventTime = event.checkInEnabled,
                     checkTime = event.checkInTime,
-                    isEnabled = event.checkInEnable != null,
+                    isEnabled = event.checkInEnabled != null,
                     isCurrentEvent = isCurrentEvent,
-                    modifier = Modifier.weight(1f)
-                ) {}
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        handleCheckInClick(
+                            event.checkInEnabled,
+                            event.checkInTime,
+                            event.verificationMethod,
+                            navController
+                        )
+                    }
+                )
 
                 EventActionButton(
                     label = "Check-out",
-                    eventTime = event.checkOutEnable,
+                    eventTime = event.checkOutEnabled,
                     checkTime = event.checkOutTime,
-                    isEnabled = event.checkOutEnable != null,
+                    isEnabled = event.checkOutEnabled != null,
                     isCurrentEvent = isCurrentEvent,
-                    modifier = Modifier.weight(1f)
-                ) {}
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        handleCheckInClick(
+                            event.checkOutEnabled,
+                            event.checkOutTime,
+                            event.verificationMethod,
+                            navController
+                        )
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            val progressPercent = getEventProgressPercentage(event.beginTime, event.endTime)
+            val progressPercent by rememberUpdatedProgress(event.beginTime, event.endTime)
 
             LinearProgressIndicator(
                 progress = { progressPercent },
@@ -159,18 +183,48 @@ fun EventCard(event: Event, isCurrentEvent: Boolean, modifier: Modifier = Modifi
     }
 }
 
+fun handleCheckInClick(
+    checkEnabled: Date?,
+    checkTime: Date?,
+    verificationMethod: String,
+    navController: NavHostController
+) {
+    val now = Date()
+    val canCheckIn = checkEnabled != null && checkTime == null && now >= checkEnabled
+
+    if (canCheckIn) {
+        when (verificationMethod) {
+            "Código único" -> navController.navigate(ScreenType.VERIFICATION_CODE.route)
+            else -> navController.navigate(ScreenType.QR_SCANNER.route)
+        }
+    }
+}
+
 @Composable
-fun getEventProgressPercentage(beginTime: Date, endTime: Date): Float {
-    val now = rememberUpdatedState(newValue = System.currentTimeMillis())
+fun rememberUpdatedProgress(beginTime: Date, endTime: Date): State<Float> {
+    val duration = endTime.time - beginTime.time
+    val percent = remember { mutableLongStateOf(0L) }
 
-    val totalDuration = endTime.time - beginTime.time
-    val elapsed = now.value - beginTime.time
+    LaunchedEffect(beginTime, endTime) {
+        while (true) {
+            val now = System.currentTimeMillis()
+            val elapsed = now - beginTime.time
 
-    return when {
-        now.value < beginTime.time -> 0f
-        now.value > endTime.time -> 1f
-        else -> elapsed.toFloat() / totalDuration
-    }.coerceIn(0f, 1f)
+            val value = when {
+                now < beginTime.time -> 0f
+                now > endTime.time -> 1f
+                else -> elapsed.toFloat() / duration
+            }.coerceIn(0f, 1f)
+
+            percent.longValue = (value * 10000).toLong()
+
+            if (value >= 1f) break
+
+            delay(1000)
+        }
+    }
+
+    return rememberUpdatedState(percent.longValue / 10000f)
 }
 
 @Composable
@@ -270,7 +324,7 @@ private fun EventActionNormalStatus(
     else "no horário"
 
     Text(
-        text = AppDateFormatter().getTimeFormattedWithSeconds(checkTime),
+        text = AppDateHelper().getTimeFormattedWithSeconds(checkTime),
         fontFamily = AppFonts().montserrat,
         fontWeight = FontWeight.Medium,
         color = titleColor,
@@ -301,22 +355,19 @@ private fun EventActionCountdownStatus(
     subtitleColor: Color
 ) {
     var remainingSeconds by remember { mutableLongStateOf(0L) }
-    val eventStarted = Date() > eventTime
+    var eventStarted by remember { mutableStateOf(Date() > eventTime) }
 
     LaunchedEffect(eventTime) {
         while (true) {
             val now = System.currentTimeMillis()
             val eventStartMillis = eventTime.time
 
+            eventStarted = now > eventStartMillis
+
             val diffSeconds = if (eventStarted) (now - eventStartMillis) / 1000
             else (eventStartMillis - now) / 1000
 
-            if (diffSeconds > 0) {
-                remainingSeconds = diffSeconds
-            } else {
-                remainingSeconds = 0L
-                break
-            }
+            remainingSeconds = diffSeconds.coerceAtLeast(0)
 
             delay(1000)
         }

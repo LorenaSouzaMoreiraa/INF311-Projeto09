@@ -55,7 +55,7 @@ import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
 import com.example.inf311_projeto09.ui.notificationsMock
 import com.example.inf311_projeto09.ui.utils.AppColors
-import com.example.inf311_projeto09.ui.utils.AppDateFormatter
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.delay
@@ -65,9 +65,36 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     userName: String = "Erick", // TODO: pegar nome do banco de dados
     navController: NavHostController,
-    currentEvent: Event? = null,
-    nextEvents: List<Event> = emptyList()
+    todayEvents: List<Event> = emptyList()
 ) {
+    val currentEvent = todayEvents.firstOrNull { it.eventStage == Event.EventStage.CURRENT }
+    val nextEvents = todayEvents.filter { event ->
+        event.eventStage != Event.EventStage.CURRENT &&
+                event.eventStage != Event.EventStage.ENDED
+    }
+
+    val scannedCode = remember {
+        mutableStateOf<String?>(null)
+    }
+
+    LaunchedEffect(navController) {
+        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+        savedStateHandle?.getLiveData<String>("scannedCode")?.observeForever { code ->
+            scannedCode.value = code
+            savedStateHandle.remove<String>("scannedCode")
+        }
+    }
+
+    LaunchedEffect(scannedCode.value) {
+        scannedCode.value?.let { code ->
+            if (currentEvent != null && code == currentEvent.checkInCode) {
+                // TODO: código válido
+            } else {
+                // TODO: código inválido
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -111,14 +138,18 @@ fun HomeScreen(
                     )
 
                     if (currentEvent != null) {
-                        EventCard(event = currentEvent, isCurrentEvent = true)
+                        EventCard(
+                            event = currentEvent,
+                            isCurrentEvent = true,
+                            navController = navController
+                        )
                     } else {
                         EmptyEventCard("Nenhum evento acontecendo")
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    NextEventsSection(nextEvents = nextEvents)
+                    NextEventsSection(nextEvents = nextEvents, navController = navController)
 
                     Spacer(modifier = Modifier.weight(1f))
                 }
@@ -204,13 +235,13 @@ fun TopBarSection(
 
 @Composable
 fun DateTimeSection() {
-    val currentTime = remember { mutableStateOf(AppDateFormatter().getCurrentTimeWithSeconds()) }
-    val currentDayAndDate = remember { mutableStateOf(AppDateFormatter().getCurrentDayAndDate()) }
-    val currentMonthYear = remember { mutableStateOf(AppDateFormatter().getCurrentMonthYear()) }
+    val currentTime = remember { mutableStateOf(AppDateHelper().getCurrentTimeWithSeconds()) }
+    val currentDayAndDate = remember { mutableStateOf(AppDateHelper().getCurrentDayAndDate()) }
+    val currentMonthYear = remember { mutableStateOf(AppDateHelper().getCurrentMonthYear()) }
 
     LaunchedEffect(Unit) {
         while (true) {
-            currentTime.value = AppDateFormatter().getCurrentTimeWithSeconds()
+            currentTime.value = AppDateHelper().getCurrentTimeWithSeconds()
             delay(1000)
         }
     }
@@ -272,7 +303,7 @@ fun DateTimeSection() {
 }
 
 @Composable
-fun NextEventsSection(nextEvents: List<Event>) {
+fun NextEventsSection(nextEvents: List<Event>, navController: NavHostController) {
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -311,7 +342,8 @@ fun NextEventsSection(nextEvents: List<Event>) {
                 EventCard(
                     event = event,
                     isCurrentEvent = false,
-                    modifier = Modifier.fillParentMaxWidth()
+                    modifier = Modifier.fillParentMaxWidth(),
+                    navController = navController
                 )
             }
         }
@@ -367,5 +399,5 @@ fun CarouselDot(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(currentEvent = null, nextEvents = listOf(), navController = rememberNavController())
+    HomeScreen(navController = rememberNavController())
 }

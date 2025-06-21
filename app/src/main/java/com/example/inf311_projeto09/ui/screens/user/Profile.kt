@@ -41,7 +41,7 @@ import com.example.inf311_projeto09.ui.components.NavBarOption
 import com.example.inf311_projeto09.ui.components.SeeEventsCard
 import com.example.inf311_projeto09.ui.components.StatisticCard
 import com.example.inf311_projeto09.ui.utils.AppColors
-import com.example.inf311_projeto09.ui.utils.AppDateFormatter
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import java.util.Calendar
@@ -224,7 +224,7 @@ fun MonthStatistics(
     userid: String
 ) {
     // TODO: pegar dados reais, por agora está fictícil
-    val currentMonth = AppDateFormatter().getCurrentMonth()
+    val currentMonth = AppDateHelper().getCurrentMonth()
     val daysInMonth = Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH)
 
     val totalEvents = 10

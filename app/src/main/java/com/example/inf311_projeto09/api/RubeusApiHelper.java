@@ -3,7 +3,7 @@ package com.example.inf311_projeto09.api;
 import android.util.Log;
 
 import com.example.inf311_projeto09.BuildConfig;
-import com.example.inf311_projeto09.model.EventJava;
+import com.example.inf311_projeto09.model.Event;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ final class RubeusApiHelper {
         return body;
     }
 
-    public Call<ApiResponse<List<EventJava.RawEventResponse>>> listUserEventsCall(final int userId) {
+    public Call<ApiResponse<List<Event.RawEventResponse>>> listUserEventsCall(final int userId) {
         final Map<String, Object> body = this.defaultBody();
         final Map<String, Object> customFields = new HashMap<>();
 
@@ -85,7 +85,7 @@ final class RubeusApiHelper {
         customFields.put("campos", campos);
 
         body.put("id", userId);
-        body.put("camposRetorno", List.of("id", "processoNome", customFields));
+        body.put("camposRetorno", List.of("id", "processoNome", "etapaNome", customFields));
 
         return this.service.listUserEvents(body);
     }
