@@ -103,7 +103,6 @@ fun TopBarProfile(
             .padding(top = 50.dp, start = 30.dp, end = 30.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // TODO: remover a senha
         Box(
             modifier = Modifier
                 .size(30.dp)

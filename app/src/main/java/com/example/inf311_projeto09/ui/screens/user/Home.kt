@@ -49,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.components.EventCard
@@ -64,7 +65,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
-    userName: String = "Erick", // TODO: pegar nome do banco de dados
+    user: User,
     navController: NavHostController,
     todayEvents: List<Event> = emptyList()
 ) {
@@ -95,10 +96,9 @@ fun HomeScreen(
                 val checkTime = AppDateHelper().getCurrentCompleteTime()
 
                 if (currentEvent.checkInTime == null) {
-                    // TODO: pegar id do usuário
-                    RubeusApi.checkIn(22, currentEvent, checkTime)
+                    RubeusApi.checkIn(user.id, currentEvent, checkTime)
                 } else if (currentEvent.checkOutTime == null) {
-                    RubeusApi.checkOut(22, currentEvent, checkTime)
+                    RubeusApi.checkOut(user.id, currentEvent, checkTime)
                 }
             } else {
                 // TODO: código inválido, fazer também outras mensagens, igual checkout precisa de checkin
@@ -115,7 +115,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            TopBarSection(userName, navController)
+            TopBarSection(user.name.split(" ").first(), navController)
 
             Spacer(modifier = Modifier.height(15.dp))
 
@@ -177,8 +177,12 @@ fun HomeScreen(
                 .clip(RoundedCornerShape(12.dp))
                 .background(AppColors().darkGreen)
                 .clickable {
-                    // TODO: corrigir rota
-                    navController.navigate(ScreenType.QR_SCANNER.route)
+                    if (currentEvent?.verificationMethod == "Código único")
+                        navController.navigate(ScreenType.VERIFICATION_CODE.route)
+                    else if (currentEvent?.verificationMethod == "QR Code")
+                        navController.navigate(ScreenType.QR_SCANNER.route)
+                    // TODO: colocar mensagem que não tem evento atual
+                    // TODO: tela de checkout (não precisa de código)
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -411,5 +415,8 @@ fun CarouselDot(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(navController = rememberNavController())
+    HomeScreen(
+        user = User(0, "Erick", User.UserRole.USER, "teste@teste.com", "cpf", "UFV", "****"),
+        navController = rememberNavController()
+    )
 }

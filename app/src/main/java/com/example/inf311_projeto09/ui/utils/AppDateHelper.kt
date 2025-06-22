@@ -141,4 +141,9 @@ class AppDateHelper {
                     cal1[Calendar.DAY_OF_YEAR] == cal2[Calendar.DAY_OF_YEAR]
         }
     }
+
+    fun getCurrentEvent(events: List<Event>): Event? {
+        val todayEvents = getEventsForDate(events, Calendar.getInstance().time)
+        return todayEvents.firstOrNull { it.eventStage == Event.EventStage.CURRENT }
+    }
 }

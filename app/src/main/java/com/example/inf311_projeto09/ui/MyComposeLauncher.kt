@@ -208,17 +208,35 @@ fun AppNavHost(
         }
 
         composable(ScreenType.HOME.route) {
-            HomeScreen(
-                todayEvents = todayEvents,
-                navController = navController
-            )
+            user?.let { nonNullUser ->
+                HomeScreen(
+                    user = nonNullUser,
+                    todayEvents = todayEvents,
+                    navController = navController
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         }
 
         composable(ScreenType.CALENDAR.route) {
-            CalendarScreen(
-                navController = navController,
-                allEvents = userEvents
-            )
+            user?.let { nonNullUser ->
+                CalendarScreen(
+                    user = nonNullUser,
+                    allEvents = userEvents,
+                    navController = navController
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         }
 
         composable(ScreenType.PROFILE.route) {
