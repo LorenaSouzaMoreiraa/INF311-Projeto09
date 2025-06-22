@@ -99,6 +99,7 @@ dependencies {
     implementation(libs.logging.interceptor)
     implementation(libs.core)
     implementation(libs.zxing.android.embedded)
+    implementation(libs.bcrypt)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

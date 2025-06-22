@@ -33,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inf311_projeto09.R
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
@@ -40,10 +41,9 @@ import com.example.inf311_projeto09.ui.utils.AppIcons
 @Composable
 fun UserRoleScreen(
     onBack: () -> Unit = {},
-    onRoleSelected: () -> Unit = {},
-    onClickCard: (String) -> Unit = {}
+    onRoleSelected: (User.UserRole) -> Unit = {}
 ) {
-    var selectedRole by remember { mutableStateOf<String?>(null) }
+    var selectedRole by remember { mutableStateOf<User.UserRole?>(null) }
 
     Box(
         modifier = Modifier
@@ -112,10 +112,9 @@ fun UserRoleScreen(
                 RoleSelectionCard(
                     title = "Organizador(a)",
                     description = "Professores, coordenadores, instituições de ensino e organizadores de eventos",
-                    isSelected = selectedRole == "organizer",
+                    isSelected = selectedRole == User.UserRole.ADMIN,
                     onClick = {
-                        selectedRole = "organizer"
-                        onClickCard("organizer")
+                        selectedRole = User.UserRole.ADMIN
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -125,10 +124,9 @@ fun UserRoleScreen(
                 RoleSelectionCard(
                     title = "Participante",
                     description = "Estudantes, colaboradores, convidados e participantes de eventos",
-                    isSelected = selectedRole == "participant",
+                    isSelected = selectedRole == User.UserRole.USER,
                     onClick = {
-                        selectedRole = "participant"
-                        onClickCard("participant")
+                        selectedRole = User.UserRole.USER
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -137,7 +135,9 @@ fun UserRoleScreen(
             Spacer(modifier = Modifier.height(30.dp))
 
             Button(
-                onClick = onRoleSelected,
+                onClick = {
+                    selectedRole?.let { onRoleSelected(it) }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppColors().lightGreen,
                     contentColor = AppColors().black

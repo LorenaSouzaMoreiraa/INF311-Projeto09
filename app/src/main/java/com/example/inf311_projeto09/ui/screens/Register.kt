@@ -59,7 +59,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inf311_projeto09.R
+import com.example.inf311_projeto09.api.RubeusApi
+import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.UniversitiesMock
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
@@ -71,10 +74,11 @@ fun RegisterScreen(
     onSignUpSuccess: (Boolean) -> Unit = {},
     onLoginClick: () -> Unit = {},
     universitiesMock: UniversitiesMock = UniversitiesMock(),
+    userRole: User.UserRole
 ) {
     var cpf by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
-    var university by remember { mutableStateOf("") }
+    var school by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -100,6 +104,7 @@ fun RegisterScreen(
     val annotatedTermsAndPrivacy = buildAnnotatedString {
         append("Ao prosseguir, você declara estar de acordo com os ")
 
+        // TODO: mudar link dos termos de uso
         val terms = LinkAnnotation.Url(
             "https://github.com/LorenaSouzaMoreiraa/INF311-Projeto09",
             TextLinkStyles(
@@ -261,8 +266,8 @@ fun RegisterScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
-                            value = university,
-                            onValueChange = { university = it },
+                            value = school,
+                            onValueChange = { school = it },
                             readOnly = true,
                             label = {
                                 Text(
@@ -305,7 +310,7 @@ fun RegisterScreen(
                                 DropdownMenuItem(
                                     text = { Text(selectionOption) },
                                     onClick = {
-                                        university = selectionOption
+                                        school = selectionOption
                                         expanded = false
                                     }
                                 )
@@ -452,7 +457,7 @@ fun RegisterScreen(
                     Spacer(modifier = Modifier.height(30.dp))
 
                     Button(
-                        onClick = { onSignUpSuccess(true) },
+                        onClick = { onSignUpSuccess(validateRegister(name, email, school, password, confirmPassword, cpf, userRole)) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = AppColors().lightGreen,
                             contentColor = AppColors().black
@@ -501,6 +506,29 @@ fun RegisterScreen(
     }
 }
 
+fun validateRegister(
+    name: String,
+    email: String,
+    school: String,
+    password: String,
+    confirmPassword: String,
+    cpf: String,
+    userRole: User.UserRole
+): Boolean {
+    // TODO: validar os dados antes
+    if (password == confirmPassword) {
+        return RubeusApi.registerUser(
+            name,
+            email,
+            school,
+            PasswordHelper.hashPassword(password),
+            cpf,
+            userRole
+        )
+    }
+    return false
+}
+
 fun formatCpf(cpf: String): String {
     val trimmed = if (cpf.length >= 11) cpf.substring(0..10) else cpf
     var out = ""
@@ -540,5 +568,5 @@ fun String.toCpfMasked(): TransformedText {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RegisterScreenPreview() {
-    RegisterScreen()
+    RegisterScreen(userRole = User.UserRole.USER)
 }

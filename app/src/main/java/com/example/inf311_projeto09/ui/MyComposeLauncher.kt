@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.NotificationsMock
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.screens.LoginScreen
 import com.example.inf311_projeto09.ui.screens.RecoverPasswordScreen
 import com.example.inf311_projeto09.ui.screens.RegisterScreen
@@ -111,32 +112,37 @@ fun AppNavHost(navController: NavHostController) {
                 onBack = {
                     navController.popBackStack()
                 },
-                onRoleSelected = {
-                    navController.navigate(ScreenType.REGISTER.route)
+                onRoleSelected = { selectedRole ->
+                    navController.navigate("${ScreenType.REGISTER.route}/$selectedRole")
                 }
             )
         }
 
-        composable(ScreenType.REGISTER.route) {
-            // TODO: apagar mock
-            RegisterScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                onSignUpSuccess = { signUpSuccess ->
-                    if (signUpSuccess)
+        composable("${ScreenType.REGISTER.route}/{userRole}") { backStackEntry ->
+            val userRole = backStackEntry.arguments?.getString("userRole")?.let { User.UserRole.valueOf(it) }
+
+            // TODO: apagar mock das universidades
+            if (userRole != null) {
+                RegisterScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onSignUpSuccess = { signUpSuccess ->
+                        if (signUpSuccess)
+                            navController.navigate(ScreenType.LOGIN.route) {
+                                popUpTo(ScreenType.LOGIN.route) { inclusive = false }
+                                launchSingleTop = true
+                            }
+                    },
+                    onLoginClick = {
                         navController.navigate(ScreenType.LOGIN.route) {
                             popUpTo(ScreenType.LOGIN.route) { inclusive = false }
                             launchSingleTop = true
                         }
-                },
-                onLoginClick = {
-                    navController.navigate(ScreenType.LOGIN.route) {
-                        popUpTo(ScreenType.LOGIN.route) { inclusive = false }
-                        launchSingleTop = true
-                    }
-                }
-            )
+                    },
+                    userRole = userRole
+                )
+            }
         }
 
         composable(ScreenType.HOME.route) {

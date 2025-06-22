@@ -2,6 +2,7 @@
 accompanistPermissions = "0.34.0"
 agp = "8.9.2"
 barcodeScanning = "17.3.0"
+bcrypt = "0.9.0"
 cameraCamera2 = "1.4.2"
 converterGson = "2.9.0"
 core = "3.5.1"
@@ -28,6 +29,7 @@ zxingAndroidEmbedded = "4.3.0"
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
+bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
 camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
 camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCamera2" }
 camera-extensions = { module = "androidx.camera:camera-extensions", version.ref = "cameraCamera2" }

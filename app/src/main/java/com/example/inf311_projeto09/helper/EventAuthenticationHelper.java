@@ -16,7 +16,7 @@ public class EventAuthenticationHelper {
 
     private static final Random RANDOM = new Random();
 
-    EventAuthenticationHelper() {
+    private EventAuthenticationHelper() {
         //
     }
 

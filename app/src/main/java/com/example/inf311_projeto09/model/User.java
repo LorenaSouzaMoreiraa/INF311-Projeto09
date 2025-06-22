@@ -5,13 +5,13 @@ import java.util.Map;
 public class User {
     private int id;
     private String name;
-    private UserType type;
+    private UserRole type;
     private String email;
     private String cpf;
     private String school;
     private String password;
 
-    public User(final int id, final String name, final UserType type,
+    public User(final int id, final String name, final UserRole type,
                  final String email, final String cpf, final String school,
                  final String password) {
         this.id = id;
@@ -39,11 +39,11 @@ public class User {
         this.name = name;
     }
 
-    public UserType getType() {
+    public UserRole getType() {
         return this.type;
     }
 
-    public void setType(final UserType type) {
+    public void setType(final UserRole type) {
         this.type = type;
     }
 
@@ -79,13 +79,13 @@ public class User {
         this.password = password;
     }
 
-    public enum UserType {
+    public enum UserRole {
         USER("User"),
         ADMIN("Admin");
 
         private final String identifier;
 
-        UserType(final String identifier) {
+        UserRole(final String identifier) {
             this.identifier = identifier;
         }
 

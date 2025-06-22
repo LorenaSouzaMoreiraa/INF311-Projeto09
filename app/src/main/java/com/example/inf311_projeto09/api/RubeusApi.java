@@ -22,7 +22,7 @@ public final class RubeusApi {
         //
     }
 
-    public static Boolean registerUser(final String name, final String email, final String school, final String password, final String cpf, final User.UserType type) {
+    public static Boolean registerUser(final String name, final String email, final String school, final String password, final String cpf, final User.UserRole type) {
         return helper.executeRequest(helper.registerUserCall(name, email, school, password, cpf, type));
     }
 
