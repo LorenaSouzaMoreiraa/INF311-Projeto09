@@ -26,4 +26,19 @@ public class RubeusFields {
             return this.identifier;
         }
     }
+
+    public enum UserAccount {
+        PASSWORD("campopersonalizado_2_compl_cont"),
+        TYPE("campopersonalizado_3_compl_cont");
+
+        private final String identifier;
+
+        UserAccount(final String identifier) {
+            this.identifier = identifier;
+        }
+
+        public String getIdentifier() {
+            return this.identifier;
+        }
+    }
 }

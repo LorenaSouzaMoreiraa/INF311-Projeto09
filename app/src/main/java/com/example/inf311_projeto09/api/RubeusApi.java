@@ -1,6 +1,7 @@
 package com.example.inf311_projeto09.api;
 
 import com.example.inf311_projeto09.model.Event;
+import com.example.inf311_projeto09.model.User;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,6 +20,10 @@ public final class RubeusApi {
 
     private RubeusApi() {
         //
+    }
+
+    public static Boolean registerUser(final String name, final String email, final String school, final String password, final String cpf, final User.UserType type) {
+        return helper.executeRequest(helper.registerUserCall(name, email, school, password, cpf, type));
     }
 
     public static List<Event> listUserEvents(final int userId) {
@@ -51,14 +56,14 @@ public final class RubeusApi {
         return helper.executeRequest(helper.listUserEventsCall(userId), toCustomList, List::of);
     }
 
-    public static void checkIn(final int userId, final Event event, final String checkInTime) {
+    public static Boolean checkIn(final int userId, final Event event, final String checkInTime) {
         event.setCheckInTime(parseIsoDate(checkInTime));
-        helper.executeRequest(helper.checkInCall(userId, event.getId(), checkInTime));
+        return helper.executeRequest(helper.checkInCall(userId, event.getId(), checkInTime));
     }
 
-    public static void checkOut(final int userId, final Event event, final String checkOutTime) {
+    public static Boolean checkOut(final int userId, final Event event, final String checkOutTime) {
         event.setCheckOutTime(parseIsoDate(checkOutTime));
-        helper.executeRequest(helper.checkOutCall(userId, event.getId(), checkOutTime));
+        return helper.executeRequest(helper.checkOutCall(userId, event.getId(), checkOutTime));
     }
 
     private static Date parseIsoDate(final Object value) {

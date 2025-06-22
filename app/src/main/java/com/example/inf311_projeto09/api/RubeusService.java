@@ -11,6 +11,9 @@ import retrofit2.http.POST;
 
 interface RubeusService {
 
+    @POST("Contato/cadastro")
+    Call<ApiResponse<Object>> registerUser(@Body Map<String, Object> body);
+
     @POST("Contato/listarOportunidades")
     Call<ApiResponse<List<Event.RawEventResponse>>> listUserEvents(@Body Map<String, Object> body);
 

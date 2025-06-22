@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.inf311_projeto09.BuildConfig;
 import com.example.inf311_projeto09.model.Event;
+import com.example.inf311_projeto09.model.User;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,24 +26,45 @@ import retrofit2.Response;
 final class RubeusApiHelper {
 
     private static final String HTTP_REQUEST = "HTTP_REQUEST";
+    private static final String CAMPOS_PERSONALIZADOS = "camposPersonalizados";
     private final RubeusService service;
 
     public RubeusApiHelper() {
         this.service = RetrofitClient.getInstance().create(RubeusService.class);
     }
 
-    public <T> void executeRequest(final Call<ApiResponse<T>> call) {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            try {
-                final Response<ApiResponse<T>> response = call.execute();
+    public <T> Boolean executeRequest(final Call<ApiResponse<T>> call) {
+        final Callable<Boolean> task = () -> {
+            final Response<ApiResponse<T>> response = call.execute();
 
-                if (!response.isSuccessful() || response.body() == null || !response.body().success()) {
-                    throw new HttpException(response);
-                }
-            } catch (final IOException | RuntimeException e) {
+            if (response.isSuccessful() && response.body() != null && response.body().success()) {
+                return true;
+            } else {
+                throw new HttpException(response);
+            }
+        };
+
+        final Future<Boolean> future = Executors.newSingleThreadExecutor().submit(task);
+
+        try {
+            return future.get();
+        } catch (final ExecutionException e) {
+            final Throwable cause = e.getCause();
+            if (cause instanceof final IOException ioException) {
+                Log.e(HTTP_REQUEST, Objects.requireNonNull(ioException.getMessage()));
+            } else if (cause instanceof final HttpException httpException) {
+                Log.e(HTTP_REQUEST, Objects.requireNonNull(httpException.getMessage()));
+            } else if (cause instanceof final RuntimeException runtimeException) {
+                Log.e(HTTP_REQUEST, Objects.requireNonNull(runtimeException.getMessage()));
+            } else {
                 Log.e(HTTP_REQUEST, Objects.requireNonNull(e.getMessage()));
             }
-        });
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Log.e(HTTP_REQUEST, Objects.requireNonNull(e.getMessage()));
+        }
+
+        return false;
     }
 
     public <T, R> R executeRequest(final Call<ApiResponse<T>> call, final Function<T, R> transform, final Supplier<R> fallback) {
@@ -86,6 +108,22 @@ final class RubeusApiHelper {
         return body;
     }
 
+    public Call<ApiResponse<Object>> registerUserCall(final String name, final String email, final String school, final String password, final String cpf, final User.UserType type) {
+        final Map<String, Object> body = this.defaultBody();
+        final Map<String, Object> customFields = new HashMap<>();
+
+        customFields.put(RubeusFields.UserAccount.TYPE.getIdentifier(), type.getIdentifier());
+        customFields.put(RubeusFields.UserAccount.PASSWORD.getIdentifier(), password);
+
+        body.put("nome", name);
+        body.put("emailPrincipal", email);
+        body.put("escolaOrigem", school);
+        body.put("cpf", cpf);
+        body.put(CAMPOS_PERSONALIZADOS, customFields);
+
+        return this.service.registerUser(body);
+    }
+
     public Call<ApiResponse<List<Event.RawEventResponse>>> listUserEventsCall(final int userId) {
         final Map<String, Object> body = this.defaultBody();
         final Map<String, Object> customFields = new HashMap<>();
@@ -95,7 +133,7 @@ final class RubeusApiHelper {
             campos.add(field.getIdentifier());
         }
 
-        customFields.put("key", "camposPersonalizados");
+        customFields.put("key", CAMPOS_PERSONALIZADOS);
         customFields.put("campos", campos);
 
         body.put("id", userId);
@@ -110,7 +148,7 @@ final class RubeusApiHelper {
         body.put("codigo", eventId);
         body.put("tipo", 114);
         body.put("pessoa", Map.of("id", userId));
-        body.put("camposPersonalizados", Map.of(RubeusFields.UserEvent.CHECK_IN_TIME, checkInTime));
+        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_IN_TIME, checkInTime));
 
         return this.service.checkIn(body);
     }
@@ -121,7 +159,7 @@ final class RubeusApiHelper {
         body.put("codigo", eventId);
         body.put("tipo", 114);
         body.put("pessoa", Map.of("id", userId));
-        body.put("camposPersonalizados", Map.of(RubeusFields.UserEvent.CHECK_OUT_TIME, checkOutTime));
+        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_OUT_TIME, checkOutTime));
 
         return this.service.checkOut(body);
     }
