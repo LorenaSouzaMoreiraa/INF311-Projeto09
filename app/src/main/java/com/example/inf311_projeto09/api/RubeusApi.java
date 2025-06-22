@@ -26,6 +26,17 @@ public final class RubeusApi {
         return helper.executeRequest(helper.registerUserCall(name, email, school, password, cpf, type));
     }
 
+    public static List<String> listSchools() {
+        final Function<List<Object>, List<String>> toCustomList = schools -> schools.stream()
+                .map(school -> {
+                    final Map<String, Object> convertedSchool = (Map<String, Object>) school;
+                    return convertedSchool.get("descricao") + " (" + convertedSchool.get("nome") + ")";
+                })
+                .collect(Collectors.toList());
+
+        return helper.executeRequest(helper.listSchoolsCall(), toCustomList, List::of);
+    }
+
     public static List<Event> listUserEvents(final int userId) {
         final Function<List<Event.RawEventResponse>, List<Event>> toCustomList = events -> events.stream()
                 .filter(event -> "Eventos Aluno".equals(event.processoNome()))

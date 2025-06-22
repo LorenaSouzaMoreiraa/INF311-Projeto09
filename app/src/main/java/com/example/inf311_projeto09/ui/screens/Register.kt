@@ -61,7 +61,6 @@ import androidx.compose.ui.unit.sp
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
-import com.example.inf311_projeto09.model.UniversitiesMock
 import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
@@ -73,7 +72,6 @@ fun RegisterScreen(
     onBack: () -> Unit = {},
     onSignUpSuccess: (Boolean) -> Unit = {},
     onLoginClick: () -> Unit = {},
-    universitiesMock: UniversitiesMock = UniversitiesMock(),
     userRole: User.UserRole
 ) {
     var cpf by remember { mutableStateOf("") }
@@ -86,7 +84,7 @@ fun RegisterScreen(
     var confirmPasswordVisibility by remember { mutableStateOf(false) }
 
     var expanded by remember { mutableStateOf(false) }
-    val universities = remember { universitiesMock.getUniversitiesList() }
+    val universities = remember { RubeusApi.listSchools().toList() }
 
     val focusManager: FocusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()

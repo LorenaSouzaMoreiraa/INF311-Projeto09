@@ -123,7 +123,7 @@ fun AppNavHost(navController: NavHostController) {
             val userRole =
                 backStackEntry.arguments?.getString("userRole")?.let { User.UserRole.valueOf(it) }
 
-            // TODO: apagar mock das universidades
+            // TODO: exibir mensagem falando que precisa ter selecionado pelo menos um
             if (userRole != null) {
                 RegisterScreen(
                     onBack = {

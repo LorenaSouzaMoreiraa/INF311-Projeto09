@@ -124,6 +124,10 @@ final class RubeusApiHelper {
         return this.service.registerUser(body);
     }
 
+    public Call<ApiResponse<List<Object>>> listSchoolsCall() {
+        return this.service.listSchools(this.defaultBody());
+    }
+
     public Call<ApiResponse<List<Event.RawEventResponse>>> listUserEventsCall(final int userId) {
         final Map<String, Object> body = this.defaultBody();
         final Map<String, Object> customFields = new HashMap<>();
