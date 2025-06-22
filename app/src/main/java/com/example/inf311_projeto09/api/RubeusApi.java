@@ -37,6 +37,38 @@ public final class RubeusApi {
         return helper.executeRequest(helper.listSchoolsCall(), toCustomList, List::of);
     }
 
+    public static User searchUserByEmail(final String email) {
+        final Function<List<User.RawUserResponse>, User> toUser = users -> users.stream()
+                .filter(user -> email.equals(((Map<String, Object>) user.emails().get("principal")).get("email")))
+                .map(user -> {
+                    final List<Object> customFields = user.camposPersonalizados();
+
+                    final String password = customFields.stream()
+                            .filter(field -> RubeusFields.UserAccount.PASSWORD.getIdentifier()
+                                    .equals(((Map<String, Object>) field).get("coluna")))
+                            .map(field -> (String) ((Map<String, Object>) field).get("valor"))
+                            .collect(Collectors.toList())
+                            .get(0);
+                    final String userRole = customFields.stream()
+                            .filter(field -> RubeusFields.UserAccount.TYPE.getIdentifier()
+                                    .equals(((Map<String, Object>) field).get("coluna")))
+                            .map(field -> (String) ((Map<String, Object>) field).get("valor"))
+                            .collect(Collectors.toList())
+                            .get(0);
+
+                    return new User(Integer.parseInt(user.id()),
+                            user.nome(),
+                            userRole.equals("User") ? User.UserRole.USER : User.UserRole.ADMIN,
+                            email,
+                            user.cpf(),
+                            user.escolaOrigem(),
+                            password);
+                })
+                .collect(Collectors.toList()).get(0);
+
+        return helper.executeRequest(helper.searchUserByEmailCall(email), toUser, null);
+    }
+
     public static List<Event> listUserEvents(final int userId) {
         final Function<List<Event.RawEventResponse>, List<Event>> toCustomList = events -> events.stream()
                 .filter(event -> "Eventos Aluno".equals(event.processoNome()))

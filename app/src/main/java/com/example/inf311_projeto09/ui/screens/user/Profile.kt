@@ -50,6 +50,7 @@ import kotlin.random.Random
 @Composable
 fun ProfileScreen(
     userId: String = "idUsuario", // TODO: pegar nome do banco de dados
+    onLogout: () -> Unit = {},
     navController: NavHostController
 ) {
     Column(
@@ -57,7 +58,7 @@ fun ProfileScreen(
             .fillMaxSize()
             .background(AppColors().darkGreen)
     ) {
-        TopBarProfile(userId, navController)
+        TopBarProfile(userId, onLogout, navController)
 
         Spacer(modifier = Modifier.height(30.dp))
 
@@ -87,6 +88,7 @@ fun ProfileScreen(
 @Composable
 fun TopBarProfile(
     userid: String,
+    onLogout: () -> Unit = {},
     navController: NavHostController
 ) {
     // TODO: pegar pelo id do usuário
@@ -105,7 +107,7 @@ fun TopBarProfile(
         Box(
             modifier = Modifier
                 .size(30.dp)
-                .clickable { navController.navigate(ScreenType.LOGIN.route) },
+                .clickable { onLogout() },
             contentAlignment = Alignment.Center
         ) {
             AppIcons.Outline.LogOut(30.dp)

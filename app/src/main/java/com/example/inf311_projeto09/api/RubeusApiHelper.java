@@ -101,11 +101,26 @@ final class RubeusApiHelper {
         return fallback.get();
     }
 
-    public Map<String, Object> defaultBody() {
+    private Map<String, Object> defaultBody() {
         final Map<String, Object> body = new HashMap<>();
         body.put("origem", Integer.parseInt(BuildConfig.RUBEUS_API_ORIGIN));
         body.put("token", BuildConfig.RUBEUS_API_TOKEN);
         return body;
+    }
+
+    private List<Object> getUserFieldsReturn() {
+        return List.of("id",
+                "nome",
+                "emails",
+                "cpf",
+                "escolaOrigem",
+                Map.of(
+                        "key", CAMPOS_PERSONALIZADOS,
+                        "campos", List.of("coluna",
+                                "valor"),
+                        "filtros", List.of(Map.of(
+                                "coluna", List.of(RubeusFields.UserAccount.PASSWORD.getIdentifier(),
+                                        RubeusFields.UserAccount.TYPE.getIdentifier())))));
     }
 
     public Call<ApiResponse<Object>> registerUserCall(final String name, final String email, final String school, final String password, final String cpf, final User.UserRole type) {
@@ -126,6 +141,15 @@ final class RubeusApiHelper {
 
     public Call<ApiResponse<List<Object>>> listSchoolsCall() {
         return this.service.listSchools(this.defaultBody());
+    }
+
+    public Call<ApiResponse<List<User.RawUserResponse>>> searchUserByEmailCall(final String email) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("camposRetorno", this.getUserFieldsReturn());
+        body.put("email", email);
+
+        return this.service.searchUserByEmail(body);
     }
 
     public Call<ApiResponse<List<Event.RawEventResponse>>> listUserEventsCall(final int userId) {
