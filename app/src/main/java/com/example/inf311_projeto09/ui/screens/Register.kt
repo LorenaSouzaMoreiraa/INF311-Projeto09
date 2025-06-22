@@ -418,7 +418,9 @@ fun RegisterScreen(
                             AppIcons.Outline.KeyRound(24.dp, AppColors().black)
                         },
                         trailingIcon = {
-                            IconButton(onClick = { confirmPasswordVisibility = !confirmPasswordVisibility }) {
+                            IconButton(onClick = {
+                                confirmPasswordVisibility = !confirmPasswordVisibility
+                            }) {
                                 if (confirmPasswordVisibility)
                                     AppIcons.Outline.Eye(24.dp, AppColors().grey)
                                 else
@@ -457,7 +459,19 @@ fun RegisterScreen(
                     Spacer(modifier = Modifier.height(30.dp))
 
                     Button(
-                        onClick = { onSignUpSuccess(validateRegister(name, email, school, password, confirmPassword, cpf, userRole)) },
+                        onClick = {
+                            onSignUpSuccess(
+                                validateRegister(
+                                    name,
+                                    email,
+                                    school,
+                                    password,
+                                    confirmPassword,
+                                    cpf,
+                                    userRole
+                                )
+                            )
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = AppColors().lightGreen,
                             contentColor = AppColors().black
@@ -516,7 +530,7 @@ fun validateRegister(
     userRole: User.UserRole
 ): Boolean {
     // TODO: validar os dados antes
-    if (password == confirmPassword) {
+    if (password.isNotEmpty() && password == confirmPassword) {
         return RubeusApi.registerUser(
             name,
             email,

@@ -1,5 +1,6 @@
 package com.example.inf311_projeto09.ui
 
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
@@ -119,7 +120,8 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable("${ScreenType.REGISTER.route}/{userRole}") { backStackEntry ->
-            val userRole = backStackEntry.arguments?.getString("userRole")?.let { User.UserRole.valueOf(it) }
+            val userRole =
+                backStackEntry.arguments?.getString("userRole")?.let { User.UserRole.valueOf(it) }
 
             // TODO: apagar mock das universidades
             if (userRole != null) {
@@ -128,11 +130,15 @@ fun AppNavHost(navController: NavHostController) {
                         navController.popBackStack()
                     },
                     onSignUpSuccess = { signUpSuccess ->
-                        if (signUpSuccess)
+                        if (signUpSuccess) {
                             navController.navigate(ScreenType.LOGIN.route) {
                                 popUpTo(ScreenType.LOGIN.route) { inclusive = false }
                                 launchSingleTop = true
                             }
+                        } else {
+                            Log.e("REGISTER", "Registro inválido.")
+                            // TODO: mensagem de erro
+                        }
                     },
                     onLoginClick = {
                         navController.navigate(ScreenType.LOGIN.route) {
