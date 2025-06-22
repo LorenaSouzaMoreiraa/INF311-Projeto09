@@ -31,6 +31,20 @@ final class RubeusApiHelper {
         this.service = RetrofitClient.getInstance().create(RubeusService.class);
     }
 
+    public <T> void executeRequest(final Call<ApiResponse<T>> call) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                final Response<ApiResponse<T>> response = call.execute();
+
+                if (!response.isSuccessful() || response.body() == null || !response.body().success()) {
+                    throw new HttpException(response);
+                }
+            } catch (final IOException | RuntimeException e) {
+                Log.e(HTTP_REQUEST, Objects.requireNonNull(e.getMessage()));
+            }
+        });
+    }
+
     public <T, R> R executeRequest(final Call<ApiResponse<T>> call, final Function<T, R> transform, final Supplier<R> fallback) {
         final Callable<R> task = () -> {
             final Response<ApiResponse<T>> response = call.execute();
@@ -88,5 +102,27 @@ final class RubeusApiHelper {
         body.put("camposRetorno", List.of("id", "processoNome", "etapaNome", customFields));
 
         return this.service.listUserEvents(body);
+    }
+
+    public Call<ApiResponse<Object>> checkInCall(final int userId, final int eventId, final String checkInTime) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("codigo", eventId);
+        body.put("tipo", 114);
+        body.put("pessoa", Map.of("id", userId));
+        body.put("camposPersonalizados", Map.of(RubeusFields.UserEvent.CHECK_IN_TIME, checkInTime));
+
+        return this.service.checkIn(body);
+    }
+
+    public Call<ApiResponse<Object>> checkOutCall(final int userId, final int eventId, final String checkOutTime) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("codigo", eventId);
+        body.put("tipo", 114);
+        body.put("pessoa", Map.of("id", userId));
+        body.put("camposPersonalizados", Map.of(RubeusFields.UserEvent.CHECK_OUT_TIME, checkOutTime));
+
+        return this.service.checkOut(body);
     }
 }

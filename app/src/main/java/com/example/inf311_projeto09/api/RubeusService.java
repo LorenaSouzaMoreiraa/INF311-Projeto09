@@ -13,4 +13,10 @@ interface RubeusService {
 
     @POST("Contato/listarOportunidades")
     Call<ApiResponse<List<Event.RawEventResponse>>> listUserEvents(@Body Map<String, Object> body);
+
+    @POST("Evento/cadastro")
+    Call<ApiResponse<Object>> checkIn(@Body Map<String, Object> body);
+
+    @POST("Evento/cadastro")
+    Call<ApiResponse<Object>> checkOut(@Body Map<String, Object> body);
 }

@@ -14,6 +14,10 @@ class AppDateHelper {
         val TIME_ZONE_SAO_PAULO: TimeZone = TimeZone.getTimeZone("America/Sao_Paulo")
     }
 
+    fun getCurrentCompleteTime(): String {
+        return getCurrentTime("yyyy-MM-dd'T'HH:mm:ss")
+    }
+
     fun getCurrentTime(): String {
         return getCurrentTime("HH:mm")
     }

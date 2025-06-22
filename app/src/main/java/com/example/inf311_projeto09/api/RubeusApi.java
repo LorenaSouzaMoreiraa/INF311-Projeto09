@@ -51,6 +51,16 @@ public final class RubeusApi {
         return helper.executeRequest(helper.listUserEventsCall(userId), toCustomList, List::of);
     }
 
+    public static void checkIn(final int userId, final Event event, final String checkInTime) {
+        event.setCheckInTime(parseIsoDate(checkInTime));
+        helper.executeRequest(helper.checkInCall(userId, event.getId(), checkInTime));
+    }
+
+    public static void checkOut(final int userId, final Event event, final String checkOutTime) {
+        event.setCheckOutTime(parseIsoDate(checkOutTime));
+        helper.executeRequest(helper.checkOutCall(userId, event.getId(), checkOutTime));
+    }
+
     private static Date parseIsoDate(final Object value) {
         if (value instanceof final String string) {
             try {
