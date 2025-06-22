@@ -384,6 +384,25 @@ class AppIcons {
                 )
             }
         }
+
+        @Composable
+        fun CalendarField(boxSize: Dp, colorIcon: Color = AppColors().black) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.calendar_1),
+                    contentDescription = "Calendário",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
     }
 
     object Filled {

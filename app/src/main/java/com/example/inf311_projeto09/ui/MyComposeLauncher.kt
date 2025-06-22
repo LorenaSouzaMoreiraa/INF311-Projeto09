@@ -15,6 +15,7 @@ import com.example.inf311_projeto09.ui.screens.RecoverPasswordScreen
 import com.example.inf311_projeto09.ui.screens.RegisterScreen
 import com.example.inf311_projeto09.ui.screens.UserRoleScreen
 import com.example.inf311_projeto09.ui.screens.WelcomeScreen
+import com.example.inf311_projeto09.ui.screens.admin.RegisterEventScreen
 import com.example.inf311_projeto09.ui.screens.user.CalendarScreen
 import com.example.inf311_projeto09.ui.screens.user.EditProfileScreen
 import com.example.inf311_projeto09.ui.screens.user.HomeScreen
@@ -37,7 +38,8 @@ enum class ScreenType(val route: String) {
     QR_SCANNER("qr_scanner"),
     VERIFICATION_CODE("verification_code"),
     RECOVER_PASSWORD("recover_password"),
-    EDIT_PROFILE("edit_profile")
+    EDIT_PROFILE("edit_profile"),
+    REGISTER_EVENT("register_event")
 }
 
 val notificationsMock = NotificationsMock()
@@ -190,6 +192,12 @@ fun AppNavHost(navController: NavHostController) {
             EditProfileScreen(
                 navController = navController,
                 choosePhoto = { /* TODO: Lógica para escolher foto */ }
+            )
+        }
+
+        composable(ScreenType.REGISTER_EVENT.route) {
+            RegisterEventScreen(
+                navController = navController,
             )
         }
     }
