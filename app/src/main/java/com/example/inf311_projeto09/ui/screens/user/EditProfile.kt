@@ -80,7 +80,7 @@ fun EditProfileScreen(
                     .fillMaxWidth()
                     .weight(1f)
                     .background(
-                        color = AppColors().white,
+                        color = AppColors().offWhite,
                         shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
                     )
                     .padding(horizontal = 30.dp, vertical = 40.dp)

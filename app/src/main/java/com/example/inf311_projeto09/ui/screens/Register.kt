@@ -189,7 +189,7 @@ fun RegisterScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        AppColors().white,
+                        AppColors().offWhite,
                         shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
                     )
                     .padding(25.dp)

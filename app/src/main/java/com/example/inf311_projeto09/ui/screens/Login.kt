@@ -73,7 +73,7 @@ fun LoginScreen(
 
         // TODO: arrumar o link
         val terms = LinkAnnotation.Url(
-            "https://github.com/LorenaSouzaMoreiraa/INF311-Projeto09",
+            "https://drive.google.com/file/d/1f6FtKPt5RYfNIsRt_sFtdIsvZPsDdvew/view?usp=sharing",
             TextLinkStyles(
                 style = SpanStyle(textDecoration = TextDecoration.Underline),
             )
@@ -84,7 +84,7 @@ fun LoginScreen(
 
         // TODO: arrumar o link
         val privacy = LinkAnnotation.Url(
-            "https://github.com/LorenaSouzaMoreiraa/INF311-Projeto09",
+            "https://drive.google.com/file/d/1tz8EMVy_2NkTkMbRLaMbDboMYKOwGRws/view?usp=sharing",
             TextLinkStyles(
                 style = SpanStyle(textDecoration = TextDecoration.Underline),
             )
@@ -150,7 +150,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        AppColors().white,
+                        AppColors().offWhite,
                         shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
                     )
                     .padding(30.dp)
