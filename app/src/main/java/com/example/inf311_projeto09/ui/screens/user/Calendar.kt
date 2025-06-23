@@ -43,8 +43,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.Event.EventStage
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.components.NavBar
@@ -61,6 +63,7 @@ import java.util.Date
 
 @Composable
 fun CalendarScreen(
+    user: User,
     navController: NavHostController,
     allEvents: List<Event>
 ) {
@@ -68,15 +71,45 @@ fun CalendarScreen(
     val calendarViewModel = remember { CalendarViewModel() }
     var selectedDate by remember { mutableStateOf(today) }
     val lazyListState = rememberLazyListState()
+    val currentEvent = AppDateHelper().getCurrentEvent(allEvents)
 
-    val eventsForSelectedDay = remember(selectedDate) {
-        mutableStateOf(AppDateHelper().getEventsForDate(allEvents, selectedDate.time))
-    }
+    var eventsForSelectedDay = AppDateHelper().getEventsForDate(allEvents, selectedDate.time)
 
     val scrollToToday: () -> Unit = {
         selectedDate = today
-        eventsForSelectedDay.value = AppDateHelper().getEventsForDate(allEvents, today.time)
+        eventsForSelectedDay = AppDateHelper().getEventsForDate(allEvents, today.time)
         calendarViewModel.setToWeekOf(today)
+    }
+
+    val scannedCode = remember {
+        mutableStateOf<String?>(null)
+    }
+
+    LaunchedEffect(navController) {
+        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+        savedStateHandle?.getLiveData<String>("scannedCode")?.observeForever { code ->
+            scannedCode.value = code
+            savedStateHandle.remove<String>("scannedCode")
+        }
+    }
+
+    LaunchedEffect(scannedCode.value) {
+        val code = scannedCode.value
+        if (code != null) {
+            scannedCode.value = null
+
+            if (currentEvent != null && code == currentEvent.checkInCode) {
+                val checkTime = AppDateHelper().getCurrentCompleteTime()
+
+                if (currentEvent.checkInTime == null) {
+                    RubeusApi.checkIn(user.id, currentEvent, checkTime)
+                } else if (currentEvent.checkOutTime == null) {
+                    RubeusApi.checkOut(user.id, currentEvent, checkTime)
+                }
+            } else {
+                // TODO: código inválido, fazer também outras mensagens, igual checkout precisa de checkin
+            }
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -97,8 +130,7 @@ fun CalendarScreen(
                 selectedDate = selectedDate,
                 onDateSelected = { date ->
                     selectedDate = date
-                    eventsForSelectedDay.value =
-                        AppDateHelper().getEventsForDate(allEvents, date.time)
+                    eventsForSelectedDay = AppDateHelper().getEventsForDate(allEvents, date.time)
                     calendarViewModel.setToWeekOf(date)
                 },
                 calendarViewModel = calendarViewModel
@@ -112,8 +144,7 @@ fun CalendarScreen(
                 lazyListState = lazyListState,
                 onDaySelected = { date ->
                     selectedDate = date
-                    eventsForSelectedDay.value =
-                        AppDateHelper().getEventsForDate(allEvents, date.time)
+                    eventsForSelectedDay = AppDateHelper().getEventsForDate(allEvents, date.time)
                 }
             )
 
@@ -131,7 +162,7 @@ fun CalendarScreen(
                     .padding(top = 20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                DayEventsSection(events = eventsForSelectedDay.value)
+                DayEventsSection(events = eventsForSelectedDay)
 
                 Spacer(modifier = Modifier.height(20.dp))
             }
@@ -150,8 +181,12 @@ fun CalendarScreen(
                 .clip(RoundedCornerShape(12.dp))
                 .background(AppColors().darkGreen)
                 .clickable {
-                    // TODO: corrigir rota
-                    navController.navigate(ScreenType.VERIFICATION_CODE.route)
+                    if (currentEvent?.verificationMethod == "Código único")
+                        navController.navigate(ScreenType.VERIFICATION_CODE.route)
+                    else if (currentEvent?.verificationMethod == "QR Code")
+                        navController.navigate(ScreenType.QR_SCANNER.route)
+                    // TODO: colocar mensagem que não tem evento atual
+                    // TODO: tela de checkout (não precisa de código)
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -522,5 +557,9 @@ class CalendarViewModel {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun CalendarScreenPreview() {
-    CalendarScreen(navController = rememberNavController(), allEvents = emptyList())
+    CalendarScreen(
+        user = User(0, "Erick", User.UserRole.USER, "teste@teste.com", "cpf", "UFV", "****"),
+        navController = rememberNavController(),
+        allEvents = emptyList()
+    )
 }

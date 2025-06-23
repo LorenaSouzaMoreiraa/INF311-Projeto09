@@ -57,7 +57,7 @@ import com.example.inf311_projeto09.ui.utils.AppIcons
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (Boolean) -> Unit = {},
+    onLoginSuccess: (String, String, Boolean) -> Unit = { _, _, _ -> },
     onForgotPasswordClick: () -> Unit = {},
     onSignUpClick: () -> Unit = {},
 ) {
@@ -280,7 +280,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(30.dp))
 
                     Button(
-                        onClick = { onLoginSuccess(rememberMe) },
+                        onClick = { onLoginSuccess(email, password, rememberMe) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = AppColors().lightGreen,
                             contentColor = AppColors().black

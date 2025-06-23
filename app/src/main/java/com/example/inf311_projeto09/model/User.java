@@ -1,5 +1,6 @@
 package com.example.inf311_projeto09.model;
 
+import java.util.List;
 import java.util.Map;
 
 public class User {
@@ -12,8 +13,8 @@ public class User {
     private String password;
 
     public User(final int id, final String name, final UserRole type,
-                 final String email, final String cpf, final String school,
-                 final String password) {
+                final String email, final String cpf, final String school,
+                final String password) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -94,8 +95,9 @@ public class User {
         }
     }
 
-    public record RawUserResponse(String nome, Map<String, Object> emails, String cpf, String escolaOrigem,
-                                   Map<String, Object> camposPersonalizados) {
+    public record RawUserResponse(String id, String nome, Map<String, Object> emails,
+                                  String cpf, String escolaOrigem,
+                                  List<Object> camposPersonalizados) {
     }
 }
 

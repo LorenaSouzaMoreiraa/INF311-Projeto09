@@ -1,14 +1,18 @@
 package com.example.inf311_projeto09.ui
 
+import android.content.Context
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.core.content.edit
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.api.RubeusApi
+import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.screens.LoginScreen
@@ -26,6 +30,8 @@ import com.example.inf311_projeto09.ui.screens.user.QrScannerScreen
 import com.example.inf311_projeto09.ui.screens.user.VerificationCodeScreen
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import java.util.Calendar
+
+// TODO: trocar cores de branco para offWhite
 
 enum class ScreenType(val route: String) {
     WELCOME("welcome"),
@@ -45,45 +51,98 @@ enum class ScreenType(val route: String) {
 
 val notificationsMock = NotificationsMock()
 
+fun setHasSeenWelcome(activity: ComponentActivity) {
+    val prefs = activity.getPreferences(Context.MODE_PRIVATE)
+    prefs.edit {
+        putBoolean("hasSeenWelcome", true)
+        apply()
+    }
+}
+
+fun hasSeenWelcome(activity: ComponentActivity): Boolean {
+    val prefs = activity.getPreferences(Context.MODE_PRIVATE)
+    return prefs.getBoolean("hasSeenWelcome", false)
+}
+
+fun setRememberedEmail(activity: ComponentActivity, email: String) {
+    val prefs = activity.getPreferences(Context.MODE_PRIVATE)
+    prefs.edit {
+        putString("rememberedEmail", email)
+        apply()
+    }
+}
+
+fun hasRememberedEmail(activity: ComponentActivity): String {
+    val prefs = activity.getPreferences(Context.MODE_PRIVATE)
+    return prefs.getString("rememberedEmail", "") ?: ""
+}
+
 object MyComposeLauncher {
     @JvmStatic
     fun launch(activity: ComponentActivity) {
+        val startDestination = when {
+            hasRememberedEmail(activity).isNotEmpty() -> ScreenType.HOME.route
+            hasSeenWelcome(activity) -> ScreenType.LOGIN.route
+            else -> ScreenType.WELCOME.route
+        }
+
         activity.setContent {
             val navController = rememberNavController()
-            AppNavHost(navController)
+            AppNavHost(navController, startDestination, activity)
         }
     }
 }
 
 @Composable
-fun AppNavHost(navController: NavHostController) {
-    val initialScreen = ScreenType.WELCOME.route
-
-    // TODO: atualizar de tempos em tempos?
-    val userEvents = RubeusApi.listUserEvents(22)
+fun AppNavHost(
+    navController: NavHostController,
+    startDestination: String,
+    activity: ComponentActivity
+) {
     val today = remember { Calendar.getInstance() }
-    val todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)
+    val rememberedEmail = hasRememberedEmail(activity)
+    var user =
+        if (rememberedEmail.isNotEmpty()) RubeusApi.searchUserByEmail(rememberedEmail) else null
+    var userEvents = user?.let { RubeusApi.listUserEvents(it.id) } ?: emptyList()
+    var todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)
+    // TODO: atualizar os eventos de tempos em tempos?
 
     NavHost(
         navController = navController,
-        startDestination = initialScreen
+        startDestination = startDestination
     ) {
         composable(ScreenType.WELCOME.route) {
             WelcomeScreen(
                 onContinue = {
-                    navController.navigate(ScreenType.LOGIN.route)
+                    setHasSeenWelcome(activity)
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(ScreenType.WELCOME.route) { inclusive = true }
+                    }
                 }
             )
         }
 
         composable(ScreenType.LOGIN.route) {
-            // TODO: fazer essa verificação de lembrar login
             // TODO: precisa ter os dados preenchidos e verificar
-            // TODO: fazer a tela de login e esqueci senha?
             LoginScreen(
-                onLoginSuccess = { rememberUser ->
-                    navController.navigate(ScreenType.HOME.route) {
-                        popUpTo(ScreenType.WELCOME.route) { inclusive = true }
+                onLoginSuccess = { email, password, rememberUser ->
+                    user = RubeusApi.searchUserByEmail(email)
+                    val isValidPassword = PasswordHelper.verifyPassword(password, user?.password)
+
+                    if (isValidPassword) {
+                        if (rememberUser) {
+                            setRememberedEmail(activity, email)
+                        }
+
+                        userEvents = user?.let { RubeusApi.listUserEvents(it.id) } ?: emptyList()
+                        todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)
+
+                        navController.navigate(ScreenType.HOME.route) {
+                            popUpTo(ScreenType.WELCOME.route) { inclusive = true }
+                        }
+                    } else {
+                        Log.e("LOGIN", "Login inválido.")
+                        // TODO: mensagem de login não válido
                     }
                 },
                 onSignUpClick = {
@@ -119,20 +178,25 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable("${ScreenType.REGISTER.route}/{userRole}") { backStackEntry ->
-            val userRole = backStackEntry.arguments?.getString("userRole")?.let { User.UserRole.valueOf(it) }
+            val userRole =
+                backStackEntry.arguments?.getString("userRole")?.let { User.UserRole.valueOf(it) }
 
-            // TODO: apagar mock das universidades
+            // TODO: exibir mensagem falando que precisa ter selecionado pelo menos um
             if (userRole != null) {
                 RegisterScreen(
                     onBack = {
                         navController.popBackStack()
                     },
                     onSignUpSuccess = { signUpSuccess ->
-                        if (signUpSuccess)
+                        if (signUpSuccess) {
                             navController.navigate(ScreenType.LOGIN.route) {
                                 popUpTo(ScreenType.LOGIN.route) { inclusive = false }
                                 launchSingleTop = true
                             }
+                        } else {
+                            Log.e("REGISTER", "Registro inválido.")
+                            // TODO: mensagem de erro
+                        }
                     },
                     onLoginClick = {
                         navController.navigate(ScreenType.LOGIN.route) {
@@ -146,24 +210,54 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable(ScreenType.HOME.route) {
-            HomeScreen(
-                todayEvents = todayEvents,
-                navController = navController
-            )
+            user?.let { nonNullUser ->
+                HomeScreen(
+                    user = nonNullUser,
+                    todayEvents = todayEvents,
+                    navController = navController
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         }
 
         composable(ScreenType.CALENDAR.route) {
-            CalendarScreen(
-                navController = navController,
-                allEvents = userEvents
-            )
+            user?.let { nonNullUser ->
+                CalendarScreen(
+                    user = nonNullUser,
+                    allEvents = userEvents,
+                    navController = navController
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         }
 
         composable(ScreenType.PROFILE.route) {
-            // TODO: integrar
-            ProfileScreen(
-                navController = navController
-            )
+            user?.let { nonNullUser ->
+                ProfileScreen(
+                    user = nonNullUser,
+                    navController = navController,
+                    onLogout = {
+                        setRememberedEmail(activity, "")
+                        navController.navigate(ScreenType.LOGIN.route)
+                    }
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         }
 
         composable(ScreenType.NOTIFICATIONS.route) {

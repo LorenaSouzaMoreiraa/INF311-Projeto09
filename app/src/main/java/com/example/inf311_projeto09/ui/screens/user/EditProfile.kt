@@ -3,7 +3,17 @@ package com.example.inf311_projeto09.ui.screens.user
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,7 +49,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.R
-import com.example.inf311_projeto09.model.UniversitiesMock
+import com.example.inf311_projeto09.api.RubeusApi
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
 import com.example.inf311_projeto09.ui.utils.AppColors
@@ -53,7 +64,6 @@ fun EditProfileScreen(
     choosePhoto: () -> Unit = {},
 ) {
     var isEditingMode by remember { mutableStateOf(false) }
-    val universitiesMock = remember { UniversitiesMock() }
 
     Box(
         modifier = Modifier
@@ -78,7 +88,7 @@ fun EditProfileScreen(
             ) {
                 Spacer(modifier = Modifier.height(40.dp))
 
-                EditProfileFields(userId, isEditingMode, universitiesMock);
+                EditProfileFields(userId, isEditingMode)
             }
 
             NavBar(navController, NavBarOption.PROFILE)
@@ -166,21 +176,15 @@ fun TopBarEditProfile(
     }
 }
 
-data class User(
-    val cpf: String,
-    val name: String,
-    val university: String,
-    val email: String,
-    val password: String
-)
-
 fun getUserData(userId: String): User {
     return User(
-        cpf = "000.000.000-00",
-        name = "Nome completo",
-        university = "Nome universidade",
-        email = "rubeus@rubeus.com",
-        password = "testeSenha"
+        Integer.valueOf(userId),
+        "Nome completo",
+        User.UserRole.USER,
+        "rubeus@rubeus.com",
+        "000.000.000-00",
+        "Nome universidade",
+        "testeSenha"
     )
 }
 
@@ -188,20 +192,19 @@ fun getUserData(userId: String): User {
 @Composable
 fun EditProfileFields(
     userId: String,
-    isEditingMode: Boolean,
-    universitiesMock: UniversitiesMock
+    isEditingMode: Boolean
 ) {
     val user = getUserData(userId)
 
-    var cpf by remember { mutableStateOf(user.cpf) }
+    val cpf by remember { mutableStateOf(user.cpf) }
     var name by remember { mutableStateOf(user.name) }
-    var university by remember { mutableStateOf(user.university) }
-    var email by remember { mutableStateOf(user.email) }
+    var university by remember { mutableStateOf(user.school) }
+    val email by remember { mutableStateOf(user.email) }
     var password by remember { mutableStateOf(user.password) }
     var passwordVisible by remember { mutableStateOf(false) }
     var receiveNotifications by remember { mutableStateOf(true) }
 
-    val universities = remember { universitiesMock.getUniversitiesList() }
+    val universities = remember { RubeusApi.listSchools().toList() }
 
     CpfField(cpf = cpf)
 
@@ -492,7 +495,11 @@ fun PasswordField(
 }
 
 @Composable
-fun NotificationsSwitch(receiveNotifications: Boolean, onNotificationsChange: (Boolean) -> Unit, isEditingMode: Boolean) {
+fun NotificationsSwitch(
+    receiveNotifications: Boolean,
+    onNotificationsChange: (Boolean) -> Unit,
+    isEditingMode: Boolean
+) {
     val checkedTrackColor = AppColors().green
     val checkedThumbColor = AppColors().white
     val uncheckedTrackColor = AppColors().lightGrey
