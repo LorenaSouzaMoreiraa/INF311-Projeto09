@@ -1,6 +1,5 @@
 package com.example.inf311_projeto09.ui.utils
 
-import android.graphics.Camera
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -375,7 +374,7 @@ class AppIcons {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = lucide.square_arrow_out_up_left),
+                    painter = painterResource(id = R.drawable.square_pen),
                     contentDescription = "Editar",
                     modifier = Modifier
                         .fillMaxSize()
@@ -399,6 +398,63 @@ class AppIcons {
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun Filter(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.funnel),
+                    contentDescription = "Filtro",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun FileGenerator(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.file_chart_column),
+                    contentDescription = "Gerar PDF",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun Erase(boxSize: Dp, colorIcon: Color = AppColors().black) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.x),
+                    contentDescription = "Apagar",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(0.8f),
                     tint = colorIcon
                 )
             }
