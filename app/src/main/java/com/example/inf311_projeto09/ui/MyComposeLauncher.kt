@@ -31,6 +31,8 @@ import com.example.inf311_projeto09.ui.screens.user.VerificationCodeScreen
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import java.util.Calendar
 
+// TODO: trocar cores de branco para offWhite
+
 enum class ScreenType(val route: String) {
     WELCOME("welcome"),
     LOGIN("login"),
@@ -240,14 +242,22 @@ fun AppNavHost(
         }
 
         composable(ScreenType.PROFILE.route) {
-            // TODO: integrar
-            ProfileScreen(
-                navController = navController,
-                onLogout = {
-                    setRememberedEmail(activity, "")
-                    navController.navigate(ScreenType.LOGIN.route)
+            user?.let { nonNullUser ->
+                ProfileScreen(
+                    user = nonNullUser,
+                    navController = navController,
+                    onLogout = {
+                        setRememberedEmail(activity, "")
+                        navController.navigate(ScreenType.LOGIN.route)
+                    }
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
                 }
-            )
+            }
         }
 
         composable(ScreenType.NOTIFICATIONS.route) {

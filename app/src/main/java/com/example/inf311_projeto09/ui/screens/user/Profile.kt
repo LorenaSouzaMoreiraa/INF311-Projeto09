@@ -29,12 +29,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.R
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
@@ -49,7 +51,7 @@ import kotlin.random.Random
 
 @Composable
 fun ProfileScreen(
-    userId: String = "idUsuario", // TODO: pegar nome do banco de dados
+    user: User,
     onLogout: () -> Unit = {},
     navController: NavHostController
 ) {
@@ -58,7 +60,7 @@ fun ProfileScreen(
             .fillMaxSize()
             .background(AppColors().darkGreen)
     ) {
-        TopBarProfile(userId, onLogout, navController)
+        TopBarProfile(user, onLogout, navController)
 
         Spacer(modifier = Modifier.height(30.dp))
 
@@ -74,11 +76,11 @@ fun ProfileScreen(
                 .padding(top = 30.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            CardStatistics(userId, navController)
+            CardStatistics(user, navController)
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            MonthStatistics(userId)
+            MonthStatistics(user)
         }
 
         NavBar(navController, NavBarOption.PROFILE)
@@ -87,15 +89,12 @@ fun ProfileScreen(
 
 @Composable
 fun TopBarProfile(
-    userid: String,
+    user: User,
     onLogout: () -> Unit = {},
     navController: NavHostController
 ) {
-    // TODO: pegar pelo id do usuário
+    // TODO: pegar imagem
     val profileImage = 1
-    val email = "erick@rubeus.com"
-    val userName = "Erick Soares"
-    val institution = "Universidade Federal de Viçosa"
 
     Row(
         modifier = Modifier
@@ -153,7 +152,7 @@ fun TopBarProfile(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = email,
+            text = user.email,
             fontFamily = AppFonts().montserrat,
             fontWeight = FontWeight.Medium,
             color = AppColors().lightGrey,
@@ -161,28 +160,35 @@ fun TopBarProfile(
         )
 
         Text(
-            text = userName,
+            text = user.name,
             fontFamily = AppFonts().montserrat,
             fontWeight = FontWeight.SemiBold,
             color = AppColors().white,
-            fontSize = 20.sp
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(horizontal = 40.dp)
         )
 
         Text(
-            text = institution,
+            text = user.school.replace(Regex("\\s*\\([^)]*\\)\$"), ""),
             fontFamily = AppFonts().montserrat,
             fontWeight = FontWeight.Medium,
             color = AppColors().lightGrey,
-            fontSize = 12.sp
+            fontSize = 12.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(horizontal = 40.dp)
         )
     }
 }
 
 @Composable
 fun CardStatistics(
-    userid: String,
+    user: User,
     navController: NavHostController
 ) {
+    // TODO: pegar dados reais, por agora está fictícil
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -221,7 +227,7 @@ data class CalendarDay(
 
 @Composable
 fun MonthStatistics(
-    userid: String
+    user: User
 ) {
     // TODO: pegar dados reais, por agora está fictícil
     val currentMonth = AppDateHelper().getCurrentMonth()
@@ -453,5 +459,15 @@ fun PresenceLegend() {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ProfileScreenPreview() {
-    ProfileScreen(navController = rememberNavController())
+    ProfileScreen(
+        user = User(
+            0,
+            "Erick",
+            User.UserRole.USER,
+            "teste@teste.com",
+            "cpf",
+            "UFV",
+            "****"
+        ), navController = rememberNavController()
+    )
 }

@@ -60,7 +60,6 @@ fun WelcomeScreen(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                // TODO: Mudar "Erick" para "Usuário"
                 Image(
                     painter = painterResource(id = R.drawable.welcome_screen),
                     contentDescription = "Imagem na tela inicial",
