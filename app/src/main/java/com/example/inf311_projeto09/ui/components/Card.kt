@@ -326,7 +326,7 @@ fun QRCodeDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = {
-                saveBitmapToGallery(context, qrBitmap, "qr_code_${event.id}.png")
+                saveBitmapToGallery(context, qrBitmap, "qr_code_${event.course}.png")
             }) {
                 Text(
                     text = "Salvar na galeria",

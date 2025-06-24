@@ -1,10 +1,31 @@
 package com.example.inf311_projeto09.ui.screens
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -16,8 +37,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
-import com.example.inf311_projeto09.ui.components.*
-import com.example.inf311_projeto09.ui.utils.*
+import com.example.inf311_projeto09.ui.components.FilterDialog
+import com.example.inf311_projeto09.ui.components.NavBar
+import com.example.inf311_projeto09.ui.components.NavBarOption
+import com.example.inf311_projeto09.ui.utils.AppColors
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
+import com.example.inf311_projeto09.ui.utils.AppFonts
+import com.example.inf311_projeto09.ui.utils.AppIcons
 
 enum class EventFilter(val label: String) {
     ONLINE("Online"),
@@ -86,7 +112,11 @@ fun EventsContent(
                 selectedFilters.value.all { filter ->
                     when (filter) {
                         EventFilter.ONLINE -> event.type.contains("Online", ignoreCase = true)
-                        EventFilter.PRESENCIAL -> event.type.contains("Presencial", ignoreCase = true)
+                        EventFilter.PRESENCIAL -> event.type.contains(
+                            "Presencial",
+                            ignoreCase = true
+                        )
+
                         EventFilter.HIBRIDO -> event.type.contains("Híbrido", ignoreCase = true)
                         EventFilter.EM_PROGRESSO -> event.eventStage == Event.EventStage.CURRENT
                         EventFilter.PROXIMOS_EVENTOS -> event.eventStage == Event.EventStage.NEXT
@@ -248,7 +278,7 @@ fun FilterChip(text: String, onRemove: () -> Unit) {
 fun EventCard(
     event: Event,
     onEventDetails: () -> Unit = {}
-){
+) {
     val helper = AppDateHelper()
 
     Column(
@@ -267,7 +297,7 @@ fun EventCard(
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-        Divider(color = AppColors().lightBlack, thickness = 1.dp)
+        HorizontalDivider(thickness = 1.dp, color = AppColors().lightBlack)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -283,7 +313,11 @@ fun EventCard(
                 color = AppColors().lightBlack
             )
             Text(
-                text = "${helper.getTimeFormatted(event.beginTime)} - ${helper.getTimeFormatted(event.endTime)} | ${event.type}",
+                text = "${helper.getTimeFormatted(event.beginTime)} - ${
+                    helper.getTimeFormatted(
+                        event.endTime
+                    )
+                } | ${event.type}",
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
@@ -292,7 +326,7 @@ fun EventCard(
         }
 
         Spacer(modifier = Modifier.height(10.dp))
-        Divider(color = AppColors().lightBlack, thickness = 1.dp)
+        HorizontalDivider(thickness = 1.dp, color = AppColors().lightBlack)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -328,8 +362,7 @@ fun EventsPreview() {
             "Online",
             Event.EventVerificationMethod.QR_CODE,
             "ABC123",
-            "XYZ789",
-            0,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 25),
             AppDateHelper().getDate(2025, 2, 25),
             null,
@@ -345,8 +378,7 @@ fun EventsPreview() {
             "Presencial",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,
@@ -362,8 +394,7 @@ fun EventsPreview() {
             "Presencial",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,
@@ -379,8 +410,7 @@ fun EventsPreview() {
             "Online",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,
@@ -396,8 +426,7 @@ fun EventsPreview() {
             "Online",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,
@@ -413,8 +442,7 @@ fun EventsPreview() {
             "Presencial",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,

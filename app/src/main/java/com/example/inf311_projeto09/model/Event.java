@@ -4,14 +4,13 @@ import java.util.Date;
 import java.util.Map;
 
 public class Event {
-    private int id;
+    private int course;
     private String title;
     private String description;
     private String type;
     private EventVerificationMethod verificationMethod;
     private String checkInCode;
-    private String checkOutCode;
-    private int referEventId;
+    private String location;
     private Date beginTime;
     private Date endTime;
     private Date checkInEnabled;
@@ -20,20 +19,17 @@ public class Event {
     private Date checkOutTime;
     private EventStage eventStage;
 
-    public Event(final int id, final String title, final String description, final String type,
-                 final EventVerificationMethod verificationMethod, final String checkInCode, final String checkOutCode,
-                 final int referEventId, final Date beginTime, final Date endTime,
-                 final Date checkInEnabled, final Date checkOutEnabled,
-                 final Date checkInTime, final Date checkOutTime,
-                 final EventStage eventStage) {
-        this.id = id;
+    public Event(final int course, final String title, final String description, final String type,
+                 final EventVerificationMethod verificationMethod, final String checkInCode, final String location,
+                 final Date beginTime, final Date endTime, final Date checkInEnabled, final Date checkOutEnabled,
+                 final Date checkInTime, final Date checkOutTime, final EventStage eventStage) {
+        this.course = course;
         this.title = title;
         this.description = description;
         this.type = type;
         this.verificationMethod = verificationMethod;
         this.checkInCode = checkInCode;
-        this.checkOutCode = checkOutCode;
-        this.referEventId = referEventId;
+        this.location = location;
         this.beginTime = beginTime;
         this.endTime = endTime;
         this.checkInEnabled = checkInEnabled;
@@ -43,12 +39,12 @@ public class Event {
         this.eventStage = eventStage;
     }
 
-    public int getId() {
-        return this.id;
+    public int getCourse() {
+        return this.course;
     }
 
-    public void setId(final int id) {
-        this.id = id;
+    public void setCourse(final int course) {
+        this.course = course;
     }
 
     public String getTitle() {
@@ -91,20 +87,12 @@ public class Event {
         this.checkInCode = checkInCode;
     }
 
-    public String getCheckOutCode() {
-        return this.checkOutCode;
+    public String getLocation() {
+        return this.location;
     }
 
-    public void setCheckOutCode(final String checkOutCode) {
-        this.checkOutCode = checkOutCode;
-    }
-
-    public int getReferEventId() {
-        return this.referEventId;
-    }
-
-    public void setReferEventId(final int referEventId) {
-        this.referEventId = referEventId;
+    public void setLocation(final String location) {
+        this.location = location;
     }
 
     public Date getBeginTime() {
@@ -174,7 +162,7 @@ public class Event {
         VERIFICATION_CODE
     }
 
-    public record RawEventResponse(int id, String processoNome, String etapaNome,
+    public record RawEventResponse(int curso, String processoNome, String etapaNome,
                                    Map<String, Object> camposPersonalizados) {
     }
 }
