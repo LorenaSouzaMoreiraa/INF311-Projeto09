@@ -1,4 +1,4 @@
-package com.example.inf311_projeto09.ui.screens.user
+package com.example.inf311_projeto09.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -50,6 +50,7 @@ import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.User
+import com.example.inf311_projeto09.model.User.UserRole
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.components.EventCard
@@ -62,6 +63,8 @@ import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun HomeScreen(
@@ -148,19 +151,11 @@ fun HomeScreen(
                         modifier = Modifier.padding(bottom = 15.dp)
                     )
 
-                    if (currentEvent != null) {
-                        EventCard(
-                            event = currentEvent,
-                            isCurrentEvent = true,
-                            navController = navController
-                        )
-                    } else {
-                        EmptyEventCard("Nenhum evento acontecendo")
-                    }
+                    CurrentEvent(user, currentEvent, navController)
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    NextEventsSection(nextEvents = nextEvents, navController = navController)
+                    NextEventsSection(user, nextEvents, navController)
 
                     Spacer(modifier = Modifier.weight(1f))
                 }
@@ -169,25 +164,60 @@ fun HomeScreen(
             NavBar(navController, NavBarOption.HOME)
         }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 80.dp)
-                .size(50.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(AppColors().darkGreen)
-                .clickable {
-                    if (currentEvent?.verificationMethod == "Código único")
+        QuickAccessButton(user, currentEvent, Modifier.align(Alignment.BottomEnd), navController)
+    }
+}
+
+@Composable
+fun QuickAccessButton(
+    user: User,
+    currentEvent: Event?,
+    modifier: Modifier,
+    navController: NavHostController
+) {
+    Box(
+        modifier = modifier
+            .padding(end = 20.dp, bottom = 80.dp)
+            .size(50.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(AppColors().darkGreen)
+            .clickable {
+                if (user.type == UserRole.USER) {
+                    if (currentEvent?.verificationMethod == Event.EventVerificationMethod.VERIFICATION_CODE)
                         navController.navigate(ScreenType.VERIFICATION_CODE.route)
-                    else if (currentEvent?.verificationMethod == "QR Code")
+                    else if (currentEvent?.verificationMethod == Event.EventVerificationMethod.QR_CODE)
                         navController.navigate(ScreenType.QR_SCANNER.route)
                     // TODO: colocar mensagem que não tem evento atual
                     // TODO: tela de checkout (não precisa de código)
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            AppIcons.Outline.Target(25.dp, AppColors().lightGreen)
+                } else {
+                    navController.navigate(ScreenType.REGISTER_EVENT.route)
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        if (user.type == UserRole.USER) {
+            AppIcons.Outline.Target(30.dp, AppColors().lightGreen)
+        } else {
+            AppIcons.Outline.Plus(30.dp, AppColors().lightGreen)
         }
+    }
+}
+
+@Composable
+fun CurrentEvent(
+    user: User,
+    currentEvent: Event?,
+    navController: NavHostController
+) {
+    if (currentEvent != null) {
+        EventCard(
+            event = currentEvent,
+            isCurrentEvent = true,
+            isAdminHome = user.type == UserRole.ADMIN,
+            navController = navController
+        )
+    } else {
+        EmptyEventCard("Nenhum evento acontecendo")
     }
 }
 
@@ -319,7 +349,11 @@ fun DateTimeSection() {
 }
 
 @Composable
-fun NextEventsSection(nextEvents: List<Event>, navController: NavHostController) {
+fun NextEventsSection(
+    user: User,
+    nextEvents: List<Event>,
+    navController: NavHostController
+) {
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -358,6 +392,7 @@ fun NextEventsSection(nextEvents: List<Event>, navController: NavHostController)
                 EventCard(
                     event = event,
                     isCurrentEvent = false,
+                    isAdminHome = user.type == UserRole.ADMIN,
                     modifier = Modifier.fillParentMaxWidth(),
                     navController = navController
                 )
@@ -416,7 +451,8 @@ fun CarouselDot(
 @Composable
 fun HomeScreenPreview() {
     HomeScreen(
-        user = User(0, "Erick", User.UserRole.USER, "teste@teste.com", "cpf", "UFV", "****"),
-        navController = rememberNavController()
+        user = User(0, "Erick", UserRole.ADMIN, "teste@teste.com", "cpf", "UFV", "****"),
+        navController = rememberNavController(),
+        todayEvents = listOf()
     )
 }

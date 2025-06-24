@@ -1,6 +1,14 @@
 package com.example.inf311_projeto09.ui.components
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.ContentValues
+import android.content.Context
+import android.graphics.Bitmap
+import android.provider.MediaStore
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,11 +24,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,13 +52,16 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.inf311_projeto09.helper.EventAuthenticationHelper
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.utils.AppColors
@@ -61,6 +76,7 @@ import java.util.Locale
 fun EventCard(
     event: Event,
     isCurrentEvent: Boolean,
+    isAdminHome: Boolean,
     modifier: Modifier = Modifier,
     navController: NavHostController
 ) {
@@ -89,13 +105,7 @@ fun EventCard(
                 bottom = 10.dp
             )
         ) {
-            Text(
-                text = event.title,
-                fontFamily = AppFonts().montserrat,
-                fontWeight = FontWeight.SemiBold,
-                color = titleColor,
-                fontSize = 12.sp
-            )
+            CardTitle(event, titleColor, isAdminHome)
 
             Spacer(modifier = Modifier.height(2.dp))
 
@@ -124,10 +134,12 @@ fun EventCard(
                     checkTime = event.checkInTime,
                     isEnabled = event.checkInEnabled != null,
                     isCurrentEvent = isCurrentEvent,
+                    isAdminHome = isAdminHome,
                     modifier = Modifier.weight(1f),
                     onClick = {
                         handleCheckInClick(
                             event,
+                            isAdminHome,
                             navController
                         )
                     }
@@ -139,10 +151,12 @@ fun EventCard(
                     checkTime = event.checkOutTime,
                     isEnabled = event.checkOutEnabled != null,
                     isCurrentEvent = isCurrentEvent,
+                    isAdminHome = isAdminHome,
                     modifier = Modifier.weight(1f),
                     onClick = {
                         handleCheckOutClick(
                             event,
+                            isAdminHome,
                             navController
                         )
                     }
@@ -179,36 +193,253 @@ fun EventCard(
     }
 }
 
+@Composable
+fun CardTitle(
+    event: Event,
+    titleColor: Color,
+    isAdminHome: Boolean
+) {
+    var showCode by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = event.title,
+            fontFamily = AppFonts().montserrat,
+            fontWeight = FontWeight.SemiBold,
+            color = titleColor,
+            fontSize = 12.sp,
+            modifier = if (isAdminHome) {
+                Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            } else {
+                Modifier
+            }
+        )
+
+        if (isAdminHome) {
+            IconButton(
+                onClick = { showCode = true },
+                modifier = Modifier.size(24.dp)
+            ) {
+                if (event.verificationMethod == Event.EventVerificationMethod.VERIFICATION_CODE)
+                    AppIcons.Outline.VerificationCode(24.dp)
+                else
+                    AppIcons.Outline.QRCode(24.dp)
+            }
+        }
+    }
+
+    if (showCode) {
+        if (event.verificationMethod == Event.EventVerificationMethod.VERIFICATION_CODE)
+            VerificationCodeDialog(event = event, onDismiss = { showCode = false })
+        else
+            QRCodeDialog(event = event, onDismiss = { showCode = false })
+    }
+}
+
+@Composable
+fun VerificationCodeDialog(
+    event: Event,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val clipboard =
+                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("Código de verificação", event.checkInCode)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(context, "Código copiado!", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            ) {
+                Text(
+                    text = "Copiar código",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "Fechar",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        title = {
+            Text(
+                text = "Código de Verificação",
+                color = AppColors().darkGreen,
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
+            )
+        },
+        text = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = event.checkInCode,
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = AppFonts().montserrat,
+                    color = AppColors().darkGreen
+                )
+            }
+        },
+        containerColor = AppColors().white
+    )
+}
+
+@Composable
+fun QRCodeDialog(
+    event: Event,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val qrBitmap = remember {
+        EventAuthenticationHelper.generateQRCode(event.checkInCode, 800)
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                saveBitmapToGallery(context, qrBitmap, "qr_code_${event.id}.png")
+            }) {
+                Text(
+                    text = "Salvar na galeria",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "Fechar",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        title = {
+            Text(
+                text = "QR Code do evento",
+                color = AppColors().darkGreen,
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
+            )
+        },
+        text = {
+            Image(
+                bitmap = qrBitmap.asImageBitmap(),
+                contentDescription = "QR Code",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+            )
+        },
+        containerColor = AppColors().white
+    )
+}
+
+fun saveBitmapToGallery(context: Context, bitmap: Bitmap, filename: String) {
+    val resolver = context.contentResolver
+    val contentValues = ContentValues().apply {
+        put(MediaStore.Images.Media.DISPLAY_NAME, filename)
+        put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/QR_Codes")
+        put(MediaStore.Images.Media.IS_PENDING, 1)
+    }
+
+    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+    uri?.let {
+        resolver.openOutputStream(it)?.use { outputStream ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        }
+        contentValues.clear()
+        contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+        resolver.update(uri, contentValues, null, null)
+        Toast.makeText(context, "Imagem salva na galeria", Toast.LENGTH_SHORT).show()
+    }
+}
+
 fun handleCheckInClick(
     event: Event,
+    isAdminHome: Boolean,
     navController: NavHostController
 ) {
     val now = Date()
-    val canCheckIn =
-        event.checkInEnabled != null && event.checkInTime == null && now >= event.checkInEnabled
 
-    handleCheckClick(canCheckIn, event.verificationMethod, navController)
+    if (isAdminHome) {
+        handleEnableCheckClick(true, navController)
+    } else {
+        val canCheckIn =
+            event.checkInEnabled != null && event.checkInTime == null && now >= event.checkInEnabled
+        handleCheckClick(canCheckIn, event.verificationMethod, navController)
+    }
 }
 
 fun handleCheckOutClick(
     event: Event,
+    isAdminHome: Boolean,
     navController: NavHostController
 ) {
     val now = Date()
-    val canCheckOut =
-        event.checkOutEnabled != null && event.checkInTime != null && event.checkOutTime == null && now >= event.checkOutEnabled
 
-    handleCheckClick(canCheckOut, event.verificationMethod, navController)
+    if (isAdminHome) {
+        handleEnableCheckClick(true, navController)
+    } else {
+        val canCheckOut =
+            event.checkOutEnabled != null && event.checkInTime != null && event.checkOutTime == null && now >= event.checkOutEnabled
+        handleCheckClick(canCheckOut, event.verificationMethod, navController)
+    }
+}
+
+fun handleEnableCheckClick(
+    canCheck: Boolean,
+    navController: NavHostController
+) {
+    if (canCheck) {
+        // TODO: integrar para ativar o check-in e check-out
+    }
 }
 
 fun handleCheckClick(
     canCheck: Boolean,
-    verificationMethod: String,
+    verificationMethod: Event.EventVerificationMethod,
     navController: NavHostController
 ) {
     if (canCheck) {
         when (verificationMethod) {
-            "Código único" -> navController.navigate(ScreenType.VERIFICATION_CODE.route)
+            Event.EventVerificationMethod.VERIFICATION_CODE -> navController.navigate(ScreenType.VERIFICATION_CODE.route)
             else -> navController.navigate(ScreenType.QR_SCANNER.route)
         }
     }
@@ -247,24 +478,48 @@ private fun EventActionButton(
     eventTime: Date?,
     checkTime: Date?,
     isEnabled: Boolean,
+    isAdminHome: Boolean,
     isCurrentEvent: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    var eventStarted by remember { mutableStateOf(false) }
+
+    LaunchedEffect(eventTime) {
+        while (true) {
+            eventStarted = Date() > (eventTime ?: Date(Long.MAX_VALUE))
+            delay(1000)
+            if (eventStarted) break
+        }
+    }
+
     val currentBorderColor = when {
-        checkTime != null && isCurrentEvent -> AppColors().lightGreen
+        isCurrentEvent && (isAdminHome && !isEnabled) -> AppColors().lightGreen
+        isCurrentEvent && (isAdminHome && !eventStarted) -> AppColors().white
+        isCurrentEvent && (checkTime != null || isAdminHome) -> AppColors().lightGreen
         isCurrentEvent -> AppColors().white
         else -> AppColors().darkGreen
     }
 
     val currentBackgroundColor = when {
-        checkTime != null && isCurrentEvent -> AppColors().transparent
+        isCurrentEvent && isAdminHome && !isEnabled -> AppColors().lightGreen
+        isCurrentEvent && isAdminHome && !eventStarted -> AppColors().greyTransparent
+        isCurrentEvent && (checkTime != null || isAdminHome) -> AppColors().transparent
         isCurrentEvent -> AppColors().greyTransparent
         else -> AppColors().transparent
     }
 
-    val titleColor = if (isCurrentEvent) AppColors().white else AppColors().darkGreen
-    val subtitleColor = if (isCurrentEvent) AppColors().lightGrey else AppColors().grey
+    val titleColor = when {
+        isAdminHome && !isEnabled -> AppColors().black
+        isCurrentEvent -> AppColors().white
+        else -> AppColors().darkGreen
+    }
+
+    val subtitleColor = when {
+        isAdminHome && !isEnabled -> AppColors().black
+        isCurrentEvent -> AppColors().lightGrey
+        else -> AppColors().grey
+    }
 
     Column(
         modifier = modifier
@@ -280,33 +535,70 @@ private fun EventActionButton(
             .padding(10.dp)
             .height(IntrinsicSize.Min)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (isCurrentEvent && checkTime != null) {
-                AppIcons.Filled.CircleCheck(20.dp, AppColors().green, AppColors().darkGreen)
-            } else {
-                AppIcons.Outline.CircleCheck(20.dp, titleColor)
+        if (isCurrentEvent && isAdminHome && !isEnabled) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AppIcons.Outline.CircleCheck(30.dp, AppColors().black)
+                Column {
+                    Text(
+                        text = "Iniciar",
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        color = titleColor,
+                        fontSize = 10.sp,
+                        modifier = Modifier.padding(start = 5.dp)
+                    )
+
+                    Text(
+                        text = label,
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        color = titleColor,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(start = 5.dp)
+                    )
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if ((isCurrentEvent && checkTime != null) || (isAdminHome && eventStarted)) {
+                    AppIcons.Filled.CircleCheck(20.dp, AppColors().green, AppColors().darkGreen)
+                } else {
+                    AppIcons.Outline.CircleCheck(20.dp, titleColor)
+                }
+
+                Text(
+                    text = label,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    color = titleColor,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(start = 5.dp)
+                )
             }
 
-            Text(
-                text = label,
-                fontFamily = AppFonts().montserrat,
-                fontWeight = FontWeight.SemiBold,
-                color = titleColor,
-                fontSize = 10.sp,
-                modifier = Modifier.padding(start = 5.dp)
-            )
-        }
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            EventActionStatus(isEnabled, eventTime, checkTime, titleColor, subtitleColor)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                EventActionStatus(
+                    isEnabled,
+                    isAdminHome,
+                    eventTime,
+                    checkTime,
+                    titleColor,
+                    subtitleColor
+                )
+            }
         }
     }
 }
@@ -314,15 +606,28 @@ private fun EventActionButton(
 @Composable
 private fun EventActionStatus(
     isEnabled: Boolean,
+    isAdminHome: Boolean,
     eventTime: Date?,
     checkTime: Date?,
     titleColor: Color,
     subtitleColor: Color
 ) {
-    if (isEnabled && eventTime != null && checkTime == null) {
+    var eventStarted by remember { mutableStateOf(false) }
+
+    LaunchedEffect(eventTime) {
+        while (true) {
+            eventStarted = Date() > (eventTime ?: Date(Long.MAX_VALUE))
+            delay(1000)
+            if (eventStarted) break
+        }
+    }
+
+    if (isAdminHome && eventStarted) {
+        EventActionNormalStatus(eventTime, eventTime, isAdminHome, titleColor, subtitleColor)
+    } else if (isEnabled && eventTime != null && checkTime == null) {
         EventActionCountdownStatus(eventTime, titleColor, subtitleColor)
     } else {
-        EventActionNormalStatus(eventTime, checkTime, titleColor, subtitleColor)
+        EventActionNormalStatus(eventTime, checkTime, isAdminHome, titleColor, subtitleColor)
     }
 }
 
@@ -330,12 +635,16 @@ private fun EventActionStatus(
 private fun EventActionNormalStatus(
     eventTime: Date?,
     checkTime: Date?,
+    isAdminHome: Boolean,
     titleColor: Color,
     subtitleColor: Color
 ) {
-    val statusAction = if (eventTime == null || checkTime == null) "aguarde"
-    else if (checkTime.time - eventTime.time > 10 * 60 * 1000L) "atrasado"
-    else "no horário"
+    val statusAction = when {
+        isAdminHome -> "iniciado"
+        eventTime == null || checkTime == null -> "aguarde"
+        checkTime.time - eventTime.time > 10 * 60 * 1000L -> "atrasado"
+        else -> "no horário"
+    }
 
     Text(
         text = AppDateHelper().getTimeFormattedWithSeconds(checkTime),

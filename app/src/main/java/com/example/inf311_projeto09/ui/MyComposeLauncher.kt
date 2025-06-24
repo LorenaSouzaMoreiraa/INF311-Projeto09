@@ -15,6 +15,7 @@ import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.User
+import com.example.inf311_projeto09.ui.screens.HomeScreen
 import com.example.inf311_projeto09.ui.screens.LoginScreen
 import com.example.inf311_projeto09.ui.screens.RecoverPasswordScreen
 import com.example.inf311_projeto09.ui.screens.RegisterScreen
@@ -23,7 +24,6 @@ import com.example.inf311_projeto09.ui.screens.WelcomeScreen
 import com.example.inf311_projeto09.ui.screens.admin.RegisterEventScreen
 import com.example.inf311_projeto09.ui.screens.user.CalendarScreen
 import com.example.inf311_projeto09.ui.screens.user.EditProfileScreen
-import com.example.inf311_projeto09.ui.screens.user.HomeScreen
 import com.example.inf311_projeto09.ui.screens.user.NotificationsScreen
 import com.example.inf311_projeto09.ui.screens.user.ProfileScreen
 import com.example.inf311_projeto09.ui.screens.user.QrScannerScreen

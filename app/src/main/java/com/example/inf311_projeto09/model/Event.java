@@ -8,7 +8,7 @@ public class Event {
     private String title;
     private String description;
     private String type;
-    private String verificationMethod;
+    private EventVerificationMethod verificationMethod;
     private String checkInCode;
     private String checkOutCode;
     private int referEventId;
@@ -21,7 +21,7 @@ public class Event {
     private EventStage eventStage;
 
     public Event(final int id, final String title, final String description, final String type,
-                 final String verificationMethod, final String checkInCode, final String checkOutCode,
+                 final EventVerificationMethod verificationMethod, final String checkInCode, final String checkOutCode,
                  final int referEventId, final Date beginTime, final Date endTime,
                  final Date checkInEnabled, final Date checkOutEnabled,
                  final Date checkInTime, final Date checkOutTime,
@@ -75,11 +75,11 @@ public class Event {
         this.type = type;
     }
 
-    public String getVerificationMethod() {
+    public EventVerificationMethod getVerificationMethod() {
         return this.verificationMethod;
     }
 
-    public void setVerificationMethod(final String verificationMethod) {
+    public void setVerificationMethod(final EventVerificationMethod verificationMethod) {
         this.verificationMethod = verificationMethod;
     }
 
@@ -167,6 +167,11 @@ public class Event {
         CURRENT,
         NEXT,
         ENDED
+    }
+
+    public enum EventVerificationMethod {
+        QR_CODE,
+        VERIFICATION_CODE
     }
 
     public record RawEventResponse(int id, String processoNome, String etapaNome,

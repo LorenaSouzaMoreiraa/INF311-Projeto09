@@ -181,9 +181,9 @@ fun CalendarScreen(
                 .clip(RoundedCornerShape(12.dp))
                 .background(AppColors().darkGreen)
                 .clickable {
-                    if (currentEvent?.verificationMethod == "Código único")
+                    if (currentEvent?.verificationMethod == Event.EventVerificationMethod.VERIFICATION_CODE)
                         navController.navigate(ScreenType.VERIFICATION_CODE.route)
-                    else if (currentEvent?.verificationMethod == "QR Code")
+                    else if (currentEvent?.verificationMethod == Event.EventVerificationMethod.QR_CODE)
                         navController.navigate(ScreenType.QR_SCANNER.route)
                     // TODO: colocar mensagem que não tem evento atual
                     // TODO: tela de checkout (não precisa de código)

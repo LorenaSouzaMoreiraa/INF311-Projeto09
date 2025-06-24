@@ -66,7 +66,7 @@ public final class RubeusApi {
                 })
                 .collect(Collectors.toList()).get(0);
 
-        return helper.executeRequest(helper.searchUserByEmailCall(email), toUser, null);
+        return helper.executeRequest(helper.searchUserByEmailCall(email), toUser, () -> null);
     }
 
     public static List<Event> listUserEvents(final int userId) {
@@ -75,6 +75,10 @@ public final class RubeusApi {
                 .map(event -> {
                     final Map<String, Object> customFields = event.camposPersonalizados();
 
+                    final Event.EventVerificationMethod verificationMethod = "Código único".equals(customFields.get(RubeusFields.UserEvent.VERIFICATION_TYPE.getIdentifier())) ?
+                            Event.EventVerificationMethod.VERIFICATION_CODE :
+                            Event.EventVerificationMethod.QR_CODE;
+
                     final Date beginTime = parseIsoDate(customFields.get(RubeusFields.UserEvent.BEGIN_TIME.getIdentifier()));
                     final Date endTime = parseIsoDate(customFields.get(RubeusFields.UserEvent.END_TIME.getIdentifier()));
 
@@ -82,7 +86,7 @@ public final class RubeusApi {
                             (String) customFields.get(RubeusFields.UserEvent.TITLE.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.DESCRIPTION.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.TYPE.getIdentifier()),
-                            (String) customFields.get(RubeusFields.UserEvent.VERIFICATION_TYPE.getIdentifier()),
+                            verificationMethod,
                             (String) customFields.get(RubeusFields.UserEvent.CHECK_IN_CODE.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.CHECK_OUT_CODE.getIdentifier()),
                             Integer.parseInt((String) Objects.requireNonNull(customFields.get(RubeusFields.UserEvent.REFER_EVENT_ID.getIdentifier()))),

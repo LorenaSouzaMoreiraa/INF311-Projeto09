@@ -459,6 +459,63 @@ class AppIcons {
                 )
             }
         }
+
+        @Composable
+        fun Plus(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.plus),
+                    contentDescription = "Adicionar",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(0.8f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun QRCode(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.qr_code),
+                    contentDescription = "QR code",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(0.8f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
+        fun VerificationCode(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.rectangle_ellipsis),
+                    contentDescription = "Código de verificação",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(0.8f),
+                    tint = colorIcon
+                )
+            }
+        }
     }
 
     object Filled {
