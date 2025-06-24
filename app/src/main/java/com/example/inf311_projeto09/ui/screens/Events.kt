@@ -1,4 +1,4 @@
-package com.example.inf311_projeto09.ui.screens.admin
+package com.example.inf311_projeto09.ui.screens
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*

@@ -69,7 +69,7 @@ fun ProfileScreen(
                 .fillMaxWidth()
                 .weight(1f)
                 .background(
-                    AppColors().white,
+                    AppColors().offWhite,
                     shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
                 )
                 .padding(horizontal = 30.dp)
