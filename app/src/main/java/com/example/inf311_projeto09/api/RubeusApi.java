@@ -25,11 +25,12 @@ public final class RubeusApi {
         return helper.executeRequest(helper.registerUserCall(name, email, school, password, cpf, type));
     }
 
-    public static Boolean updateUser(final User user, final String name, final String school, final String password) {
+    public static Boolean updateUser(final User user, final String name, final String school, final String password, final boolean enableNotifications) {
         user.setName(name);
         user.setSchool(school);
         user.setPassword(password);
-        return helper.executeRequest(helper.updateUserCall(user.getId(), name, school, password));
+        user.setEnableNotifications(enableNotifications);
+        return helper.executeRequest(helper.updateUserCall(user.getId(), name, school, password, enableNotifications));
     }
 
     public static Boolean deleteUser(final int userId) {
@@ -65,6 +66,12 @@ public final class RubeusApi {
                             .map(field -> (String) ((Map<String, Object>) field).get("valor"))
                             .collect(Collectors.toList())
                             .get(0);
+                    final String enableNotifications = customFields.stream()
+                            .filter(field -> RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier()
+                                    .equals(((Map<String, Object>) field).get("coluna")))
+                            .map(field -> (String) ((Map<String, Object>) field).get("valor"))
+                            .collect(Collectors.toList())
+                            .get(0);
 
                     return new User(Integer.parseInt(user.id()),
                             user.nome(),
@@ -72,7 +79,8 @@ public final class RubeusApi {
                             email,
                             user.cpf(),
                             user.escolaOrigem(),
-                            password);
+                            password,
+                            "1".equals(enableNotifications));
                 })
                 .collect(Collectors.toList()).get(0);
 
@@ -98,6 +106,7 @@ public final class RubeusApi {
                             (String) customFields.get(RubeusFields.UserEvent.TYPE.getIdentifier()),
                             verificationMethod,
                             (String) customFields.get(RubeusFields.UserEvent.CHECK_IN_CODE.getIdentifier()),
+                            "Sim".equals(customFields.get(RubeusFields.UserEvent.AUTO_CHECK.getIdentifier())),
                             (String) customFields.get(RubeusFields.UserEvent.LOCATION.getIdentifier()),
                             beginTime,
                             endTime,

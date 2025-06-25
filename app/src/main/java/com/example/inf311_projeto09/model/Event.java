@@ -10,6 +10,7 @@ public class Event {
     private String type;
     private EventVerificationMethod verificationMethod;
     private String checkInCode;
+    private boolean autoCheck;
     private String location;
     private Date beginTime;
     private Date endTime;
@@ -20,15 +21,16 @@ public class Event {
     private EventStage eventStage;
 
     public Event(final int course, final String title, final String description, final String type,
-                 final EventVerificationMethod verificationMethod, final String checkInCode, final String location,
-                 final Date beginTime, final Date endTime, final Date checkInEnabled, final Date checkOutEnabled,
-                 final Date checkInTime, final Date checkOutTime, final EventStage eventStage) {
+                 final EventVerificationMethod verificationMethod, final String checkInCode, final boolean autoCheck,
+                 final String location, final Date beginTime, final Date endTime, final Date checkInEnabled,
+                 final Date checkOutEnabled, final Date checkInTime, final Date checkOutTime, final EventStage eventStage) {
         this.course = course;
         this.title = title;
         this.description = description;
         this.type = type;
         this.verificationMethod = verificationMethod;
         this.checkInCode = checkInCode;
+        this.autoCheck = autoCheck;
         this.location = location;
         this.beginTime = beginTime;
         this.endTime = endTime;
@@ -85,6 +87,14 @@ public class Event {
 
     public void setCheckInCode(final String checkInCode) {
         this.checkInCode = checkInCode;
+    }
+
+    public boolean getAutoCheck() {
+        return this.autoCheck;
+    }
+
+    public void setAutoCheck(final boolean autoCheck) {
+        this.autoCheck = autoCheck;
     }
 
     public String getLocation() {

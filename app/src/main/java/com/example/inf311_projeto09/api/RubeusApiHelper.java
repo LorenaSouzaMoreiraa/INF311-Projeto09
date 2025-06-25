@@ -120,7 +120,8 @@ final class RubeusApiHelper {
                                 "valor"),
                         "filtros", List.of(Map.of(
                                 "coluna", List.of(RubeusFields.UserAccount.PASSWORD.getIdentifier(),
-                                        RubeusFields.UserAccount.TYPE.getIdentifier())))));
+                                        RubeusFields.UserAccount.TYPE.getIdentifier(),
+                                        RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier())))));
     }
 
     public Call<ApiResponse<Object>> registerUserCall(final String name, final String email, final String school, final String password, final String cpf, final User.UserRole type) {
@@ -129,6 +130,7 @@ final class RubeusApiHelper {
 
         customFields.put(RubeusFields.UserAccount.TYPE.getIdentifier(), type.getIdentifier());
         customFields.put(RubeusFields.UserAccount.PASSWORD.getIdentifier(), password);
+        customFields.put(RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier(), "1");
 
         body.put("nome", name);
         body.put("emailPrincipal", email);
@@ -139,11 +141,12 @@ final class RubeusApiHelper {
         return this.service.registerUser(body);
     }
 
-    public Call<ApiResponse<Object>> updateUserCall(final int userId, final String name, final String school, final String password) {
+    public Call<ApiResponse<Object>> updateUserCall(final int userId, final String name, final String school, final String password, final boolean enableNotifications) {
         final Map<String, Object> body = this.defaultBody();
         final Map<String, Object> customFields = new HashMap<>();
 
         customFields.put(RubeusFields.UserAccount.PASSWORD.getIdentifier(), password);
+        customFields.put(RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier(), enableNotifications ? "1" : "0");
 
         body.put("id", userId);
         body.put("nome", name);

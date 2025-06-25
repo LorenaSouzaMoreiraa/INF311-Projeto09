@@ -124,6 +124,7 @@ fun EditProfileScreen(
                 contentAlignment = Alignment.Center
             ) {
                 val profileImage = 1
+                // TODO: imagem de usuário
                 if (profileImage == null) {
                     AppIcons.Outline.CircleUserRound(120.dp)
                 } else {
@@ -200,6 +201,7 @@ fun EditProfileFields(
     var name by remember { mutableStateOf(user.name) }
     var university by remember { mutableStateOf(user.school) }
     val email by remember { mutableStateOf(user.email) }
+    var receiveNotifications by remember { mutableStateOf(user.enableNotifications) }
 
     var oldPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
@@ -208,9 +210,6 @@ fun EditProfileFields(
     var oldPasswordVisible by remember { mutableStateOf(false) }
     var newPasswordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
-
-    // TODO: adicionar parâmetro no usuário
-    var receiveNotifications by remember { mutableStateOf(true) }
 
     val universities = remember { RubeusApi.listSchools().toList() }
 
@@ -261,6 +260,7 @@ fun EditProfileFields(
 
     // TODO: voltar depois que implementar a "Notificação"
     NotificationsSwitch(
+        originalReceiveNotifications = user.enableNotifications,
         receiveNotifications = receiveNotifications,
         onNotificationsChange = { receiveNotifications = it },
         isEditingMode = isEditingMode
@@ -274,9 +274,18 @@ fun EditProfileFields(
             if (name.isEmpty() || university.isEmpty()) {
                 // TODO: não pode opções vazias
             } else if (oldPassword.isEmpty() && newPassword.isEmpty() && confirmPassword.isEmpty()) {
-                if (name != user.name || university != user.school) {
-                    RubeusApi.updateUser(user, name, university, user.password)
+                if (name != user.name || university != user.school || receiveNotifications != user.enableNotifications) {
+                    RubeusApi.updateUser(
+                        user,
+                        name,
+                        university,
+                        user.password,
+                        receiveNotifications
+                    )
                     onSave()
+                    oldPassword = ""
+                    newPassword = ""
+                    confirmPassword = ""
                 }
             } else {
                 if (oldPassword.isEmpty()) {
@@ -294,9 +303,14 @@ fun EditProfileFields(
                         user,
                         name,
                         university,
-                        PasswordHelper.hashPassword(newPassword)
+                        PasswordHelper.hashPassword(newPassword),
+                        receiveNotifications
                     )
                     onSave()
+                    onSave()
+                    oldPassword = ""
+                    newPassword = ""
+                    confirmPassword = ""
                 }
             }
         },
@@ -642,6 +656,7 @@ fun PasswordFieldItem(
 
 @Composable
 fun NotificationsSwitch(
+    originalReceiveNotifications: Boolean,
     receiveNotifications: Boolean,
     onNotificationsChange: (Boolean) -> Unit,
     isEditingMode: Boolean
@@ -666,7 +681,7 @@ fun NotificationsSwitch(
             fontSize = 17.sp
         )
         Switch(
-            checked = receiveNotifications,
+            checked = if (isEditingMode) receiveNotifications else originalReceiveNotifications,
             onCheckedChange = onNotificationsChange,
             enabled = isEditingMode,
             thumbContent = {
@@ -734,7 +749,8 @@ fun EditProfileScreenPreview() {
             "teste@teste.com",
             "12345678900",
             "Universidade Federal de Viçosa (UFV)",
-            "****"
+            "****",
+            true
         ), navController = rememberNavController()
     )
 }

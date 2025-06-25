@@ -467,7 +467,8 @@ fun ProfileScreenPreview() {
             "teste@teste.com",
             "cpf",
             "UFV",
-            "****"
+            "****",
+            true
         ), navController = rememberNavController()
     )
 }
