@@ -211,7 +211,7 @@ final class RubeusApiHelper {
         return formatter.format(date);
     }
 
-    public Call<ApiResponse<Object>> registerEventCall(final int userId, final String courseId, final Event event) {
+    public Call<ApiResponse<Object>> registerEventCall(final User user, final String courseId, final Event event) {
         final Map<String, Object> body = this.defaultBody();
         final Map<String, Object> customFields = new HashMap<>();
 
@@ -228,11 +228,12 @@ final class RubeusApiHelper {
         customFields.put(RubeusFields.UserEvent.CHECK_OUT_ENABLED.getIdentifier(), this.formatDate(event.getCheckOutEnabled()));
         customFields.put(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier(), this.formatDate(event.getCheckInTime()));
         customFields.put(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier(), this.formatDate(event.getCheckOutTime()));
+        customFields.put(RubeusFields.UserEvent.PARTICIPANTS.getIdentifier(), event.getParticipants());
 
-        body.put("pessoa", Map.of("id", userId));
+        body.put("pessoa", Map.of("id", user.getId()));
         body.put("curso", courseId);
         body.put("processo", "4");
-        body.put("etapa", "17");
+        body.put("etapa", user.getType() == User.UserRole.ADMIN && event.getAutoCheck() ? "21" : "17");
         body.put("camposPersonalizados", customFields);
 
         return this.service.registerEvent(body);

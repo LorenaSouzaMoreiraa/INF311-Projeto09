@@ -1,5 +1,9 @@
 package com.example.inf311_projeto09.ui.screens.admin
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -79,6 +84,7 @@ fun RegisterEventScreen(
     var selectedEventType by remember { mutableStateOf("") }
     var selectedAuthMethod by remember { mutableStateOf(Event.EventVerificationMethod.NONE) }
     var autoCheckInOut by remember { mutableStateOf(false) }
+    var emailsImported by remember { mutableStateOf(listOf<String>()) }
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
@@ -138,6 +144,8 @@ fun RegisterEventScreen(
                 onSelectedAuthMethodChange = { selectedAuthMethod = it },
                 autoCheckInOut = autoCheckInOut,
                 onAutoCheckInOutChange = { autoCheckInOut = it },
+                emailsImported = emailsImported,
+                onEmailsImported = { emailsImported = it },
                 scrollState = scrollState
             )
         }
@@ -250,6 +258,8 @@ fun MainContent(
     onSelectedAuthMethodChange: (Event.EventVerificationMethod) -> Unit,
     autoCheckInOut: Boolean,
     onAutoCheckInOutChange: (Boolean) -> Unit,
+    emailsImported: List<String>,
+    onEmailsImported: (List<String>) -> Unit,
     scrollState: androidx.compose.foundation.ScrollState
 ) {
     val customDropdownShape =
@@ -314,7 +324,7 @@ fun MainContent(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            ImportParticipantsSection()
+            ImportParticipantsSection(onEmailsImported = onEmailsImported)
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -352,7 +362,7 @@ fun MainContent(
                     null,
                     null,
                     Event.EventStage.NEXT,
-                    listOf()
+                    emailsImported
                 )
 
                 RubeusApi.registerEvent(event, user)
@@ -634,9 +644,21 @@ fun AuthMethodSelection(
     }
 }
 
-// TODO: importar participantes
+// TODO: fazer importação do arquivo de uma forma melhor, agora ta gambiarrado
 @Composable
-fun ImportParticipantsSection() {
+fun ImportParticipantsSection(
+    onEmailsImported: (List<String>) -> Unit
+) {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val emails = readEmailsFromCsv(context, it)
+            onEmailsImported(emails)
+        }
+    }
+
     Text(
         text = "Importar participantes",
         fontFamily = AppFonts().montserrat,
@@ -650,7 +672,9 @@ fun ImportParticipantsSection() {
     )
 
     Button(
-        onClick = {},
+        onClick = {
+            launcher.launch("text/csv")
+        },
         colors = ButtonDefaults.buttonColors(
             containerColor = AppColors().white,
             contentColor = AppColors().grey
@@ -668,6 +692,23 @@ fun ImportParticipantsSection() {
             color = AppColors().grey
         )
     }
+}
+
+fun readEmailsFromCsv(context: Context, uri: Uri): List<String> {
+    val emails = mutableListOf<String>()
+    try {
+        context.contentResolver.openInputStream(uri)?.bufferedReader()?.useLines { lines ->
+            lines.forEach { line ->
+                val trimmedLine = line.trim()
+                if (trimmedLine.contains("@")) {
+                    emails.add(trimmedLine)
+                }
+            }
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return emails
 }
 
 @Composable
