@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -119,6 +120,19 @@ fun EventDetailsScreen(
 
     var isEditingMode by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Dados") }
+
+    LaunchedEffect(isEditingMode) {
+        if (!isEditingMode) {
+            eventName = event.title
+            startDateText = dateFormatter.format(event.beginTime)
+            startTimeText = timeFormatter.format(event.beginTime)
+            endDateText = dateFormatter.format(event.endTime)
+            endTimeText = timeFormatter.format(event.endTime)
+            selectedEventType = event.type
+            selectedAuthMethod = event.verificationMethod
+            autoCheck = event.autoCheck
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -387,13 +401,21 @@ fun MainContent(
                             isEditingMode = isEditingMode
                         )
 
-                        if (isEditingMode) {
-                            Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                            ActionButton(onSaveClick = {
-                                // TODO: implementar logica para salvar alterações
-                            })
-                        }
+                        ActionButton(
+                            isEditingMode = isEditingMode,
+                            onSaveClick = {
+                                if (eventName.isEmpty() || startDateText.isEmpty() || endDateText.isEmpty() || startTimeText.isEmpty() || endTimeText.isEmpty() || selectedEventType.isEmpty() || selectedAuthMethod == EventVerificationMethod.NONE) {
+                                    // TODO: não pode opções vazias
+                                } else {
+                                    // TODO: Salvar alterações
+                                }
+                            },
+                            onDeleteClick = {
+                                // TODO: Perguntar se realmente deseja excluir e deleta-lo
+                            }
+                        )
 
                         Spacer(modifier = Modifier.height(20.dp))
                     }
@@ -763,24 +785,29 @@ fun AutoCheckInOutCheckbox(
 }
 
 @Composable
-fun ActionButton(onSaveClick: () -> Unit) {
+fun ActionButton(isEditingMode: Boolean, onSaveClick: () -> Unit, onDeleteClick: () -> Unit) {
     Button(
         onClick = {
-            onSaveClick()
+            if (isEditingMode) {
+                onSaveClick()
+            } else {
+                onDeleteClick()
+            }
         },
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = AppColors().green
+            containerColor = if (isEditingMode) AppColors().green
+            else AppColors().lightRed
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
         Text(
-            text = "Salvar alterações",
+            text = if (isEditingMode) "Salvar alterações" else "Deletar evento",
             fontFamily = AppFonts().montserrat,
             fontWeight = FontWeight.SemiBold,
-            color = AppColors().black,
+            color = if (isEditingMode) AppColors().black else AppColors().red,
             fontSize = 16.sp
         )
     }
