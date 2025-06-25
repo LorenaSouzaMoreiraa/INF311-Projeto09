@@ -1,6 +1,7 @@
 package com.example.inf311_projeto09.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class Event {
@@ -19,11 +20,13 @@ public class Event {
     private Date checkInTime;
     private Date checkOutTime;
     private EventStage eventStage;
+    private List<String> participants;
 
     public Event(final int course, final String title, final String description, final String type,
                  final EventVerificationMethod verificationMethod, final String checkInCode, final boolean autoCheck,
                  final String location, final Date beginTime, final Date endTime, final Date checkInEnabled,
-                 final Date checkOutEnabled, final Date checkInTime, final Date checkOutTime, final EventStage eventStage) {
+                 final Date checkOutEnabled, final Date checkInTime, final Date checkOutTime, final EventStage eventStage,
+                 final List<String> participants) {
         this.course = course;
         this.title = title;
         this.description = description;
@@ -39,6 +42,7 @@ public class Event {
         this.checkInTime = checkInTime;
         this.checkOutTime = checkOutTime;
         this.eventStage = eventStage;
+        this.participants = participants;
     }
 
     public int getCourse() {
@@ -161,6 +165,14 @@ public class Event {
         this.eventStage = eventStage;
     }
 
+    public List<String> getParticipants() {
+        return this.participants;
+    }
+
+    public void setParticipants(final List<String> participants) {
+        this.participants = participants;
+    }
+
     public enum EventStage {
         CURRENT,
         NEXT,
@@ -168,8 +180,19 @@ public class Event {
     }
 
     public enum EventVerificationMethod {
-        QR_CODE,
-        VERIFICATION_CODE
+        NONE("Nenhum"),
+        QR_CODE("QR Code"),
+        VERIFICATION_CODE("Código único");
+
+        private final String identifier;
+
+        EventVerificationMethod(final String identifier) {
+            this.identifier = identifier;
+        }
+
+        public String getIdentifier() {
+            return this.identifier;
+        }
     }
 
     public record RawEventResponse(int curso, String processoNome, String etapaNome,

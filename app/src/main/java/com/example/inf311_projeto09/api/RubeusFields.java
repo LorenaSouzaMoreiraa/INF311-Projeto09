@@ -4,7 +4,7 @@ public class RubeusFields {
     public enum UserEvent {
         TITLE("campopersonalizado_6_compl_proc"),
         DESCRIPTION("campopersonalizado_15_compl_proc"),
-        TYPE("campopersonalizado_9_compl_proc"),
+        TYPE("campopersonalizado_24_compl_proc"),
         VERIFICATION_TYPE("campopersonalizado_12_compl_proc"),
         CHECK_IN_CODE("campopersonalizado_22_compl_proc"),
         LOCATION("campopersonalizado_23_compl_proc"),
@@ -14,7 +14,8 @@ public class RubeusFields {
         CHECK_IN_ENABLED("campopersonalizado_17_compl_proc"),
         CHECK_OUT_ENABLED("campopersonalizado_18_compl_proc"),
         CHECK_IN_TIME("campopersonalizado_19_compl_proc"),
-        CHECK_OUT_TIME("campopersonalizado_20_compl_proc");
+        CHECK_OUT_TIME("campopersonalizado_20_compl_proc"),
+        PARTICIPANTS("campopersonalizado_25_compl_proc");
 
         private final String identifier;
 

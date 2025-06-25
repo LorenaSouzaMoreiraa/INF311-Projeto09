@@ -5,6 +5,7 @@ import com.example.inf311_projeto09.model.User;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -87,9 +88,42 @@ public final class RubeusApi {
         return helper.executeRequest(helper.searchUserByEmailCall(email), toUser, () -> null);
     }
 
+    private static Boolean registerOffer(final String eventName, final String timestamp, final String eventType, final String school) {
+        return helper.executeRequest(helper.registerOfferCall(eventName, timestamp, eventType, school));
+    }
+
+    private static String searchOffer(final String timestamp) {
+        final Function<Object, String> toOfferId = offer -> (String) ((Map<String, Object>) offer).get("id");
+
+        return helper.executeRequest(helper.searchOfferCall(timestamp), toOfferId, () -> "");
+    }
+
+    public static Boolean registerEvent(final Event event, final User user) {
+        final String timestamp = String.valueOf(System.currentTimeMillis());
+
+        if (Boolean.FALSE.equals(registerOffer(event.getTitle(), timestamp, event.getType(), user.getSchool()))) {
+            return false;
+        }
+
+        final String courseId = searchOffer(timestamp);
+
+        final List<User> participants = new ArrayList<>();
+        for (final String participantEmail : event.getParticipants()) {
+            final User participant = searchUserByEmail(participantEmail);
+            if (participant != null) {
+                participants.add(participant);
+            }
+        }
+
+        event.setParticipants(participants.stream().map(User::getEmail).collect(Collectors.toList()));
+        participants.forEach(participant -> helper.executeRequest(helper.registerEventCall(participant, courseId, event)));
+
+        return helper.executeRequest(helper.registerEventCall(user, courseId, event));
+    }
+
     public static List<Event> listUserEvents(final int userId) {
         final Function<List<Event.RawEventResponse>, List<Event>> toCustomList = events -> events.stream()
-                .filter(event -> "Eventos Aluno".equals(event.processoNome()))
+                .filter(event -> "Eventos".equals(event.processoNome()))
                 .map(event -> {
                     final Map<String, Object> customFields = event.camposPersonalizados();
 
@@ -114,11 +148,40 @@ public final class RubeusApi {
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_ENABLED.getIdentifier())),
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier())),
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier())),
-                            calculateEventStage(beginTime, endTime));
+                            calculateEventStage(beginTime, endTime),
+                            (List<String>) customFields.get(RubeusFields.UserEvent.PARTICIPANTS.getIdentifier()));
                 })
                 .collect(Collectors.toList());
 
         return helper.executeRequest(helper.listUserEventsCall(userId), toCustomList, List::of);
+    }
+
+    public static Boolean enableCheckIn(final int userId, final Event event, final String checkInTime) {
+        event.setCheckInEnabled(parseIsoDate(checkInTime));
+        final Boolean result = helper.executeRequest(helper.enableCheckInCall(userId, event.getCourse(), checkInTime));
+
+        event.getParticipants().forEach(participantEmail -> {
+            final User participant = searchUserByEmail(participantEmail);
+            if (participant != null) {
+                helper.executeRequest(helper.enableCheckInCall(participant.getId(), event.getCourse(), checkInTime));
+            }
+        });
+
+        return result;
+    }
+
+    public static Boolean enableCheckOut(final int userId, final Event event, final String checkOutTime) {
+        event.setCheckOutEnabled(parseIsoDate(checkOutTime));
+        final Boolean result = helper.executeRequest(helper.enableCheckOutCall(userId, event.getCourse(), checkOutTime));
+
+        event.getParticipants().forEach(participantEmail -> {
+            final User participant = searchUserByEmail(participantEmail);
+            if (participant != null) {
+                helper.executeRequest(helper.enableCheckOutCall(participant.getId(), event.getCourse(), checkOutTime));
+            }
+        });
+
+        return result;
     }
 
     public static Boolean checkIn(final int userId, final Event event, final String checkInTime) {
@@ -129,6 +192,10 @@ public final class RubeusApi {
     public static Boolean checkOut(final int userId, final Event event, final String checkOutTime) {
         event.setCheckOutTime(parseIsoDate(checkOutTime));
         return helper.executeRequest(helper.checkOutCall(userId, event.getCourse(), checkOutTime));
+    }
+
+    private static String parseIsoDate(final Date date) {
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", new Locale("pt", "BR")).format(date);
     }
 
     private static Date parseIsoDate(final Object value) {

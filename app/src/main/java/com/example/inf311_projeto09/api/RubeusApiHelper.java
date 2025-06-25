@@ -7,9 +7,12 @@ import com.example.inf311_projeto09.model.Event;
 import com.example.inf311_projeto09.model.User;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -177,6 +180,65 @@ final class RubeusApiHelper {
         return this.service.searchUserByEmail(body);
     }
 
+    public Call<ApiResponse<Object>> registerOfferCall(final String eventName, final String timestamp, final String eventType, final String school) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("nome", eventName);
+        body.put("codOferta", timestamp);
+        body.put("codCurso", "1");
+        body.put("codModalidade", eventType.charAt(0));
+        body.put("codUnidade", school.substring(school.lastIndexOf('(') + 1, school.length() - 1));
+        body.put("codLocalOferta", List.of("1"));
+        body.put("codNivelEnsino", 1);
+
+        return this.service.registerOffer(body);
+    }
+
+    public Call<ApiResponse<Object>> searchOfferCall(final String timestamp) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("codOferta", timestamp);
+
+        return this.service.searchOffer(body);
+    }
+
+    private String formatDate(final Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", new Locale("pt", "BR"));
+        return formatter.format(date);
+    }
+
+    public Call<ApiResponse<Object>> registerEventCall(final User user, final String courseId, final Event event) {
+        final Map<String, Object> body = this.defaultBody();
+        final Map<String, Object> customFields = new HashMap<>();
+
+        customFields.put(RubeusFields.UserEvent.TITLE.getIdentifier(), event.getTitle());
+        customFields.put(RubeusFields.UserEvent.DESCRIPTION.getIdentifier(), event.getDescription());
+        customFields.put(RubeusFields.UserEvent.TYPE.getIdentifier(), event.getType());
+        customFields.put(RubeusFields.UserEvent.VERIFICATION_TYPE.getIdentifier(), event.getVerificationMethod().getIdentifier());
+        customFields.put(RubeusFields.UserEvent.CHECK_IN_CODE.getIdentifier(), event.getCheckInCode());
+        customFields.put(RubeusFields.UserEvent.LOCATION.getIdentifier(), event.getLocation());
+        customFields.put(RubeusFields.UserEvent.AUTO_CHECK.getIdentifier(), event.getAutoCheck() ? "1" : "0");
+        customFields.put(RubeusFields.UserEvent.BEGIN_TIME.getIdentifier(), this.formatDate(event.getBeginTime()));
+        customFields.put(RubeusFields.UserEvent.END_TIME.getIdentifier(), this.formatDate(event.getEndTime()));
+        customFields.put(RubeusFields.UserEvent.CHECK_IN_ENABLED.getIdentifier(), this.formatDate(event.getCheckInEnabled()));
+        customFields.put(RubeusFields.UserEvent.CHECK_OUT_ENABLED.getIdentifier(), this.formatDate(event.getCheckOutEnabled()));
+        customFields.put(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier(), this.formatDate(event.getCheckInTime()));
+        customFields.put(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier(), this.formatDate(event.getCheckOutTime()));
+        customFields.put(RubeusFields.UserEvent.PARTICIPANTS.getIdentifier(), event.getParticipants());
+
+        body.put("pessoa", Map.of("id", user.getId()));
+        body.put("curso", courseId);
+        body.put("processo", "4");
+        body.put("etapa", user.getType() == User.UserRole.ADMIN && event.getAutoCheck() ? "21" : "17");
+        body.put("camposPersonalizados", customFields);
+
+        return this.service.registerEvent(body);
+    }
+
     public Call<ApiResponse<List<Event.RawEventResponse>>> listUserEventsCall(final int userId) {
         final Map<String, Object> body = this.defaultBody();
         final Map<String, Object> customFields = new HashMap<>();
@@ -193,6 +255,28 @@ final class RubeusApiHelper {
         body.put("camposRetorno", List.of("curso", "processoNome", "etapaNome", customFields));
 
         return this.service.listUserEvents(body);
+    }
+
+    public Call<ApiResponse<Object>> enableCheckInCall(final int userId, final int courseId, final String checkInTime) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("tipo", 114);
+        body.put("pessoa", Map.of("id", userId));
+        body.put("curso", courseId);
+        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_IN_ENABLED.getIdentifier(), checkInTime));
+
+        return this.service.enableCheckIn(body);
+    }
+
+    public Call<ApiResponse<Object>> enableCheckOutCall(final int userId, final int courseId, final String checkOutTime) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("tipo", 116);
+        body.put("pessoa", Map.of("id", userId));
+        body.put("curso", courseId);
+        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_OUT_ENABLED.getIdentifier(), checkOutTime));
+
+        return this.service.enableCheckOut(body);
     }
 
     public Call<ApiResponse<Object>> checkInCall(final int userId, final int courseId, final String checkInTime) {

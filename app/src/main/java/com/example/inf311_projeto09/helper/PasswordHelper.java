@@ -13,6 +13,10 @@ public class PasswordHelper {
     }
 
     public static boolean verifyPassword(final String plainPassword, final String hashedPassword) {
+        if (plainPassword == null || hashedPassword == null) {
+            return false;
+        }
+
         final BCrypt.Result result = BCrypt.verifyer().verify(plainPassword.toCharArray(), hashedPassword);
         return result.verified;
     }

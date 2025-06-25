@@ -355,7 +355,8 @@ fun EventsPreview() {
             null,
             null,
             null,
-            Event.EventStage.CURRENT
+            Event.EventStage.CURRENT,
+            listOf()
         ),
         Event(
             2,
@@ -372,7 +373,8 @@ fun EventsPreview() {
             null,
             null,
             null,
-            Event.EventStage.NEXT
+            Event.EventStage.NEXT,
+            listOf()
         ),
         Event(
             2,
@@ -389,7 +391,8 @@ fun EventsPreview() {
             null,
             null,
             null,
-            Event.EventStage.NEXT
+            Event.EventStage.NEXT,
+            listOf()
         ),
         Event(
             3,
@@ -406,7 +409,8 @@ fun EventsPreview() {
             null,
             null,
             null,
-            Event.EventStage.NEXT
+            Event.EventStage.NEXT,
+            listOf()
         ),
         Event(
             4,
@@ -423,7 +427,8 @@ fun EventsPreview() {
             null,
             null,
             null,
-            Event.EventStage.NEXT
+            Event.EventStage.NEXT,
+            listOf()
         ),
         Event(
             5,
@@ -440,7 +445,8 @@ fun EventsPreview() {
             null,
             null,
             null,
-            Event.EventStage.NEXT
+            Event.EventStage.NEXT,
+            listOf()
         )
     )
 

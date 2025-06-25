@@ -210,8 +210,8 @@ fun CurrentEvent(
     if (currentEvent != null) {
         EventCard(
             event = currentEvent,
+            user = user,
             isCurrentEvent = true,
-            isAdminHome = user.type == UserRole.ADMIN,
             navController = navController
         )
     } else {
@@ -389,8 +389,8 @@ fun NextEventsSection(
             items(nextEvents) { event ->
                 EventCard(
                     event = event,
+                    user = user,
                     isCurrentEvent = false,
-                    isAdminHome = user.type == UserRole.ADMIN,
                     modifier = Modifier.fillParentMaxWidth(),
                     navController = navController
                 )

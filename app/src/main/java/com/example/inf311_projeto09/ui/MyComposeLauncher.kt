@@ -327,9 +327,18 @@ fun AppNavHost(
         }
 
         composable(ScreenType.REGISTER_EVENT.route) {
-            RegisterEventScreen(
-                navController = navController,
-            )
+            user?.let { nonNullUser ->
+                RegisterEventScreen(
+                    user = nonNullUser,
+                    navController = navController
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         }
     }
 }

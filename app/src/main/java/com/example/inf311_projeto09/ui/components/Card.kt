@@ -61,8 +61,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.EventAuthenticationHelper
 import com.example.inf311_projeto09.model.Event
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
@@ -75,11 +77,13 @@ import java.util.Locale
 @Composable
 fun EventCard(
     event: Event,
+    user: User,
     isCurrentEvent: Boolean,
-    isAdminHome: Boolean,
     modifier: Modifier = Modifier,
     navController: NavHostController
 ) {
+    val isAdminHome = user.type == User.UserRole.ADMIN
+
     val backgroundCardColor = if (isCurrentEvent) AppColors().darkGreen else AppColors().transparent
     val titleColor = if (isCurrentEvent) AppColors().white else AppColors().darkGreen
     val subtitleColor = if (isCurrentEvent) AppColors().lightGrey else AppColors().grey
@@ -139,6 +143,7 @@ fun EventCard(
                     onClick = {
                         handleCheckInClick(
                             event,
+                            user,
                             isAdminHome,
                             navController
                         )
@@ -156,6 +161,7 @@ fun EventCard(
                     onClick = {
                         handleCheckOutClick(
                             event,
+                            user,
                             isAdminHome,
                             navController
                         )
@@ -393,13 +399,14 @@ fun saveBitmapToGallery(context: Context, bitmap: Bitmap, filename: String) {
 
 fun handleCheckInClick(
     event: Event,
+    user: User,
     isAdminHome: Boolean,
     navController: NavHostController
 ) {
     val now = Date()
 
     if (isAdminHome) {
-        handleEnableCheckClick(true, navController)
+        handleEnableCheckClick(event, user, "Check-in")
     } else {
         val canCheckIn =
             event.checkInEnabled != null && event.checkInTime == null && now >= event.checkInEnabled
@@ -409,13 +416,14 @@ fun handleCheckInClick(
 
 fun handleCheckOutClick(
     event: Event,
+    user: User,
     isAdminHome: Boolean,
     navController: NavHostController
 ) {
     val now = Date()
 
     if (isAdminHome) {
-        handleEnableCheckClick(true, navController)
+        handleEnableCheckClick(event, user, "Check-out")
     } else {
         val canCheckOut =
             event.checkOutEnabled != null && event.checkInTime != null && event.checkOutTime == null && now >= event.checkOutEnabled
@@ -424,11 +432,15 @@ fun handleCheckOutClick(
 }
 
 fun handleEnableCheckClick(
-    canCheck: Boolean,
-    navController: NavHostController
+    event: Event,
+    user: User,
+    checkType: String,
 ) {
-    if (canCheck) {
-        // TODO: integrar para ativar o check-in e check-out
+    // TODO: confirmar se quer fazer a ação e exibir mensagens, check-out só depois de check-in...
+    if (checkType == "Check-in" && event.checkInEnabled == null) {
+        RubeusApi.enableCheckIn(user.id, event, AppDateHelper().getCurrentCompleteTime())
+    } else if (checkType == "Check-out" && event.checkInEnabled != null && event.checkOutEnabled == null) {
+        RubeusApi.enableCheckOut(user.id, event, AppDateHelper().getCurrentCompleteTime())
     }
 }
 
