@@ -139,6 +139,28 @@ final class RubeusApiHelper {
         return this.service.registerUser(body);
     }
 
+    public Call<ApiResponse<Object>> updateUserCall(final int userId, final String name, final String school, final String password) {
+        final Map<String, Object> body = this.defaultBody();
+        final Map<String, Object> customFields = new HashMap<>();
+
+        customFields.put(RubeusFields.UserAccount.PASSWORD.getIdentifier(), password);
+
+        body.put("id", userId);
+        body.put("nome", name);
+        body.put("escolaOrigem", school);
+        body.put(CAMPOS_PERSONALIZADOS, customFields);
+
+        return this.service.updateUser(body);
+    }
+
+    public Call<ApiResponse<Object>> deleteUserCall(final int userId) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("id", userId);
+
+        return this.service.deleteUser(body);
+    }
+
     public Call<ApiResponse<List<Object>>> listSchoolsCall() {
         return this.service.listSchools(this.defaultBody());
     }

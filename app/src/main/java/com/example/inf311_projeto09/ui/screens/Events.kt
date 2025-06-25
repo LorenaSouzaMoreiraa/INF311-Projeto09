@@ -22,7 +22,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.ui.components.FilterDialog
 import com.example.inf311_projeto09.ui.components.NavBar
@@ -64,33 +62,8 @@ fun EventsScreen(
     navController: NavHostController,
     todayEvents: List<Event> = emptyList()
 ) {
-    val currentEvent = todayEvents.firstOrNull { it.eventStage == Event.EventStage.CURRENT }
-    val scannedCode = remember { mutableStateOf<String?>(null) }
     val selectedFilters = remember { mutableStateOf(setOf<EventFilter>()) }
     val showFilterDialog = remember { mutableStateOf(false) }
-
-    LaunchedEffect(navController) {
-        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-        savedStateHandle?.getLiveData<String>("scannedCode")?.observeForever { code ->
-            scannedCode.value = code
-            savedStateHandle.remove<String>("scannedCode")
-        }
-    }
-
-    LaunchedEffect(scannedCode.value) {
-        val code = scannedCode.value
-        if (code != null) {
-            scannedCode.value = null
-            if (currentEvent != null && code == currentEvent.checkInCode) {
-                val checkTime = AppDateHelper().getCurrentCompleteTime()
-                if (currentEvent.checkInTime == null) {
-                    RubeusApi.checkIn(22, currentEvent, checkTime)
-                } else if (currentEvent.checkOutTime == null) {
-                    RubeusApi.checkOut(22, currentEvent, checkTime)
-                }
-            }
-        }
-    }
 
     EventsContent(navController, todayEvents, selectedFilters, showFilterDialog)
 }

@@ -25,6 +25,17 @@ public final class RubeusApi {
         return helper.executeRequest(helper.registerUserCall(name, email, school, password, cpf, type));
     }
 
+    public static Boolean updateUser(final User user, final String name, final String school, final String password) {
+        user.setName(name);
+        user.setSchool(school);
+        user.setPassword(password);
+        return helper.executeRequest(helper.updateUserCall(user.getId(), name, school, password));
+    }
+
+    public static Boolean deleteUser(final int userId) {
+        return helper.executeRequest(helper.deleteUserCall(userId));
+    }
+
     public static List<String> listSchools() {
         final Function<List<Object>, List<String>> toCustomList = schools -> schools.stream()
                 .map(school -> {

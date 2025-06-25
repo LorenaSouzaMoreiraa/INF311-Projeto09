@@ -289,10 +289,23 @@ fun AppNavHost(
         }
 
         composable(ScreenType.EDIT_PROFILE.route) {
-            EditProfileScreen(
-                navController = navController,
-                choosePhoto = { /* TODO: Lógica para escolher foto */ }
-            )
+            user?.let { nonNullUser ->
+                EditProfileScreen(
+                    user = nonNullUser,
+                    navController = navController,
+                    choosePhoto = { /* TODO: Lógica para escolher foto */ },
+                    onDeactivateAccount = {
+                        setRememberedEmail(activity, "")
+                        navController.navigate(ScreenType.LOGIN.route)
+                    }
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         }
 
         composable(ScreenType.REGISTER_EVENT.route) {

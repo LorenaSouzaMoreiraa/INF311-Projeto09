@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,6 +25,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
@@ -41,6 +43,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +54,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.api.RubeusApi
+import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
@@ -59,9 +64,10 @@ import com.example.inf311_projeto09.ui.utils.AppIcons
 
 @Composable
 fun EditProfileScreen(
-    userId: String = "idUsuario",
+    user: User,
     navController: NavHostController,
     choosePhoto: () -> Unit = {},
+    onDeactivateAccount: () -> Unit = {}
 ) {
     var isEditingMode by remember { mutableStateOf(false) }
 
@@ -88,7 +94,14 @@ fun EditProfileScreen(
             ) {
                 Spacer(modifier = Modifier.height(40.dp))
 
-                EditProfileFields(userId, isEditingMode)
+                EditProfileFields(
+                    user = user,
+                    isEditingMode = isEditingMode,
+                    onSave = {
+                        isEditingMode = false
+                    },
+                    onDeactivateAccount = onDeactivateAccount
+                )
             }
 
             NavBar(navController, NavBarOption.PROFILE)
@@ -165,7 +178,7 @@ fun TopBarEditProfile(
 
         IconButton(
             onClick = onToggleEditMode,
-            modifier = Modifier.size(30.dp)
+            modifier = Modifier.size(33.dp)
         ) {
             AppIcons.Outline.EditIcon(
                 30.dp,
@@ -176,32 +189,27 @@ fun TopBarEditProfile(
     }
 }
 
-fun getUserData(userId: String): User {
-    return User(
-        Integer.valueOf(userId),
-        "Nome completo",
-        User.UserRole.USER,
-        "rubeus@rubeus.com",
-        "000.000.000-00",
-        "Nome universidade",
-        "testeSenha"
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileFields(
-    userId: String,
-    isEditingMode: Boolean
+    user: User,
+    isEditingMode: Boolean,
+    onSave: () -> Unit,
+    onDeactivateAccount: () -> Unit,
 ) {
-    val user = getUserData(userId)
-
     val cpf by remember { mutableStateOf(user.cpf) }
     var name by remember { mutableStateOf(user.name) }
     var university by remember { mutableStateOf(user.school) }
     val email by remember { mutableStateOf(user.email) }
-    var password by remember { mutableStateOf(user.password) }
-    var passwordVisible by remember { mutableStateOf(false) }
+
+    var oldPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+
+    var oldPasswordVisible by remember { mutableStateOf(false) }
+    var newPasswordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    // TODO: adicionar parâmetro no usuário
     var receiveNotifications by remember { mutableStateOf(true) }
 
     val universities = remember { RubeusApi.listSchools().toList() }
@@ -210,11 +218,17 @@ fun EditProfileFields(
 
     Spacer(modifier = Modifier.height(18.dp))
 
-    NameField(name = name, onNameChange = { name = it }, isEditingMode = isEditingMode)
+    NameField(
+        originalName = user.name,
+        name = name,
+        onNameChange = { name = it },
+        isEditingMode = isEditingMode
+    )
 
     Spacer(modifier = Modifier.height(18.dp))
 
     UniversityField(
+        originalUniversity = user.school,
         university = university,
         onUniversityChange = { university = it },
         isEditingMode = isEditingMode,
@@ -228,15 +242,24 @@ fun EditProfileFields(
     Spacer(modifier = Modifier.height(18.dp))
 
     PasswordField(
-        password = password,
-        onPasswordChange = { password = it },
         isEditingMode = isEditingMode,
-        passwordVisible = passwordVisible,
-        onTogglePasswordVisibility = { passwordVisible = !passwordVisible }
+        oldPassword = oldPassword,
+        onOldPasswordChange = { oldPassword = it },
+        newPassword = newPassword,
+        onNewPasswordChange = { newPassword = it },
+        confirmPassword = confirmPassword,
+        onConfirmPasswordChange = { confirmPassword = it },
+        oldPasswordVisible = oldPasswordVisible,
+        onToggleOldPasswordVisibility = { oldPasswordVisible = !oldPasswordVisible },
+        newPasswordVisible = newPasswordVisible,
+        onToggleNewPasswordVisibility = { newPasswordVisible = !newPasswordVisible },
+        confirmPasswordVisible = confirmPasswordVisible,
+        onToggleConfirmPasswordVisibility = { confirmPasswordVisible = !confirmPasswordVisible }
     )
 
     Spacer(modifier = Modifier.height(10.dp))
 
+    // TODO: voltar depois que implementar a "Notificação"
     NotificationsSwitch(
         receiveNotifications = receiveNotifications,
         onNotificationsChange = { receiveNotifications = it },
@@ -247,15 +270,53 @@ fun EditProfileFields(
 
     ActionButton(
         isEditingMode = isEditingMode,
-        onSaveClick = { }, // TODO: Lógica para "Salvar alterações"
-        onDeactivateClick = { } // TODO: Lógica para "Desativar conta"
+        onSaveClick = {
+            if (name.isEmpty() || university.isEmpty()) {
+                // TODO: não pode opções vazias
+            } else if (oldPassword.isEmpty() && newPassword.isEmpty() && confirmPassword.isEmpty()) {
+                if (name != user.name || university != user.school) {
+                    RubeusApi.updateUser(user, name, university, user.password)
+                    onSave()
+                }
+            } else {
+                if (oldPassword.isEmpty()) {
+                    // TODO: não pode vazia
+                } else if (newPassword.isEmpty()) {
+                    // TODO: não pode vazia
+                } else if (confirmPassword.isEmpty()) {
+                    // TODO: não pode vazia
+                } else if (!PasswordHelper.verifyPassword(oldPassword, user.password)) {
+                    // TODO: senha antiga incorreta
+                } else if (newPassword != confirmPassword) {
+                    // TODO: senhas não batem
+                } else {
+                    RubeusApi.updateUser(
+                        user,
+                        name,
+                        university,
+                        PasswordHelper.hashPassword(newPassword)
+                    )
+                    onSave()
+                }
+            }
+        },
+        onDeactivateClick = {
+            RubeusApi.deleteUser(user.id)
+            onDeactivateAccount()
+            // TODO: Perguntar se realmente deseja excluir
+        }
     )
 }
 
 @Composable
 fun CpfField(cpf: String) {
     OutlinedTextField(
-        value = cpf,
+        value = "${cpf.substring(0, 3)}.${cpf.substring(3, 6)}.${
+            cpf.substring(
+                6,
+                9
+            )
+        }-${cpf.substring(9, 11)}",
         onValueChange = {},
         label = {
             Text(
@@ -271,7 +332,9 @@ fun CpfField(cpf: String) {
             unfocusedTextColor = AppColors().black,
             focusedBorderColor = AppColors().lightGrey,
             unfocusedBorderColor = AppColors().lightGrey,
-            cursorColor = AppColors().black
+            cursorColor = AppColors().black,
+            focusedContainerColor = AppColors().darkGrey.copy(alpha = 0.4f),
+            unfocusedContainerColor = AppColors().darkGrey.copy(alpha = 0.4f)
         ),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -280,9 +343,14 @@ fun CpfField(cpf: String) {
 }
 
 @Composable
-fun NameField(name: String, onNameChange: (String) -> Unit, isEditingMode: Boolean) {
+fun NameField(
+    originalName: String,
+    name: String,
+    onNameChange: (String) -> Unit,
+    isEditingMode: Boolean
+) {
     OutlinedTextField(
-        value = name,
+        value = if (isEditingMode) name else originalName,
         onValueChange = onNameChange,
         label = {
             Text(
@@ -309,6 +377,7 @@ fun NameField(name: String, onNameChange: (String) -> Unit, isEditingMode: Boole
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UniversityField(
+    originalUniversity: String,
     university: String,
     onUniversityChange: (String) -> Unit,
     isEditingMode: Boolean,
@@ -358,7 +427,7 @@ fun UniversityField(
                     )
                 },
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
                     .fillMaxWidth()
             )
 
@@ -392,7 +461,7 @@ fun UniversityField(
         }
     } else {
         OutlinedTextField(
-            value = university,
+            value = originalUniversity,
             onValueChange = {},
             label = {
                 Text(
@@ -436,7 +505,9 @@ fun EmailField(email: String) {
             unfocusedTextColor = AppColors().black,
             focusedBorderColor = AppColors().lightGrey,
             unfocusedBorderColor = AppColors().lightGrey,
-            cursorColor = AppColors().black
+            cursorColor = AppColors().black,
+            focusedContainerColor = AppColors().darkGrey.copy(alpha = 0.4f),
+            unfocusedContainerColor = AppColors().darkGrey.copy(alpha = 0.4f)
         ),
         shape = RoundedCornerShape(8.dp),
         leadingIcon = {
@@ -449,18 +520,96 @@ fun EmailField(email: String) {
 
 @Composable
 fun PasswordField(
+    isEditingMode: Boolean,
+    oldPassword: String,
+    onOldPasswordChange: (String) -> Unit,
+    newPassword: String,
+    onNewPasswordChange: (String) -> Unit,
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
+    oldPasswordVisible: Boolean,
+    onToggleOldPasswordVisibility: () -> Unit,
+    newPasswordVisible: Boolean,
+    onToggleNewPasswordVisibility: () -> Unit,
+    confirmPasswordVisible: Boolean,
+    onToggleConfirmPasswordVisibility: () -> Unit
+) {
+    if (!isEditingMode) {
+        OutlinedTextField(
+            value = "********",
+            onValueChange = {},
+            label = {
+                Text(
+                    "Senha",
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp,
+                    color = AppColors().grey
+                )
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = AppColors().black,
+                unfocusedTextColor = AppColors().black,
+                focusedBorderColor = AppColors().lightGrey,
+                unfocusedBorderColor = AppColors().lightGrey,
+                cursorColor = AppColors().black
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true,
+            visualTransformation = VisualTransformation.None,
+            leadingIcon = {
+                AppIcons.Outline.KeyRound(24.dp, AppColors().black)
+            }
+        )
+    } else {
+        Column {
+            PasswordFieldItem(
+                label = "Senha Antiga",
+                password = oldPassword,
+                onPasswordChange = onOldPasswordChange,
+                passwordVisible = oldPasswordVisible,
+                onTogglePasswordVisibility = onToggleOldPasswordVisibility
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            PasswordFieldItem(
+                label = "Nova Senha",
+                password = newPassword,
+                onPasswordChange = onNewPasswordChange,
+                passwordVisible = newPasswordVisible,
+                onTogglePasswordVisibility = onToggleNewPasswordVisibility
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            PasswordFieldItem(
+                label = "Confirmar Senha",
+                password = confirmPassword,
+                onPasswordChange = onConfirmPasswordChange,
+                passwordVisible = confirmPasswordVisible,
+                onTogglePasswordVisibility = onToggleConfirmPasswordVisibility
+            )
+        }
+    }
+}
+
+@Composable
+fun PasswordFieldItem(
+    label: String,
     password: String,
     onPasswordChange: (String) -> Unit,
-    isEditingMode: Boolean,
     passwordVisible: Boolean,
     onTogglePasswordVisibility: () -> Unit
 ) {
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.None,
+            autoCorrectEnabled = false,
+            keyboardType = KeyboardType.Password
+        ),
         label = {
             Text(
-                "Senha",
+                label,
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
@@ -475,22 +624,19 @@ fun PasswordField(
             cursorColor = AppColors().black
         ),
         shape = RoundedCornerShape(8.dp),
-        visualTransformation = if (isEditingMode && passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         leadingIcon = {
             AppIcons.Outline.KeyRound(24.dp, AppColors().black)
         },
-        trailingIcon = if (isEditingMode) {
-            {
-                IconButton(onClick = onTogglePasswordVisibility) {
-                    if (passwordVisible)
-                        AppIcons.Outline.Eye(24.dp, AppColors().grey)
-                    else
-                        AppIcons.Outline.EyeClosed(24.dp, AppColors().grey)
-                }
+        trailingIcon = {
+            IconButton(onClick = onTogglePasswordVisibility) {
+                if (passwordVisible)
+                    AppIcons.Outline.Eye(24.dp, AppColors().grey)
+                else
+                    AppIcons.Outline.EyeClosed(24.dp, AppColors().grey)
             }
-        } else null,
+        },
         modifier = Modifier.fillMaxWidth(),
-        readOnly = !isEditingMode
     )
 }
 
@@ -580,5 +726,15 @@ fun ActionButton(isEditingMode: Boolean, onSaveClick: () -> Unit, onDeactivateCl
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun EditProfileScreenPreview() {
-    EditProfileScreen(navController = rememberNavController())
+    EditProfileScreen(
+        user = User(
+            0,
+            "Erick Soares",
+            User.UserRole.USER,
+            "teste@teste.com",
+            "12345678900",
+            "Universidade Federal de Viçosa (UFV)",
+            "****"
+        ), navController = rememberNavController()
+    )
 }
