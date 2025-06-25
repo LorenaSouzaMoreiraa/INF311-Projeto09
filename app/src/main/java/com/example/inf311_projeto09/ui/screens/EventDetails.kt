@@ -649,7 +649,8 @@ fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChan
                 checkedColor = AppColors().darkGreen,
                 uncheckedColor = AppColors().lightGrey,
                 checkmarkColor = AppColors().darkGreen,
-                disabledCheckedColor = AppColors().darkGreen
+                disabledCheckedColor = AppColors().darkGreen,
+                disabledUncheckedColor = AppColors().lightGrey
             ),
             modifier = Modifier.offset(x = (-13).dp)
         )
@@ -678,7 +679,8 @@ fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChan
                 checkedColor = AppColors().darkGreen,
                 uncheckedColor = AppColors().lightGrey,
                 checkmarkColor = AppColors().darkGreen,
-                disabledCheckedColor = AppColors().darkGreen
+                disabledCheckedColor = AppColors().darkGreen,
+                disabledUncheckedColor = AppColors().lightGrey
             )
         )
 
@@ -709,7 +711,8 @@ fun AutoCheckInOutCheckbox(autoCheckInOut: Boolean, onAutoCheckInOutChange: (Boo
                 checkedColor = AppColors().darkGreen,
                 uncheckedColor = AppColors().lightGrey,
                 checkmarkColor = AppColors().darkGreen,
-                disabledCheckedColor = AppColors().darkGreen
+                disabledCheckedColor = AppColors().darkGreen,
+                disabledUncheckedColor = AppColors().lightGrey
             ),
             modifier = Modifier.offset(x = (-13).dp)
         )
@@ -836,7 +839,10 @@ fun TabRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
-            .background(AppColors().offWhite)
+            .background(
+                AppColors().offWhite,
+                shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+            )
             .onGloballyPositioned { coordinates ->
                 tabRowWidthPx = coordinates.size.width
                 tabWidthPx = tabRowWidthPx / tabs.size
@@ -855,13 +861,17 @@ fun TabRow(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            tabs.forEachIndexed { index, tabText ->
+            tabs.forEach { tabText ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { onTabSelected(tabText) }
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { onTabSelected(tabText) }
+                        )
                         .padding(vertical = 12.dp)
                 ) {
                     Text(
