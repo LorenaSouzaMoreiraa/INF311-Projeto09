@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -24,6 +23,18 @@ public final class RubeusApi {
 
     public static Boolean registerUser(final String name, final String email, final String school, final String password, final String cpf, final User.UserRole type) {
         return helper.executeRequest(helper.registerUserCall(name, email, school, password, cpf, type));
+    }
+
+    public static Boolean updateUser(final User user, final String name, final String school, final String password, final boolean enableNotifications) {
+        user.setName(name);
+        user.setSchool(school);
+        user.setPassword(password);
+        user.setEnableNotifications(enableNotifications);
+        return helper.executeRequest(helper.updateUserCall(user.getId(), name, school, password, enableNotifications));
+    }
+
+    public static Boolean deleteUser(final int userId) {
+        return helper.executeRequest(helper.deleteUserCall(userId));
     }
 
     public static List<String> listSchools() {
@@ -55,6 +66,12 @@ public final class RubeusApi {
                             .map(field -> (String) ((Map<String, Object>) field).get("valor"))
                             .collect(Collectors.toList())
                             .get(0);
+                    final String enableNotifications = customFields.stream()
+                            .filter(field -> RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier()
+                                    .equals(((Map<String, Object>) field).get("coluna")))
+                            .map(field -> (String) ((Map<String, Object>) field).get("valor"))
+                            .collect(Collectors.toList())
+                            .get(0);
 
                     return new User(Integer.parseInt(user.id()),
                             user.nome(),
@@ -62,7 +79,8 @@ public final class RubeusApi {
                             email,
                             user.cpf(),
                             user.escolaOrigem(),
-                            password);
+                            password,
+                            "1".equals(enableNotifications));
                 })
                 .collect(Collectors.toList()).get(0);
 
@@ -82,14 +100,14 @@ public final class RubeusApi {
                     final Date beginTime = parseIsoDate(customFields.get(RubeusFields.UserEvent.BEGIN_TIME.getIdentifier()));
                     final Date endTime = parseIsoDate(customFields.get(RubeusFields.UserEvent.END_TIME.getIdentifier()));
 
-                    return new Event(event.id(),
+                    return new Event(event.curso(),
                             (String) customFields.get(RubeusFields.UserEvent.TITLE.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.DESCRIPTION.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.TYPE.getIdentifier()),
                             verificationMethod,
                             (String) customFields.get(RubeusFields.UserEvent.CHECK_IN_CODE.getIdentifier()),
-                            (String) customFields.get(RubeusFields.UserEvent.CHECK_OUT_CODE.getIdentifier()),
-                            Integer.parseInt((String) Objects.requireNonNull(customFields.get(RubeusFields.UserEvent.REFER_EVENT_ID.getIdentifier()))),
+                            "Sim".equals(customFields.get(RubeusFields.UserEvent.AUTO_CHECK.getIdentifier())),
+                            (String) customFields.get(RubeusFields.UserEvent.LOCATION.getIdentifier()),
                             beginTime,
                             endTime,
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_ENABLED.getIdentifier())),
@@ -105,12 +123,12 @@ public final class RubeusApi {
 
     public static Boolean checkIn(final int userId, final Event event, final String checkInTime) {
         event.setCheckInTime(parseIsoDate(checkInTime));
-        return helper.executeRequest(helper.checkInCall(userId, event.getId(), checkInTime));
+        return helper.executeRequest(helper.checkInCall(userId, event.getCourse(), checkInTime));
     }
 
     public static Boolean checkOut(final int userId, final Event event, final String checkOutTime) {
         event.setCheckOutTime(parseIsoDate(checkOutTime));
-        return helper.executeRequest(helper.checkOutCall(userId, event.getId(), checkOutTime));
+        return helper.executeRequest(helper.checkOutCall(userId, event.getCourse(), checkOutTime));
     }
 
     private static Date parseIsoDate(final Object value) {

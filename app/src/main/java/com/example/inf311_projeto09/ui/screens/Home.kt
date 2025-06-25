@@ -63,8 +63,6 @@ import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @Composable
 fun HomeScreen(
@@ -161,7 +159,7 @@ fun HomeScreen(
                 }
             }
 
-            NavBar(navController, NavBarOption.HOME)
+            NavBar(navController, NavBarOption.HOME, user)
         }
 
         QuickAccessButton(user, currentEvent, Modifier.align(Alignment.BottomEnd), navController)
@@ -451,7 +449,7 @@ fun CarouselDot(
 @Composable
 fun HomeScreenPreview() {
     HomeScreen(
-        user = User(0, "Erick", UserRole.ADMIN, "teste@teste.com", "cpf", "UFV", "****"),
+        user = User(0, "Erick", UserRole.ADMIN, "teste@teste.com", "cpf", "UFV", "****", true),
         navController = rememberNavController(),
         todayEvents = listOf()
     )

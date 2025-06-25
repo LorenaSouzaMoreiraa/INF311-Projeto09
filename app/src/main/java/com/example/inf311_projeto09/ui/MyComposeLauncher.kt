@@ -15,6 +15,7 @@ import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.User
+import com.example.inf311_projeto09.ui.screens.EventsScreen
 import com.example.inf311_projeto09.ui.screens.HomeScreen
 import com.example.inf311_projeto09.ui.screens.LoginScreen
 import com.example.inf311_projeto09.ui.screens.RecoverPasswordScreen
@@ -41,6 +42,7 @@ enum class ScreenType(val route: String) {
     HOME("home"),
     PROFILE("profile"),
     CALENDAR("calendar"),
+    EVENTS("events"),
     NOTIFICATIONS("notifications"),
     QR_SCANNER("qr_scanner"),
     VERIFICATION_CODE("verification_code"),
@@ -241,6 +243,22 @@ fun AppNavHost(
             }
         }
 
+        composable(ScreenType.EVENTS.route) {
+            user?.let { nonNullUser ->
+                EventsScreen(
+                    user = nonNullUser,
+                    allEvents = userEvents,
+                    navController = navController
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+
         composable(ScreenType.PROFILE.route) {
             user?.let { nonNullUser ->
                 ProfileScreen(
@@ -289,10 +307,23 @@ fun AppNavHost(
         }
 
         composable(ScreenType.EDIT_PROFILE.route) {
-            EditProfileScreen(
-                navController = navController,
-                choosePhoto = { /* TODO: Lógica para escolher foto */ }
-            )
+            user?.let { nonNullUser ->
+                EditProfileScreen(
+                    user = nonNullUser,
+                    navController = navController,
+                    choosePhoto = { /* TODO: Lógica para escolher foto */ },
+                    onDeactivateAccount = {
+                        setRememberedEmail(activity, "")
+                        navController.navigate(ScreenType.LOGIN.route)
+                    }
+                )
+            } ?: run {
+                setRememberedEmail(activity, "")
+                navController.navigate(ScreenType.LOGIN.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         }
 
         composable(ScreenType.REGISTER_EVENT.route) {

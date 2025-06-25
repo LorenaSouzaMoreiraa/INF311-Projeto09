@@ -15,6 +15,12 @@ interface RubeusService {
     @POST("Contato/cadastro")
     Call<ApiResponse<Object>> registerUser(@Body Map<String, Object> body);
 
+    @POST("Contato/cadastro")
+    Call<ApiResponse<Object>> updateUser(@Body Map<String, Object> body);
+
+    @POST("Contato/excluirPessoa")
+    Call<ApiResponse<Object>> deleteUser(@Body Map<String, Object> body);
+
     @POST("Unidade/listarUnidades")
     Call<ApiResponse<List<Object>>> listSchools(@Body Map<String, Object> body);
 

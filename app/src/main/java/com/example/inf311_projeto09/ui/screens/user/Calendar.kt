@@ -169,7 +169,8 @@ fun CalendarScreen(
 
             NavBar(
                 navController = navController,
-                NavBarOption.CALENDAR
+                NavBarOption.CALENDAR,
+                user
             )
         }
 
@@ -558,7 +559,7 @@ class CalendarViewModel {
 @Composable
 fun CalendarScreenPreview() {
     CalendarScreen(
-        user = User(0, "Erick", User.UserRole.USER, "teste@teste.com", "cpf", "UFV", "****"),
+        user = User(0, "Erick", User.UserRole.USER, "teste@teste.com", "cpf", "UFV", "****", true),
         navController = rememberNavController(),
         allEvents = emptyList()
     )

@@ -83,7 +83,7 @@ fun ProfileScreen(
             MonthStatistics(user)
         }
 
-        NavBar(navController, NavBarOption.PROFILE)
+        NavBar(navController, NavBarOption.PROFILE, user)
     }
 }
 
@@ -467,7 +467,8 @@ fun ProfileScreenPreview() {
             "teste@teste.com",
             "cpf",
             "UFV",
-            "****"
+            "****",
+            true
         ), navController = rememberNavController()
     )
 }

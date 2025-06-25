@@ -1,10 +1,30 @@
 package com.example.inf311_projeto09.ui.screens
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -14,88 +34,77 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
-import com.example.inf311_projeto09.ui.components.*
-import com.example.inf311_projeto09.ui.utils.*
+import com.example.inf311_projeto09.model.User
+import com.example.inf311_projeto09.ui.components.FilterDialog
+import com.example.inf311_projeto09.ui.components.NavBar
+import com.example.inf311_projeto09.ui.components.NavBarOption
+import com.example.inf311_projeto09.ui.utils.AppColors
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
+import com.example.inf311_projeto09.ui.utils.AppFonts
+import com.example.inf311_projeto09.ui.utils.AppIcons
 
 enum class EventFilter(val label: String) {
     ONLINE("Online"),
-    PRESENCIAL("Presencial"),
-    HIBRIDO("Híbrido"),
-    EM_PROGRESSO("Em progresso"),
-    PROXIMOS_EVENTOS("Pendente"),
-    FINALIZADO("Finalizado"),
-    NESTE_MES("Neste mês"),
-    ULTIMOS_TRES_MESES("Nos últimos 3 meses"),
-    ULTIMOS_SEIS_MESES("Nos últimos 6 meses"),
-    NESTE_ANO("Neste ano"),
-    ANOS_ANTERIORES("Nos anos anteriores")
+    IN_PERSON("Presencial"),
+    HYBRID("Híbrido"),
+    CURRENT("Em progresso"),
+    NEXT("Pendente"),
+    ENDED("Finalizado"),
+    THIS_MONTH("Neste mês"),
+    LAST_THREE_MONTHS("Nos últimos 3 meses"),
+    LAST_SIX_MONTHS("Nos últimos 6 meses"),
+    THIS_YEAR("Neste ano"),
+    PREVIOUS_YEARS("Nos anos anteriores")
 }
+
+// TODO: fixar evento atual no topo
+// TODO: gerar arquivo de saída
 
 @Composable
 fun EventsScreen(
-    navController: NavHostController,
-    todayEvents: List<Event> = emptyList()
+    user: User,
+    allEvents: List<Event> = emptyList(),
+    navController: NavHostController
 ) {
-    val currentEvent = todayEvents.firstOrNull { it.eventStage == Event.EventStage.CURRENT }
-    val scannedCode = remember { mutableStateOf<String?>(null) }
     val selectedFilters = remember { mutableStateOf(setOf<EventFilter>()) }
     val showFilterDialog = remember { mutableStateOf(false) }
 
-    LaunchedEffect(navController) {
-        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-        savedStateHandle?.getLiveData<String>("scannedCode")?.observeForever { code ->
-            scannedCode.value = code
-            savedStateHandle.remove<String>("scannedCode")
-        }
-    }
-
-    LaunchedEffect(scannedCode.value) {
-        val code = scannedCode.value
-        if (code != null) {
-            scannedCode.value = null
-            if (currentEvent != null && code == currentEvent.checkInCode) {
-                val checkTime = AppDateHelper().getCurrentCompleteTime()
-                if (currentEvent.checkInTime == null) {
-                    RubeusApi.checkIn(22, currentEvent, checkTime)
-                } else if (currentEvent.checkOutTime == null) {
-                    RubeusApi.checkOut(22, currentEvent, checkTime)
-                }
-            }
-        }
-    }
-
-    EventsContent(navController, todayEvents, selectedFilters, showFilterDialog)
+    EventsContent(user, navController, allEvents, selectedFilters, showFilterDialog)
 }
 
 @Composable
 fun EventsContent(
+    user: User,
     navController: NavHostController,
-    todayEvents: List<Event>,
+    allEvents: List<Event>,
     selectedFilters: MutableState<Set<EventFilter>>,
     showFilterDialog: MutableState<Boolean>
 ) {
     val helper = AppDateHelper()
 
-    val filteredEvents = remember(todayEvents, selectedFilters.value) {
+    val filteredEvents = remember(allEvents, selectedFilters.value) {
         if (selectedFilters.value.isEmpty()) {
-            todayEvents
+            allEvents
         } else {
-            todayEvents.filter { event ->
+            allEvents.filter { event ->
                 selectedFilters.value.all { filter ->
                     when (filter) {
                         EventFilter.ONLINE -> event.type.contains("Online", ignoreCase = true)
-                        EventFilter.PRESENCIAL -> event.type.contains("Presencial", ignoreCase = true)
-                        EventFilter.HIBRIDO -> event.type.contains("Híbrido", ignoreCase = true)
-                        EventFilter.EM_PROGRESSO -> event.eventStage == Event.EventStage.CURRENT
-                        EventFilter.PROXIMOS_EVENTOS -> event.eventStage == Event.EventStage.NEXT
-                        EventFilter.FINALIZADO -> event.eventStage == Event.EventStage.ENDED
-                        EventFilter.NESTE_MES -> helper.isThisMonth(event.beginTime)
-                        EventFilter.ULTIMOS_TRES_MESES -> helper.isInLastNMonths(event.beginTime, 3)
-                        EventFilter.ULTIMOS_SEIS_MESES -> helper.isInLastNMonths(event.beginTime, 6)
-                        EventFilter.NESTE_ANO -> helper.isThisYear(event.beginTime)
-                        EventFilter.ANOS_ANTERIORES -> !helper.isThisYear(event.beginTime)
+                        EventFilter.IN_PERSON -> event.type.contains(
+                            "Presencial",
+                            ignoreCase = true
+                        )
+
+                        EventFilter.HYBRID -> event.type.contains("Híbrido", ignoreCase = true)
+                        EventFilter.CURRENT -> event.eventStage == Event.EventStage.CURRENT
+                        EventFilter.NEXT -> event.eventStage == Event.EventStage.NEXT
+                        EventFilter.ENDED -> event.eventStage == Event.EventStage.ENDED
+                        EventFilter.THIS_MONTH -> helper.isThisMonth(event.beginTime)
+                        EventFilter.LAST_THREE_MONTHS -> helper.isInLastNMonths(event.beginTime, 3)
+                        EventFilter.LAST_SIX_MONTHS -> helper.isInLastNMonths(event.beginTime, 6)
+                        EventFilter.THIS_YEAR -> helper.isThisYear(event.beginTime)
+                        EventFilter.PREVIOUS_YEARS -> !helper.isThisYear(event.beginTime)
                     }
                 }
             }
@@ -203,7 +212,7 @@ fun EventsContent(
                 }
             }
 
-            NavBar(navController, NavBarOption.CALENDAR)
+            NavBar(navController, NavBarOption.CALENDAR, user)
         }
 
         if (showFilterDialog.value) {
@@ -248,14 +257,20 @@ fun FilterChip(text: String, onRemove: () -> Unit) {
 fun EventCard(
     event: Event,
     onEventDetails: () -> Unit = {}
-){
+) {
+    val currentEvent = event.eventStage == Event.EventStage.CURRENT
+    val backgroundColor = if (currentEvent) AppColors().darkGreen else AppColors().white
+    val titleColor = if (currentEvent) AppColors().white else AppColors().black
+    val dividerColor = if (currentEvent) AppColors().darkGrey else AppColors().lightBlack
+    val subTitleColor = if (currentEvent) AppColors().lightGrey else AppColors().lightBlack
+    val seeMoreColor = if (currentEvent) AppColors().lightGreen else AppColors().darkGreen
     val helper = AppDateHelper()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .background(AppColors().white, RoundedCornerShape(20.dp))
+            .background(backgroundColor, RoundedCornerShape(20.dp))
             .padding(16.dp)
     ) {
         Text(
@@ -263,11 +278,11 @@ fun EventCard(
             fontFamily = AppFonts().montserrat,
             fontWeight = FontWeight.SemiBold,
             fontSize = 16.sp,
-            color = AppColors().black
+            color = titleColor
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-        Divider(color = AppColors().lightBlack, thickness = 1.dp)
+        HorizontalDivider(thickness = 1.dp, color = dividerColor)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -280,19 +295,23 @@ fun EventCard(
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
-                color = AppColors().lightBlack
+                color = subTitleColor
             )
             Text(
-                text = "${helper.getTimeFormatted(event.beginTime)} - ${helper.getTimeFormatted(event.endTime)} | ${event.type}",
+                text = "${helper.getTimeFormatted(event.beginTime)} - ${
+                    helper.getTimeFormatted(
+                        event.endTime
+                    )
+                } | ${event.type}",
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
-                color = AppColors().lightBlack
+                color = subTitleColor
             )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
-        Divider(color = AppColors().lightBlack, thickness = 1.dp)
+        HorizontalDivider(thickness = 1.dp, color = dividerColor)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -307,7 +326,7 @@ fun EventCard(
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
-                color = AppColors().darkGreen,
+                color = seeMoreColor,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
                     .clickable { onEventDetails() }
@@ -328,8 +347,8 @@ fun EventsPreview() {
             "Online",
             Event.EventVerificationMethod.QR_CODE,
             "ABC123",
-            "XYZ789",
-            0,
+            false,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 25),
             AppDateHelper().getDate(2025, 2, 25),
             null,
@@ -345,8 +364,8 @@ fun EventsPreview() {
             "Presencial",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            false,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,
@@ -362,8 +381,8 @@ fun EventsPreview() {
             "Presencial",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            false,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,
@@ -379,8 +398,8 @@ fun EventsPreview() {
             "Online",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            false,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,
@@ -396,8 +415,8 @@ fun EventsPreview() {
             "Online",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            false,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,
@@ -413,8 +432,8 @@ fun EventsPreview() {
             "Presencial",
             Event.EventVerificationMethod.QR_CODE,
             "DEF456",
-            "UVW123",
-            0,
+            false,
+            "Localização",
             AppDateHelper().getDate(2025, 2, 26),
             AppDateHelper().getDate(2025, 2, 26),
             null,
@@ -425,5 +444,16 @@ fun EventsPreview() {
         )
     )
 
-    EventsScreen(navController = rememberNavController(), todayEvents = sampleEvents)
+    EventsScreen(
+        navController = rememberNavController(), allEvents = sampleEvents, user = User(
+            0,
+            "Erick Soares",
+            User.UserRole.USER,
+            "teste@teste.com",
+            "12345678900",
+            "Universidade Federal de Viçosa (UFV)",
+            "****",
+            true
+        )
+    )
 }

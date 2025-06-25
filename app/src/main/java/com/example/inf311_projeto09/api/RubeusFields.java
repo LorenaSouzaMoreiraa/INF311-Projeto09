@@ -7,8 +7,8 @@ public class RubeusFields {
         TYPE("campopersonalizado_9_compl_proc"),
         VERIFICATION_TYPE("campopersonalizado_12_compl_proc"),
         CHECK_IN_CODE("campopersonalizado_22_compl_proc"),
-        CHECK_OUT_CODE("campopersonalizado_23_compl_proc"),
-        REFER_EVENT_ID("campopersonalizado_21_compl_proc"),
+        LOCATION("campopersonalizado_23_compl_proc"),
+        AUTO_CHECK("campopersonalizado_14_compl_proc"),
         BEGIN_TIME("campopersonalizado_10_compl_proc"),
         END_TIME("campopersonalizado_11_compl_proc"),
         CHECK_IN_ENABLED("campopersonalizado_17_compl_proc"),
@@ -29,7 +29,8 @@ public class RubeusFields {
 
     public enum UserAccount {
         PASSWORD("campopersonalizado_2_compl_cont"),
-        TYPE("campopersonalizado_3_compl_cont");
+        TYPE("campopersonalizado_3_compl_cont"),
+        ENABLE_NOTIFICATIONS("campopersonalizado_5_compl_cont");
 
         private final String identifier;
 

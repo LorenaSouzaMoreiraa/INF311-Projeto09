@@ -11,10 +11,11 @@ public class User {
     private String cpf;
     private String school;
     private String password;
+    private boolean enableNotifications;
 
     public User(final int id, final String name, final UserRole type,
                 final String email, final String cpf, final String school,
-                final String password) {
+                final String password, final boolean enableNotifications) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -22,6 +23,7 @@ public class User {
         this.cpf = cpf;
         this.school = school;
         this.password = password;
+        this.enableNotifications = enableNotifications;
     }
 
     public int getId() {
@@ -78,6 +80,14 @@ public class User {
 
     public void setPassword(final String password) {
         this.password = password;
+    }
+
+    public boolean getEnableNotifications() {
+        return this.enableNotifications;
+    }
+
+    public void setEnableNotifications(final boolean enableNotifications) {
+        this.enableNotifications = enableNotifications;
     }
 
     public enum UserRole {

@@ -120,7 +120,8 @@ final class RubeusApiHelper {
                                 "valor"),
                         "filtros", List.of(Map.of(
                                 "coluna", List.of(RubeusFields.UserAccount.PASSWORD.getIdentifier(),
-                                        RubeusFields.UserAccount.TYPE.getIdentifier())))));
+                                        RubeusFields.UserAccount.TYPE.getIdentifier(),
+                                        RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier())))));
     }
 
     public Call<ApiResponse<Object>> registerUserCall(final String name, final String email, final String school, final String password, final String cpf, final User.UserRole type) {
@@ -129,6 +130,7 @@ final class RubeusApiHelper {
 
         customFields.put(RubeusFields.UserAccount.TYPE.getIdentifier(), type.getIdentifier());
         customFields.put(RubeusFields.UserAccount.PASSWORD.getIdentifier(), password);
+        customFields.put(RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier(), "1");
 
         body.put("nome", name);
         body.put("emailPrincipal", email);
@@ -137,6 +139,29 @@ final class RubeusApiHelper {
         body.put(CAMPOS_PERSONALIZADOS, customFields);
 
         return this.service.registerUser(body);
+    }
+
+    public Call<ApiResponse<Object>> updateUserCall(final int userId, final String name, final String school, final String password, final boolean enableNotifications) {
+        final Map<String, Object> body = this.defaultBody();
+        final Map<String, Object> customFields = new HashMap<>();
+
+        customFields.put(RubeusFields.UserAccount.PASSWORD.getIdentifier(), password);
+        customFields.put(RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier(), enableNotifications ? "1" : "0");
+
+        body.put("id", userId);
+        body.put("nome", name);
+        body.put("escolaOrigem", school);
+        body.put(CAMPOS_PERSONALIZADOS, customFields);
+
+        return this.service.updateUser(body);
+    }
+
+    public Call<ApiResponse<Object>> deleteUserCall(final int userId) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("id", userId);
+
+        return this.service.deleteUser(body);
     }
 
     public Call<ApiResponse<List<Object>>> listSchoolsCall() {
@@ -165,29 +190,29 @@ final class RubeusApiHelper {
         customFields.put("campos", campos);
 
         body.put("id", userId);
-        body.put("camposRetorno", List.of("id", "processoNome", "etapaNome", customFields));
+        body.put("camposRetorno", List.of("curso", "processoNome", "etapaNome", customFields));
 
         return this.service.listUserEvents(body);
     }
 
-    public Call<ApiResponse<Object>> checkInCall(final int userId, final int eventId, final String checkInTime) {
+    public Call<ApiResponse<Object>> checkInCall(final int userId, final int courseId, final String checkInTime) {
         final Map<String, Object> body = this.defaultBody();
 
-        body.put("codigo", eventId);
         body.put("tipo", 114);
         body.put("pessoa", Map.of("id", userId));
-        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_IN_TIME, checkInTime));
+        body.put("curso", courseId);
+        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier(), checkInTime));
 
         return this.service.checkIn(body);
     }
 
-    public Call<ApiResponse<Object>> checkOutCall(final int userId, final int eventId, final String checkOutTime) {
+    public Call<ApiResponse<Object>> checkOutCall(final int userId, final int courseId, final String checkOutTime) {
         final Map<String, Object> body = this.defaultBody();
 
-        body.put("codigo", eventId);
-        body.put("tipo", 114);
+        body.put("tipo", 116);
         body.put("pessoa", Map.of("id", userId));
-        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_OUT_TIME, checkOutTime));
+        body.put("curso", courseId);
+        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier(), checkOutTime));
 
         return this.service.checkOut(body);
     }
