@@ -84,7 +84,6 @@ fun EventDetailsScreen(
     var startTimeCalendar by remember { mutableStateOf(Calendar.getInstance().apply { time = event.beginTime }) }
     var endDateCalendar by remember { mutableStateOf(Calendar.getInstance().apply { time = event.endTime }) }
     var endTimeCalendar by remember { mutableStateOf(Calendar.getInstance().apply { time = event.endTime }) }
-
     var selectedEventType by remember { mutableStateOf(event.type) }
     var selectedAuthMethod by remember {
         mutableStateOf(
@@ -95,7 +94,7 @@ fun EventDetailsScreen(
             }
         )
     }
-    var autoCheckInOut by remember { mutableStateOf(false) }
+    var autoCheck by remember { mutableStateOf(event.autoCheck) }
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
@@ -151,8 +150,8 @@ fun EventDetailsScreen(
                 onSelectedEventTypeChange = { selectedEventType = it },
                 selectedAuthMethod = selectedAuthMethod,
                 onSelectedAuthMethodChange = { selectedAuthMethod = it },
-                autoCheckInOut = autoCheckInOut,
-                onAutoCheckInOutChange = { autoCheckInOut = it },
+                autoCheckInOut = autoCheck,
+                onAutoCheckInOutChange = { autoCheck = it },
                 scrollState = scrollState,
                 isEditingMode = isEditingMode,
                 onToggleEditing = { isEditingMode = !isEditingMode },
@@ -897,8 +896,8 @@ fun EventDetailsScreenPreview() {
         "Online",
         Event.EventVerificationMethod.QR_CODE,
         "ABC123",
+        true,
         "XYZ789",
-        0,
         AppDateHelper().getDate(2025, 2, 25),
         AppDateHelper().getDate(2025, 2, 25),
         null,
