@@ -304,7 +304,7 @@ fun RegisterScreen(
                             expanded = expanded,
                             onDismissRequest = { expanded = false },
                             modifier = Modifier
-                                .background(AppColors().white)
+                                .background(AppColors().offWhite)
                                 .heightIn(max = dropdownMaxHeight),
                             shape = customDropdownShape
                         ) {

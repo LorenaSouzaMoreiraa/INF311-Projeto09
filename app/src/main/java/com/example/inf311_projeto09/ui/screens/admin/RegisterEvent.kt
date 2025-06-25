@@ -521,10 +521,10 @@ fun EventTypeDropdown(
             expanded = eventTypeExpanded,
             onDismissRequest = { onEventTypeExpandedChange(false) },
             modifier = Modifier
-                .background(AppColors().white),
+                .background(AppColors().offWhite),
             shape = customDropdownShape
         ) {
-            eventTypes.forEach { item ->
+            eventTypes.forEachIndexed { index, item ->
                 DropdownMenuItem(
                     text = {
                         Text(
@@ -540,6 +540,15 @@ fun EventTypeDropdown(
                         onEventTypeExpandedChange(false)
                     }
                 )
+
+                if (index < eventTypes.size - 1) {
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(0.8.dp)
+                            .background(AppColors().lightGrey)
+                    )
+                }
             }
         }
     }
