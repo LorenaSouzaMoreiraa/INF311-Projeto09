@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.model.Event
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.components.FilterDialog
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
@@ -45,60 +46,65 @@ import com.example.inf311_projeto09.ui.utils.AppIcons
 
 enum class EventFilter(val label: String) {
     ONLINE("Online"),
-    PRESENCIAL("Presencial"),
-    HIBRIDO("Híbrido"),
-    EM_PROGRESSO("Em progresso"),
-    PROXIMOS_EVENTOS("Pendente"),
-    FINALIZADO("Finalizado"),
-    NESTE_MES("Neste mês"),
-    ULTIMOS_TRES_MESES("Nos últimos 3 meses"),
-    ULTIMOS_SEIS_MESES("Nos últimos 6 meses"),
-    NESTE_ANO("Neste ano"),
-    ANOS_ANTERIORES("Nos anos anteriores")
+    IN_PERSON("Presencial"),
+    HYBRID("Híbrido"),
+    CURRENT("Em progresso"),
+    NEXT("Pendente"),
+    ENDED("Finalizado"),
+    THIS_MONTH("Neste mês"),
+    LAST_THREE_MONTHS("Nos últimos 3 meses"),
+    LAST_SIX_MONTHS("Nos últimos 6 meses"),
+    THIS_YEAR("Neste ano"),
+    PREVIOUS_YEARS("Nos anos anteriores")
 }
+
+// TODO: fixar evento atual no topo
+// TODO: gerar arquivo de saída
 
 @Composable
 fun EventsScreen(
-    navController: NavHostController,
-    todayEvents: List<Event> = emptyList()
+    user: User,
+    allEvents: List<Event> = emptyList(),
+    navController: NavHostController
 ) {
     val selectedFilters = remember { mutableStateOf(setOf<EventFilter>()) }
     val showFilterDialog = remember { mutableStateOf(false) }
 
-    EventsContent(navController, todayEvents, selectedFilters, showFilterDialog)
+    EventsContent(user, navController, allEvents, selectedFilters, showFilterDialog)
 }
 
 @Composable
 fun EventsContent(
+    user: User,
     navController: NavHostController,
-    todayEvents: List<Event>,
+    allEvents: List<Event>,
     selectedFilters: MutableState<Set<EventFilter>>,
     showFilterDialog: MutableState<Boolean>
 ) {
     val helper = AppDateHelper()
 
-    val filteredEvents = remember(todayEvents, selectedFilters.value) {
+    val filteredEvents = remember(allEvents, selectedFilters.value) {
         if (selectedFilters.value.isEmpty()) {
-            todayEvents
+            allEvents
         } else {
-            todayEvents.filter { event ->
+            allEvents.filter { event ->
                 selectedFilters.value.all { filter ->
                     when (filter) {
                         EventFilter.ONLINE -> event.type.contains("Online", ignoreCase = true)
-                        EventFilter.PRESENCIAL -> event.type.contains(
+                        EventFilter.IN_PERSON -> event.type.contains(
                             "Presencial",
                             ignoreCase = true
                         )
 
-                        EventFilter.HIBRIDO -> event.type.contains("Híbrido", ignoreCase = true)
-                        EventFilter.EM_PROGRESSO -> event.eventStage == Event.EventStage.CURRENT
-                        EventFilter.PROXIMOS_EVENTOS -> event.eventStage == Event.EventStage.NEXT
-                        EventFilter.FINALIZADO -> event.eventStage == Event.EventStage.ENDED
-                        EventFilter.NESTE_MES -> helper.isThisMonth(event.beginTime)
-                        EventFilter.ULTIMOS_TRES_MESES -> helper.isInLastNMonths(event.beginTime, 3)
-                        EventFilter.ULTIMOS_SEIS_MESES -> helper.isInLastNMonths(event.beginTime, 6)
-                        EventFilter.NESTE_ANO -> helper.isThisYear(event.beginTime)
-                        EventFilter.ANOS_ANTERIORES -> !helper.isThisYear(event.beginTime)
+                        EventFilter.HYBRID -> event.type.contains("Híbrido", ignoreCase = true)
+                        EventFilter.CURRENT -> event.eventStage == Event.EventStage.CURRENT
+                        EventFilter.NEXT -> event.eventStage == Event.EventStage.NEXT
+                        EventFilter.ENDED -> event.eventStage == Event.EventStage.ENDED
+                        EventFilter.THIS_MONTH -> helper.isThisMonth(event.beginTime)
+                        EventFilter.LAST_THREE_MONTHS -> helper.isInLastNMonths(event.beginTime, 3)
+                        EventFilter.LAST_SIX_MONTHS -> helper.isInLastNMonths(event.beginTime, 6)
+                        EventFilter.THIS_YEAR -> helper.isThisYear(event.beginTime)
+                        EventFilter.PREVIOUS_YEARS -> !helper.isThisYear(event.beginTime)
                     }
                 }
             }
@@ -206,7 +212,7 @@ fun EventsContent(
                 }
             }
 
-            NavBar(navController, NavBarOption.CALENDAR)
+            NavBar(navController, NavBarOption.CALENDAR, user)
         }
 
         if (showFilterDialog.value) {
@@ -252,13 +258,19 @@ fun EventCard(
     event: Event,
     onEventDetails: () -> Unit = {}
 ) {
+    val currentEvent = event.eventStage == Event.EventStage.CURRENT
+    val backgroundColor = if (currentEvent) AppColors().darkGreen else AppColors().white
+    val titleColor = if (currentEvent) AppColors().white else AppColors().black
+    val dividerColor = if (currentEvent) AppColors().darkGrey else AppColors().lightBlack
+    val subTitleColor = if (currentEvent) AppColors().lightGrey else AppColors().lightBlack
+    val seeMoreColor = if (currentEvent) AppColors().lightGreen else AppColors().darkGreen
     val helper = AppDateHelper()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .background(AppColors().white, RoundedCornerShape(20.dp))
+            .background(backgroundColor, RoundedCornerShape(20.dp))
             .padding(16.dp)
     ) {
         Text(
@@ -266,11 +278,11 @@ fun EventCard(
             fontFamily = AppFonts().montserrat,
             fontWeight = FontWeight.SemiBold,
             fontSize = 16.sp,
-            color = AppColors().black
+            color = titleColor
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider(thickness = 1.dp, color = AppColors().lightBlack)
+        HorizontalDivider(thickness = 1.dp, color = dividerColor)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -283,7 +295,7 @@ fun EventCard(
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
-                color = AppColors().lightBlack
+                color = subTitleColor
             )
             Text(
                 text = "${helper.getTimeFormatted(event.beginTime)} - ${
@@ -294,12 +306,12 @@ fun EventCard(
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
-                color = AppColors().lightBlack
+                color = subTitleColor
             )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
-        HorizontalDivider(thickness = 1.dp, color = AppColors().lightBlack)
+        HorizontalDivider(thickness = 1.dp, color = dividerColor)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -314,7 +326,7 @@ fun EventCard(
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
-                color = AppColors().darkGreen,
+                color = seeMoreColor,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
                     .clickable { onEventDetails() }
@@ -432,5 +444,16 @@ fun EventsPreview() {
         )
     )
 
-    EventsScreen(navController = rememberNavController(), todayEvents = sampleEvents)
+    EventsScreen(
+        navController = rememberNavController(), allEvents = sampleEvents, user = User(
+            0,
+            "Erick Soares",
+            User.UserRole.USER,
+            "teste@teste.com",
+            "12345678900",
+            "Universidade Federal de Viçosa (UFV)",
+            "****",
+            true
+        )
+    )
 }

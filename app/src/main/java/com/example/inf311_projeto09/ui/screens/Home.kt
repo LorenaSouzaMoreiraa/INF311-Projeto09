@@ -159,7 +159,7 @@ fun HomeScreen(
                 }
             }
 
-            NavBar(navController, NavBarOption.HOME)
+            NavBar(navController, NavBarOption.HOME, user)
         }
 
         QuickAccessButton(user, currentEvent, Modifier.align(Alignment.BottomEnd), navController)

@@ -169,7 +169,8 @@ fun CalendarScreen(
 
             NavBar(
                 navController = navController,
-                NavBarOption.CALENDAR
+                NavBarOption.CALENDAR,
+                user
             )
         }
 

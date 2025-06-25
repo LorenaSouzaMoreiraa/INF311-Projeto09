@@ -104,7 +104,7 @@ fun EditProfileScreen(
                 )
             }
 
-            NavBar(navController, NavBarOption.PROFILE)
+            NavBar(navController, NavBarOption.PROFILE, user)
         }
 
         TopBarEditProfile(

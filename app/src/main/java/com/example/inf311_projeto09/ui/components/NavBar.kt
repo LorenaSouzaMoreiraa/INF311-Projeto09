@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.inf311_projeto09.R
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppIcons
@@ -33,7 +34,8 @@ enum class NavBarOption {
 @Composable
 fun NavBar(
     navController: NavHostController,
-    navBarOption: NavBarOption
+    navBarOption: NavBarOption,
+    user: User
 ) {
     Row(
         modifier = Modifier
@@ -47,7 +49,11 @@ fun NavBar(
 
         HomeIcon(navController, navBarOption == NavBarOption.HOME)
 
-        CalendarIcon(navController, navBarOption == NavBarOption.CALENDAR)
+        CalendarIcon(
+            navController,
+            user.type == User.UserRole.ADMIN,
+            navBarOption == NavBarOption.CALENDAR
+        )
     }
 }
 
@@ -134,13 +140,14 @@ private fun HomeIcon(
 @Composable
 private fun CalendarIcon(
     navController: NavHostController,
+    isAdminHome: Boolean,
     isCalendarSelected: Boolean
 ) {
     Box(
         modifier = Modifier
             .size(30.dp)
             .clickable {
-                navController.navigate(ScreenType.CALENDAR.route) {
+                navController.navigate(if (isAdminHome) ScreenType.EVENTS.route else ScreenType.CALENDAR.route) {
                     launchSingleTop = true
                     restoreState = true
                     popUpTo(navController.graph.startDestinationId) {

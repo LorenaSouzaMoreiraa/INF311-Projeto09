@@ -83,7 +83,7 @@ fun ProfileScreen(
             MonthStatistics(user)
         }
 
-        NavBar(navController, NavBarOption.PROFILE)
+        NavBar(navController, NavBarOption.PROFILE, user)
     }
 }
 
