@@ -29,6 +29,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -49,22 +50,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.inf311_projeto09.api.RubeusApi
+import com.example.inf311_projeto09.helper.EventAuthenticationHelper
+import com.example.inf311_projeto09.model.Event
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.components.ReusableDatePickerDialog
 import com.example.inf311_projeto09.ui.components.ReusableTimePickerDialog
 import com.example.inf311_projeto09.ui.utils.AppColors
+import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-enum class AuthMethod {
-    NONE, QR_CODE, UNIQUE_CODE
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterEventScreen(
+    user: User,
     navController: NavHostController,
 ) {
     var eventName by remember { mutableStateOf("") }
@@ -75,7 +77,7 @@ fun RegisterEventScreen(
     var eventTypeExpanded by remember { mutableStateOf(false) }
     val eventTypes = listOf("Online", "Presencial", "Híbrido")
     var selectedEventType by remember { mutableStateOf("") }
-    var selectedAuthMethod by remember { mutableStateOf(AuthMethod.NONE) }
+    var selectedAuthMethod by remember { mutableStateOf(Event.EventVerificationMethod.NONE) }
     var autoCheckInOut by remember { mutableStateOf(false) }
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
@@ -116,6 +118,7 @@ fun RegisterEventScreen(
             Spacer(modifier = Modifier.height(30.dp))
 
             MainContent(
+                user = user,
                 eventName = eventName,
                 onEventNameChange = { eventName = it },
                 startDateText = startDateText,
@@ -225,9 +228,9 @@ fun ScreenTitleAndSubtitle() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent(
+    user: User,
     eventName: String,
     onEventNameChange: (String) -> Unit,
     startDateText: String,
@@ -243,13 +246,14 @@ fun MainContent(
     eventTypes: List<String>,
     selectedEventType: String,
     onSelectedEventTypeChange: (String) -> Unit,
-    selectedAuthMethod: AuthMethod,
-    onSelectedAuthMethodChange: (AuthMethod) -> Unit,
+    selectedAuthMethod: Event.EventVerificationMethod,
+    onSelectedAuthMethodChange: (Event.EventVerificationMethod) -> Unit,
     autoCheckInOut: Boolean,
     onAutoCheckInOutChange: (Boolean) -> Unit,
     scrollState: androidx.compose.foundation.ScrollState
 ) {
-    val customDropdownShape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
+    val customDropdownShape =
+        RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
 
     Box(
         modifier = Modifier
@@ -321,7 +325,37 @@ fun MainContent(
 
             Spacer(modifier = Modifier.height(15.dp))
 
-            CreateEventButton()
+            CreateEventButton(onClick = {
+                // TODO: importar lista de participantes e cadastrar eles
+                // TODO: validar os dados
+                // TODO: campo de descrição, localização...
+                // TODO: sair da tela ao terminar de criar
+                val event = Event(
+                    0,
+                    eventName,
+                    "",
+                    selectedEventType,
+                    selectedAuthMethod,
+                    EventAuthenticationHelper.generateCheckCode(selectedAuthMethod),
+                    autoCheckInOut,
+                    "",
+                    AppDateHelper().getDateByDateStringAndTimeString(startDateText, startTimeText),
+                    AppDateHelper().getDateByDateStringAndTimeString(endDateText, endTimeText),
+                    if (autoCheckInOut) AppDateHelper().getDateByDateStringAndTimeString(
+                        startDateText,
+                        startTimeText
+                    ) else null,
+                    if (autoCheckInOut) AppDateHelper().getDateByDateStringAndTimeString(
+                        endDateText,
+                        endTimeText
+                    ) else null,
+                    null,
+                    null,
+                    Event.EventStage.NEXT
+                )
+
+                RubeusApi.registerEvent(event, user)
+            })
 
             Spacer(modifier = Modifier.height(20.dp))
         }
@@ -479,7 +513,7 @@ fun EventTypeDropdown(
             ),
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
                 .fillMaxWidth()
         )
 
@@ -512,7 +546,10 @@ fun EventTypeDropdown(
 }
 
 @Composable
-fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChange: (AuthMethod) -> Unit) {
+fun AuthMethodSelection(
+    selectedAuthMethod: Event.EventVerificationMethod,
+    onSelectedAuthMethodChange: (Event.EventVerificationMethod) -> Unit
+) {
     Text(
         text = "Método de autenticação",
         fontFamily = AppFonts().montserrat,
@@ -531,10 +568,12 @@ fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChan
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
-            checked = (selectedAuthMethod == AuthMethod.QR_CODE),
+            checked = (selectedAuthMethod == Event.EventVerificationMethod.QR_CODE),
             onCheckedChange = { isChecked ->
-                if (isChecked) onSelectedAuthMethodChange(AuthMethod.QR_CODE)
-                else if (selectedAuthMethod == AuthMethod.QR_CODE) onSelectedAuthMethodChange(AuthMethod.NONE)
+                if (isChecked) onSelectedAuthMethodChange(Event.EventVerificationMethod.QR_CODE)
+                else if (selectedAuthMethod == Event.EventVerificationMethod.QR_CODE) onSelectedAuthMethodChange(
+                    Event.EventVerificationMethod.NONE
+                )
             },
             colors = CheckboxDefaults.colors(
                 checkedColor = AppColors().darkGreen,
@@ -551,17 +590,19 @@ fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChan
             fontSize = 14.sp,
             color = AppColors().black,
             modifier = Modifier
-                .clickable { onSelectedAuthMethodChange(if (selectedAuthMethod == AuthMethod.QR_CODE) AuthMethod.NONE else AuthMethod.QR_CODE) }
+                .clickable { onSelectedAuthMethodChange(if (selectedAuthMethod == Event.EventVerificationMethod.QR_CODE) Event.EventVerificationMethod.NONE else Event.EventVerificationMethod.QR_CODE) }
                 .offset(x = (-13).dp)
         )
 
         Spacer(modifier = Modifier.width(70.dp))
 
         Checkbox(
-            checked = (selectedAuthMethod == AuthMethod.UNIQUE_CODE),
+            checked = (selectedAuthMethod == Event.EventVerificationMethod.VERIFICATION_CODE),
             onCheckedChange = { isChecked ->
-                if (isChecked) onSelectedAuthMethodChange(AuthMethod.UNIQUE_CODE)
-                else if (selectedAuthMethod == AuthMethod.UNIQUE_CODE) onSelectedAuthMethodChange(AuthMethod.NONE)
+                if (isChecked) onSelectedAuthMethodChange(Event.EventVerificationMethod.VERIFICATION_CODE)
+                else if (selectedAuthMethod == Event.EventVerificationMethod.VERIFICATION_CODE) onSelectedAuthMethodChange(
+                    Event.EventVerificationMethod.NONE
+                )
             },
             colors = CheckboxDefaults.colors(
                 checkedColor = AppColors().darkGreen,
@@ -577,7 +618,7 @@ fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChan
             fontSize = 14.sp,
             color = AppColors().black,
             modifier = Modifier.clickable {
-                onSelectedAuthMethodChange(if (selectedAuthMethod == AuthMethod.UNIQUE_CODE) AuthMethod.NONE else AuthMethod.UNIQUE_CODE)
+                onSelectedAuthMethodChange(if (selectedAuthMethod == Event.EventVerificationMethod.VERIFICATION_CODE) Event.EventVerificationMethod.NONE else Event.EventVerificationMethod.VERIFICATION_CODE)
             }
         )
     }
@@ -649,11 +690,11 @@ fun AutoCheckInOutCheckbox(autoCheckInOut: Boolean, onAutoCheckInOutChange: (Boo
 }
 
 @Composable
-fun CreateEventButton() {
+fun CreateEventButton(
+    onClick: () -> Unit = {}
+) {
     Button(
-        onClick = {
-            // TODO: Registrar evento
-        },
+        onClick = { onClick() },
         colors = ButtonDefaults.buttonColors(
             containerColor = AppColors().lightGreen,
             contentColor = AppColors().black
@@ -703,8 +744,10 @@ fun DateAndTimePickers(
     if (showStartTimePicker) {
         ReusableTimePickerDialog(
             showDialog = showStartTimePicker,
-            initialHour = initialStartTime?.get(Calendar.HOUR_OF_DAY) ?: Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
-            initialMinute = initialStartTime?.get(Calendar.MINUTE) ?: Calendar.getInstance().get(Calendar.MINUTE),
+            initialHour = initialStartTime?.get(Calendar.HOUR_OF_DAY) ?: Calendar.getInstance()
+                .get(Calendar.HOUR_OF_DAY),
+            initialMinute = initialStartTime?.get(Calendar.MINUTE) ?: Calendar.getInstance()
+                .get(Calendar.MINUTE),
             onDismiss = onDismissStartTimePicker,
             onTimeSelected = onStartTimeSelected
         )
@@ -722,8 +765,10 @@ fun DateAndTimePickers(
     if (showEndTimePicker) {
         ReusableTimePickerDialog(
             showDialog = showEndTimePicker,
-            initialHour = initialEndTime?.get(Calendar.HOUR_OF_DAY) ?: Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
-            initialMinute = initialEndTime?.get(Calendar.MINUTE) ?: Calendar.getInstance().get(Calendar.MINUTE),
+            initialHour = initialEndTime?.get(Calendar.HOUR_OF_DAY) ?: Calendar.getInstance()
+                .get(Calendar.HOUR_OF_DAY),
+            initialMinute = initialEndTime?.get(Calendar.MINUTE) ?: Calendar.getInstance()
+                .get(Calendar.MINUTE),
             onDismiss = onDismissEndTimePicker,
             onTimeSelected = onEndTimeSelected
         )
@@ -733,5 +778,16 @@ fun DateAndTimePickers(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RegisterEventScreenPreview() {
-    RegisterEventScreen(navController = rememberNavController())
+    RegisterEventScreen(
+        user = User(
+            0,
+            "Erick Soares",
+            User.UserRole.USER,
+            "teste@teste.com",
+            "12345678900",
+            "Universidade Federal de Viçosa (UFV)",
+            "****",
+            true
+        ), navController = rememberNavController()
+    )
 }

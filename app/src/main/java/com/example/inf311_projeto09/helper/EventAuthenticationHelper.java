@@ -2,6 +2,7 @@ package com.example.inf311_projeto09.helper;
 
 import android.graphics.Bitmap;
 
+import com.example.inf311_projeto09.model.Event;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
@@ -18,6 +19,14 @@ public class EventAuthenticationHelper {
 
     private EventAuthenticationHelper() {
         //
+    }
+
+    public static String generateCheckCode(final Event.EventVerificationMethod verificationMethod) {
+        if (verificationMethod == Event.EventVerificationMethod.QR_CODE) {
+            return generateQRCodeText();
+        } else {
+            return generate4DigitCode();
+        }
     }
 
     public static String generateQRCodeText() {

@@ -30,6 +30,15 @@ interface RubeusService {
     @POST("Contato/listarOportunidades")
     Call<ApiResponse<List<Event.RawEventResponse>>> listUserEvents(@Body Map<String, Object> body);
 
+    @POST("Curso/cadastroOferta")
+    Call<ApiResponse<Object>> registerOffer(@Body Map<String, Object> body);
+
+    @POST("Curso/listarOfertas")
+    Call<ApiResponse<Object>> searchOffer(@Body Map<String, Object> body);
+
+    @POST("Oportunidade/cadastro")
+    Call<ApiResponse<Object>> registerEvent(@Body Map<String, Object> body);
+
     @POST("Evento/cadastro")
     Call<ApiResponse<Object>> checkIn(@Body Map<String, Object> body);
 

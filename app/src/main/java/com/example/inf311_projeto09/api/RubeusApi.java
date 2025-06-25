@@ -87,6 +87,28 @@ public final class RubeusApi {
         return helper.executeRequest(helper.searchUserByEmailCall(email), toUser, () -> null);
     }
 
+    private static Boolean registerOffer(final String eventName, final String timestamp, final String eventType, final String school) {
+        return helper.executeRequest(helper.registerOfferCall(eventName, timestamp, eventType, school));
+    }
+
+    private static String searchOffer(final String timestamp) {
+        final Function<Object, String> toOfferId = offer -> (String) ((Map<String, Object>) offer).get("id");
+
+        return helper.executeRequest(helper.searchOfferCall(timestamp), toOfferId, () -> "");
+    }
+
+    public static Boolean registerEvent(final Event event, final User user) {
+        final String timestamp = String.valueOf(System.currentTimeMillis());
+
+        if (Boolean.FALSE.equals(registerOffer(event.getTitle(), timestamp, event.getType(), user.getSchool()))) {
+            return false;
+        }
+
+        final String courseId = searchOffer(timestamp);
+
+        return helper.executeRequest(helper.registerEventCall(user.getId(), courseId, event));
+    }
+
     public static List<Event> listUserEvents(final int userId) {
         final Function<List<Event.RawEventResponse>, List<Event>> toCustomList = events -> events.stream()
                 .filter(event -> "Eventos Aluno".equals(event.processoNome()))

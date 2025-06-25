@@ -168,8 +168,19 @@ public class Event {
     }
 
     public enum EventVerificationMethod {
-        QR_CODE,
-        VERIFICATION_CODE
+        NONE("Nenhum"),
+        QR_CODE("QR Code"),
+        VERIFICATION_CODE("Código único");
+
+        private final String identifier;
+
+        EventVerificationMethod(final String identifier) {
+            this.identifier = identifier;
+        }
+
+        public String getIdentifier() {
+            return this.identifier;
+        }
     }
 
     public record RawEventResponse(int curso, String processoNome, String etapaNome,
