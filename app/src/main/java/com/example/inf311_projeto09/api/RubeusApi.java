@@ -136,11 +136,22 @@ public final class RubeusApi {
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_ENABLED.getIdentifier())),
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier())),
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier())),
-                            calculateEventStage(beginTime, endTime));
+                            calculateEventStage(beginTime, endTime),
+                            (List<String>) customFields.get(RubeusFields.UserEvent.PARTICIPANTS.getIdentifier()));
                 })
                 .collect(Collectors.toList());
 
         return helper.executeRequest(helper.listUserEventsCall(userId), toCustomList, List::of);
+    }
+
+    public static Boolean enableCheckIn(final int userId, final Event event, final String checkInTime) {
+        event.setCheckInEnabled(parseIsoDate(checkInTime));
+        return helper.executeRequest(helper.enableCheckInCall(userId, event.getCourse(), checkInTime));
+    }
+
+    public static Boolean enableCheckOut(final int userId, final Event event, final String checkOutTime) {
+        event.setCheckOutEnabled(parseIsoDate(checkOutTime));
+        return helper.executeRequest(helper.enableCheckOutCall(userId, event.getCourse(), checkOutTime));
     }
 
     public static Boolean checkIn(final int userId, final Event event, final String checkInTime) {

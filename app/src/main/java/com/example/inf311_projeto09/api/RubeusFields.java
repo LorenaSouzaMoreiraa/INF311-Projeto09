@@ -14,7 +14,8 @@ public class RubeusFields {
         CHECK_IN_ENABLED("campopersonalizado_17_compl_proc"),
         CHECK_OUT_ENABLED("campopersonalizado_18_compl_proc"),
         CHECK_IN_TIME("campopersonalizado_19_compl_proc"),
-        CHECK_OUT_TIME("campopersonalizado_20_compl_proc");
+        CHECK_OUT_TIME("campopersonalizado_20_compl_proc"),
+        PARTICIPANTS("campopersonalizado_25_compl_proc");
 
         private final String identifier;
 

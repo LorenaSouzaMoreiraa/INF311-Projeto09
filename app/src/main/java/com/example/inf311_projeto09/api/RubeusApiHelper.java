@@ -256,6 +256,28 @@ final class RubeusApiHelper {
         return this.service.listUserEvents(body);
     }
 
+    public Call<ApiResponse<Object>> enableCheckInCall(final int userId, final int courseId, final String checkInTime) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("tipo", 114);
+        body.put("pessoa", Map.of("id", userId));
+        body.put("curso", courseId);
+        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_IN_ENABLED.getIdentifier(), checkInTime));
+
+        return this.service.enableCheckIn(body);
+    }
+
+    public Call<ApiResponse<Object>> enableCheckOutCall(final int userId, final int courseId, final String checkOutTime) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("tipo", 116);
+        body.put("pessoa", Map.of("id", userId));
+        body.put("curso", courseId);
+        body.put(CAMPOS_PERSONALIZADOS, Map.of(RubeusFields.UserEvent.CHECK_OUT_ENABLED.getIdentifier(), checkOutTime));
+
+        return this.service.enableCheckOut(body);
+    }
+
     public Call<ApiResponse<Object>> checkInCall(final int userId, final int courseId, final String checkInTime) {
         final Map<String, Object> body = this.defaultBody();
 

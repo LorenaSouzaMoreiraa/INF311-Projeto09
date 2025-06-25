@@ -351,7 +351,8 @@ fun MainContent(
                     ) else null,
                     null,
                     null,
-                    Event.EventStage.NEXT
+                    Event.EventStage.NEXT,
+                    listOf()
                 )
 
                 RubeusApi.registerEvent(event, user)
@@ -633,6 +634,7 @@ fun AuthMethodSelection(
     }
 }
 
+// TODO: importar participantes
 @Composable
 fun ImportParticipantsSection() {
     Text(

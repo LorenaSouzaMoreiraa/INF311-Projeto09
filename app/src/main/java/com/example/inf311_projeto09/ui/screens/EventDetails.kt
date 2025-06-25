@@ -29,6 +29,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -58,7 +59,6 @@ import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.Event.EventVerificationMethod
 import com.example.inf311_projeto09.ui.components.ReusableDatePickerDialog
 import com.example.inf311_projeto09.ui.components.ReusableTimePickerDialog
-import com.example.inf311_projeto09.ui.screens.admin.AuthMethod
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
@@ -67,7 +67,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailsScreen(
     navController: NavHostController,
@@ -80,17 +79,29 @@ fun EventDetailsScreen(
     val scrollState = rememberScrollState()
 
     var eventName by remember { mutableStateOf(event.title) }
-    var startDateCalendar by remember { mutableStateOf(Calendar.getInstance().apply { time = event.beginTime }) }
-    var startTimeCalendar by remember { mutableStateOf(Calendar.getInstance().apply { time = event.beginTime }) }
-    var endDateCalendar by remember { mutableStateOf(Calendar.getInstance().apply { time = event.endTime }) }
-    var endTimeCalendar by remember { mutableStateOf(Calendar.getInstance().apply { time = event.endTime }) }
+    var startDateCalendar by remember {
+        mutableStateOf(
+            Calendar.getInstance().apply { time = event.beginTime })
+    }
+    var startTimeCalendar by remember {
+        mutableStateOf(
+            Calendar.getInstance().apply { time = event.beginTime })
+    }
+    var endDateCalendar by remember {
+        mutableStateOf(
+            Calendar.getInstance().apply { time = event.endTime })
+    }
+    var endTimeCalendar by remember {
+        mutableStateOf(
+            Calendar.getInstance().apply { time = event.endTime })
+    }
     var selectedEventType by remember { mutableStateOf(event.type) }
     var selectedAuthMethod by remember {
         mutableStateOf(
             when (event.verificationMethod) {
-                EventVerificationMethod.QR_CODE -> AuthMethod.QR_CODE
-                EventVerificationMethod.VERIFICATION_CODE -> AuthMethod.UNIQUE_CODE
-                else -> AuthMethod.NONE
+                EventVerificationMethod.QR_CODE -> EventVerificationMethod.QR_CODE
+                EventVerificationMethod.VERIFICATION_CODE -> EventVerificationMethod.VERIFICATION_CODE
+                else -> EventVerificationMethod.NONE
             }
         )
     }
@@ -264,8 +275,8 @@ fun MainContent(
     eventTypes: List<String>,
     selectedEventType: String,
     onSelectedEventTypeChange: (String) -> Unit,
-    selectedAuthMethod: AuthMethod,
-    onSelectedAuthMethodChange: (AuthMethod) -> Unit,
+    selectedAuthMethod: EventVerificationMethod,
+    onSelectedAuthMethodChange: (EventVerificationMethod) -> Unit,
     autoCheckInOut: Boolean,
     onAutoCheckInOutChange: (Boolean) -> Unit,
     scrollState: androidx.compose.foundation.ScrollState,
@@ -274,7 +285,8 @@ fun MainContent(
     selectedTab: String,
     onTabSelected: (String) -> Unit
 ) {
-    val customDropdownShape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
+    val customDropdownShape =
+        RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
 
     Column(
         modifier = Modifier
@@ -310,7 +322,10 @@ fun MainContent(
                             .size(36.dp)
                             .clickable { onToggleEditing() }
                     ) {
-                        AppIcons.Outline.EditIcon(boxSize = 24.dp, colorIcon = if (isEditingMode) AppColors().green else AppColors().black)
+                        AppIcons.Outline.EditIcon(
+                            boxSize = 24.dp,
+                            colorIcon = if (isEditingMode) AppColors().green else AppColors().black
+                        )
                     }
                 }
 
@@ -318,7 +333,11 @@ fun MainContent(
 
                 when (selectedTab) {
                     "Dados" -> {
-                        EventNameField(eventName = eventName, onEventNameChange = onEventNameChange, isEditingMode = isEditingMode)
+                        EventNameField(
+                            eventName = eventName,
+                            onEventNameChange = onEventNameChange,
+                            isEditingMode = isEditingMode
+                        )
 
                         Spacer(modifier = Modifier.height(10.dp))
 
@@ -368,7 +387,7 @@ fun MainContent(
                             isEditingMode = isEditingMode
                         )
 
-                        if(isEditingMode) {
+                        if (isEditingMode) {
                             Spacer(modifier = Modifier.height(10.dp))
 
                             ActionButton(onSaveClick = {
@@ -378,6 +397,7 @@ fun MainContent(
 
                         Spacer(modifier = Modifier.height(20.dp))
                     }
+
                     "Participantes" -> {
                         Text(
                             text = "Conteúdo da aba Participantes",
@@ -395,7 +415,7 @@ fun MainContent(
 }
 
 @Composable
-fun EventNameField(eventName: String, onEventNameChange: (String) -> Unit,  isEditingMode: Boolean) {
+fun EventNameField(eventName: String, onEventNameChange: (String) -> Unit, isEditingMode: Boolean) {
     OutlinedTextField(
         value = eventName,
         onValueChange = onEventNameChange,
@@ -518,7 +538,7 @@ fun EventTypeDropdown(
     customDropdownShape: RoundedCornerShape,
     isEditingMode: Boolean
 ) {
-    if(isEditingMode){
+    if (isEditingMode) {
         ExposedDropdownMenuBox(
             expanded = eventTypeExpanded,
             onExpandedChange = onEventTypeExpandedChange,
@@ -553,7 +573,7 @@ fun EventTypeDropdown(
                 ),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
                     .fillMaxWidth()
             )
 
@@ -592,7 +612,7 @@ fun EventTypeDropdown(
                 }
             }
         }
-    }else {
+    } else {
         OutlinedTextField(
             value = selectedEventType,
             onValueChange = {},
@@ -620,7 +640,11 @@ fun EventTypeDropdown(
 }
 
 @Composable
-fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChange: (AuthMethod) -> Unit, isEditingMode: Boolean) {
+fun AuthMethodSelection(
+    selectedAuthMethod: EventVerificationMethod,
+    onSelectedAuthMethodChange: (EventVerificationMethod) -> Unit,
+    isEditingMode: Boolean
+) {
     Text(
         text = "Método de autenticação",
         fontFamily = AppFonts().montserrat,
@@ -639,10 +663,12 @@ fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChan
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
-            checked = (selectedAuthMethod == AuthMethod.QR_CODE),
+            checked = (selectedAuthMethod == EventVerificationMethod.QR_CODE),
             onCheckedChange = { isChecked ->
-                if (isChecked) onSelectedAuthMethodChange(AuthMethod.QR_CODE)
-                else if (selectedAuthMethod == AuthMethod.QR_CODE) onSelectedAuthMethodChange(AuthMethod.NONE)
+                if (isChecked) onSelectedAuthMethodChange(EventVerificationMethod.QR_CODE)
+                else if (selectedAuthMethod == EventVerificationMethod.QR_CODE) onSelectedAuthMethodChange(
+                    EventVerificationMethod.NONE
+                )
             },
             enabled = isEditingMode,
             colors = CheckboxDefaults.colors(
@@ -661,17 +687,19 @@ fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChan
             fontSize = 14.sp,
             color = AppColors().black,
             modifier = Modifier
-                .clickable { onSelectedAuthMethodChange(if (selectedAuthMethod == AuthMethod.QR_CODE) AuthMethod.NONE else AuthMethod.QR_CODE) }
+                .clickable { onSelectedAuthMethodChange(if (selectedAuthMethod == EventVerificationMethod.QR_CODE) EventVerificationMethod.NONE else EventVerificationMethod.QR_CODE) }
                 .offset(x = (-13).dp)
         )
 
         Spacer(modifier = Modifier.width(70.dp))
 
         Checkbox(
-            checked = (selectedAuthMethod == AuthMethod.UNIQUE_CODE),
+            checked = (selectedAuthMethod == EventVerificationMethod.VERIFICATION_CODE),
             onCheckedChange = { isChecked ->
-                if (isChecked) onSelectedAuthMethodChange(AuthMethod.UNIQUE_CODE)
-                else if (selectedAuthMethod == AuthMethod.UNIQUE_CODE) onSelectedAuthMethodChange(AuthMethod.NONE)
+                if (isChecked) onSelectedAuthMethodChange(EventVerificationMethod.VERIFICATION_CODE)
+                else if (selectedAuthMethod == EventVerificationMethod.VERIFICATION_CODE) onSelectedAuthMethodChange(
+                    EventVerificationMethod.NONE
+                )
             },
             enabled = isEditingMode,
             colors = CheckboxDefaults.colors(
@@ -689,14 +717,18 @@ fun AuthMethodSelection(selectedAuthMethod: AuthMethod, onSelectedAuthMethodChan
             fontSize = 14.sp,
             color = AppColors().black,
             modifier = Modifier.clickable {
-                onSelectedAuthMethodChange(if (selectedAuthMethod == AuthMethod.UNIQUE_CODE) AuthMethod.NONE else AuthMethod.UNIQUE_CODE)
+                onSelectedAuthMethodChange(if (selectedAuthMethod == EventVerificationMethod.VERIFICATION_CODE) EventVerificationMethod.NONE else EventVerificationMethod.VERIFICATION_CODE)
             }
         )
     }
 }
 
 @Composable
-fun AutoCheckInOutCheckbox(autoCheckInOut: Boolean, onAutoCheckInOutChange: (Boolean) -> Unit, isEditingMode: Boolean) {
+fun AutoCheckInOutCheckbox(
+    autoCheckInOut: Boolean,
+    onAutoCheckInOutChange: (Boolean) -> Unit,
+    isEditingMode: Boolean
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -782,8 +814,10 @@ fun DateAndTimePickers(
     if (showStartTimePicker) {
         ReusableTimePickerDialog(
             showDialog = showStartTimePicker,
-            initialHour = initialStartTime?.get(Calendar.HOUR_OF_DAY) ?: Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
-            initialMinute = initialStartTime?.get(Calendar.MINUTE) ?: Calendar.getInstance().get(Calendar.MINUTE),
+            initialHour = initialStartTime?.get(Calendar.HOUR_OF_DAY) ?: Calendar.getInstance()
+                .get(Calendar.HOUR_OF_DAY),
+            initialMinute = initialStartTime?.get(Calendar.MINUTE) ?: Calendar.getInstance()
+                .get(Calendar.MINUTE),
             onDismiss = onDismissStartTimePicker,
             onTimeSelected = onStartTimeSelected
         )
@@ -801,8 +835,10 @@ fun DateAndTimePickers(
     if (showEndTimePicker) {
         ReusableTimePickerDialog(
             showDialog = showEndTimePicker,
-            initialHour = initialEndTime?.get(Calendar.HOUR_OF_DAY) ?: Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
-            initialMinute = initialEndTime?.get(Calendar.MINUTE) ?: Calendar.getInstance().get(Calendar.MINUTE),
+            initialHour = initialEndTime?.get(Calendar.HOUR_OF_DAY) ?: Calendar.getInstance()
+                .get(Calendar.HOUR_OF_DAY),
+            initialMinute = initialEndTime?.get(Calendar.MINUTE) ?: Calendar.getInstance()
+                .get(Calendar.MINUTE),
             onDismiss = onDismissEndTimePicker,
             onTimeSelected = onEndTimeSelected
         )
@@ -894,7 +930,7 @@ fun EventDetailsScreenPreview() {
         "INF 311 - Programação Dispositivos móveis",
         "Aula prática de Kotlin",
         "Online",
-        Event.EventVerificationMethod.QR_CODE,
+        EventVerificationMethod.QR_CODE,
         "ABC123",
         true,
         "XYZ789",
@@ -904,7 +940,8 @@ fun EventDetailsScreenPreview() {
         null,
         null,
         null,
-        Event.EventStage.CURRENT
+        Event.EventStage.CURRENT,
+        listOf()
     )
 
     EventDetailsScreen(navController = rememberNavController(), event = event)
