@@ -449,7 +449,17 @@ fun CarouselDot(
 @Composable
 fun HomeScreenPreview() {
     HomeScreen(
-        user = User(0, "Erick", UserRole.ADMIN, "teste@teste.com", "cpf", "UFV", "****", true),
+        user = User(
+            0,
+            "Erick",
+            UserRole.ADMIN,
+            "teste@teste.com",
+            "cpf",
+            "UFV",
+            "****",
+            true,
+            null
+        ),
         navController = rememberNavController(),
         todayEvents = listOf()
     )

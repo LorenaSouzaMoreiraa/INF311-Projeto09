@@ -42,6 +42,11 @@ android {
             "RUBEUS_API_TOKEN",
             "\"${localProperties.getProperty("rubeus.api.token")}\""
         )
+        buildConfigField(
+            "String",
+            "IMGBB_API_KEY",
+            "\"${localProperties.getProperty("imgbb.api.key")}\""
+        )
     }
 
     buildTypes {
@@ -100,6 +105,7 @@ dependencies {
     implementation(libs.core)
     implementation(libs.zxing.android.embedded)
     implementation(libs.bcrypt)
+    implementation(libs.coil.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

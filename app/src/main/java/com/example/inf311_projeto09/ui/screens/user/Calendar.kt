@@ -559,7 +559,17 @@ class CalendarViewModel {
 @Composable
 fun CalendarScreenPreview() {
     CalendarScreen(
-        user = User(0, "Erick", User.UserRole.USER, "teste@teste.com", "cpf", "UFV", "****", true),
+        user = User(
+            0,
+            "Erick",
+            User.UserRole.USER,
+            "teste@teste.com",
+            "cpf",
+            "UFV",
+            "****",
+            true,
+            null
+        ),
         navController = rememberNavController(),
         allEvents = emptyList()
     )

@@ -32,8 +32,6 @@ import com.example.inf311_projeto09.ui.screens.user.VerificationCodeScreen
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import java.util.Calendar
 
-// TODO: trocar cores de branco para offWhite
-
 enum class ScreenType(val route: String) {
     WELCOME("welcome"),
     LOGIN("login"),
@@ -312,7 +310,6 @@ fun AppNavHost(
                 EditProfileScreen(
                     user = nonNullUser,
                     navController = navController,
-                    choosePhoto = { /* TODO: Lógica para escolher foto */ },
                     onDeactivateAccount = {
                         setRememberedEmail(activity, "")
                         navController.navigate(ScreenType.LOGIN.route)

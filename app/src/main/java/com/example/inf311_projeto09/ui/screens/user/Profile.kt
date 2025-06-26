@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.helper.EventHelper
 import com.example.inf311_projeto09.model.Event
@@ -95,9 +98,6 @@ fun TopBarProfile(
     onLogout: () -> Unit = {},
     navController: NavHostController
 ) {
-    // TODO: pegar imagem
-    val profileImage = 1
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -115,26 +115,23 @@ fun TopBarProfile(
 
         Box(
             modifier = Modifier
-                .size(120.dp),
+                .size(130.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (profileImage == null) {
-                AppIcons.Outline.CircleUserRound(120.dp)
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.perfil),
-                        contentDescription = "Foto do usuário",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(118.dp)
-                    )
-                }
-            }
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(user.imageUrl)
+                    .crossfade(true)
+                    .crossfade(300)
+                    .build(),
+                contentDescription = "Foto do usuário",
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.profile_image),
+                error = painterResource(R.drawable.profile_image),
+                modifier = Modifier
+                    .size(130.dp)
+                    .clip(CircleShape)
+            )
         }
 
         Box(
@@ -498,7 +495,8 @@ fun ProfileScreenPreview() {
             "cpf",
             "UFV",
             "****",
-            true
+            true,
+            null
         ),
         allEvents = listOf(),
         navController = rememberNavController()

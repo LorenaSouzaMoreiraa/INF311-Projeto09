@@ -12,10 +12,12 @@ public class User {
     private String school;
     private String password;
     private boolean enableNotifications;
+    private String imageUrl;
 
     public User(final int id, final String name, final UserRole type,
                 final String email, final String cpf, final String school,
-                final String password, final boolean enableNotifications) {
+                final String password, final boolean enableNotifications,
+                final String imageUrl) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -24,6 +26,7 @@ public class User {
         this.school = school;
         this.password = password;
         this.enableNotifications = enableNotifications;
+        this.imageUrl = imageUrl;
     }
 
     public int getId() {
@@ -90,6 +93,14 @@ public class User {
         this.enableNotifications = enableNotifications;
     }
 
+    public String getImageUrl() {
+        return this.imageUrl;
+    }
+
+    public void setImageUrl(final String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     public enum UserRole {
         USER("User"),
         ADMIN("Admin");
@@ -106,7 +117,7 @@ public class User {
     }
 
     public record RawUserResponse(String id, String nome, Map<String, Object> emails,
-                                  String cpf, String escolaOrigem,
+                                  String cpf, String escolaOrigem, String imagem,
                                   List<Object> camposPersonalizados) {
     }
 }

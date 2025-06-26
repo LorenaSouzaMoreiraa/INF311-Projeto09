@@ -117,6 +117,7 @@ final class RubeusApiHelper {
                 "emails",
                 "cpf",
                 "escolaOrigem",
+                "imagem",
                 Map.of(
                         "key", CAMPOS_PERSONALIZADOS,
                         "campos", List.of("coluna",
@@ -144,7 +145,7 @@ final class RubeusApiHelper {
         return this.service.registerUser(body);
     }
 
-    public Call<ApiResponse<Object>> updateUserCall(final int userId, final String name, final String school, final String password, final boolean enableNotifications) {
+    public Call<ApiResponse<Object>> updateUserCall(final int userId, final String name, final String school, final String password, final boolean enableNotifications, final String imageUrl) {
         final Map<String, Object> body = this.defaultBody();
         final Map<String, Object> customFields = new HashMap<>();
 
@@ -154,6 +155,7 @@ final class RubeusApiHelper {
         body.put("id", userId);
         body.put("nome", name);
         body.put("escolaOrigem", school);
+        body.put("imagemUrl", imageUrl);
         body.put(CAMPOS_PERSONALIZADOS, customFields);
 
         return this.service.updateUser(body);

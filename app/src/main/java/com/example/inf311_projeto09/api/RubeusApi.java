@@ -26,12 +26,13 @@ public final class RubeusApi {
         return helper.executeRequest(helper.registerUserCall(name, email, school, password, cpf, type));
     }
 
-    public static Boolean updateUser(final User user, final String name, final String school, final String password, final boolean enableNotifications) {
+    public static Boolean updateUser(final User user, final String name, final String school, final String password, final boolean enableNotifications, final String imageUrl) {
         user.setName(name);
         user.setSchool(school);
         user.setPassword(password);
         user.setEnableNotifications(enableNotifications);
-        return helper.executeRequest(helper.updateUserCall(user.getId(), name, school, password, enableNotifications));
+        user.setImageUrl(imageUrl);
+        return helper.executeRequest(helper.updateUserCall(user.getId(), name, school, password, enableNotifications, imageUrl));
     }
 
     public static Boolean deleteUser(final int userId) {
@@ -81,7 +82,8 @@ public final class RubeusApi {
                             user.cpf(),
                             user.escolaOrigem(),
                             password,
-                            "1".equals(enableNotifications));
+                            "1".equals(enableNotifications),
+                            user.imagem());
                 })
                 .collect(Collectors.toList()).get(0);
 

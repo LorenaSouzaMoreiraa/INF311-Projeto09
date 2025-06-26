@@ -459,7 +459,8 @@ fun EventsPreview() {
             "12345678900",
             "Universidade Federal de Viçosa (UFV)",
             "****",
-            true
+            true,
+            null
         )
     )
 }

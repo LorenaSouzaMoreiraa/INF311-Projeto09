@@ -1,6 +1,5 @@
 package com.example.inf311_projeto09.ui.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,9 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.ScreenType
@@ -45,7 +47,7 @@ fun NavBar(
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ProfileIcon(navController, navBarOption == NavBarOption.PROFILE)
+        ProfileIcon(navController, user, navBarOption == NavBarOption.PROFILE)
 
         HomeIcon(navController, navBarOption == NavBarOption.HOME)
 
@@ -60,11 +62,9 @@ fun NavBar(
 @Composable
 private fun ProfileIcon(
     navController: NavHostController,
+    user: User,
     isProfileSelected: Boolean
 ) {
-    // TODO: colocar foto do usuário
-    val profileImage = 1
-
     Box(
         modifier = Modifier
             .size(30.dp)
@@ -79,34 +79,33 @@ private fun ProfileIcon(
             },
         contentAlignment = Alignment.Center
     ) {
-        if (profileImage == null) {
-            AppIcons.Outline.CircleUserRound(
-                30.dp,
-                if (isProfileSelected) AppColors().lightGreen else AppColors().white
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .then(
-                        if (isProfileSelected) Modifier
-                            .border(
-                                width = 2.dp,
-                                color = AppColors().lightGreen,
-                                shape = CircleShape
-                            )
-                        else Modifier
-                    )
-                    .clip(CircleShape)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.perfil),
-                    contentDescription = "Foto do usuário",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(28.dp)
+        Box(
+            modifier = Modifier
+                .size(30.dp)
+                .then(
+                    if (isProfileSelected) Modifier
+                        .border(
+                            width = 2.dp,
+                            color = AppColors().lightGreen,
+                            shape = CircleShape
+                        )
+                    else Modifier
                 )
-            }
+                .clip(CircleShape)
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(user.imageUrl)
+                    .crossfade(true)
+                    .crossfade(300)
+                    .build(),
+                contentDescription = "Foto do usuário",
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.profile_image),
+                error = painterResource(R.drawable.profile_image),
+                modifier = Modifier
+                    .size(28.dp)
+            )
         }
     }
 }

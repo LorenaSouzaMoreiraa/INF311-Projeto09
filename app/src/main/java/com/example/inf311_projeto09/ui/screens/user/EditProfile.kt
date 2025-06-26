@@ -1,6 +1,12 @@
 package com.example.inf311_projeto09.ui.screens.user
 
-import androidx.compose.foundation.Image
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -52,6 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.inf311_projeto09.BuildConfig
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
@@ -61,15 +71,45 @@ import com.example.inf311_projeto09.ui.components.NavBarOption
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.FormBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+
+// TODO: pedir permissão para acessar galeria?
 
 @Composable
 fun EditProfileScreen(
     user: User,
     navController: NavHostController,
-    choosePhoto: () -> Unit = {},
     onDeactivateAccount: () -> Unit = {}
 ) {
     var isEditingMode by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            uploadImageToImgBB(context, it) { url ->
+                if (url != null) {
+                    RubeusApi.updateUser(
+                        user,
+                        user.name,
+                        user.school,
+                        user.password,
+                        user.enableNotifications,
+                        url
+                    )
+                }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -120,30 +160,33 @@ fun EditProfileScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             Box(
-                modifier = Modifier.size(130.dp),
+                modifier = Modifier
+                    .size(130.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val profileImage = 1
-                // TODO: imagem de usuário
-                if (profileImage == null) {
-                    AppIcons.Outline.CircleUserRound(120.dp)
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.perfil),
-                        contentDescription = "Foto do usuário",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(118.dp)
-                            .clip(CircleShape)
-                    )
-                }
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(user.imageUrl)
+                        .crossfade(true)
+                        .crossfade(300)
+                        .build(),
+                    contentDescription = "Foto do usuário",
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.profile_image),
+                    error = painterResource(R.drawable.profile_image),
+                    modifier = Modifier
+                        .size(130.dp)
+                        .clip(CircleShape)
+                )
 
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .size(35.dp)
                         .background(color = AppColors().darkGreen, shape = CircleShape)
-                        .clickable(onClick = choosePhoto),
+                        .clickable(onClick = {
+                            launcher.launch("image/*")
+                        }),
                     contentAlignment = Alignment.Center
                 ) {
                     AppIcons.Filled.Camera(
@@ -154,6 +197,65 @@ fun EditProfileScreen(
                 }
             }
         }
+    }
+}
+
+fun uploadImageToImgBB(
+    context: Context,
+    imageUri: Uri,
+    onResult: (String?) -> Unit
+) {
+    val imageBase64 = compressImage(context, imageUri, quality = 70)
+
+    if (imageBase64 == null) {
+        onResult(null)
+        return
+    }
+
+    val client = OkHttpClient()
+
+    val requestBody = FormBody.Builder()
+        .add("key", BuildConfig.IMGBB_API_KEY)
+        .add("image", imageBase64)
+        .build()
+
+    val request = Request.Builder()
+        .url("https://api.imgbb.com/1/upload")
+        .post(requestBody)
+        .build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            e.printStackTrace()
+            onResult(null)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            if (response.isSuccessful) {
+                val bodyString = response.body?.string()
+                val json = JSONObject(bodyString ?: "")
+                val imageUrl = json.getJSONObject("data").getString("url")
+                onResult(imageUrl)
+            } else {
+                onResult(null)
+            }
+        }
+    })
+}
+
+fun compressImage(context: Context, imageUri: Uri, quality: Int = 70): String? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(imageUri)
+        val originalBitmap = BitmapFactory.decodeStream(inputStream)
+
+        val outputStream = ByteArrayOutputStream()
+        originalBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+        val imageBytes = outputStream.toByteArray()
+
+        Base64.encodeToString(imageBytes, Base64.NO_WRAP)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }
 
@@ -280,7 +382,8 @@ fun EditProfileFields(
                         name,
                         university,
                         user.password,
-                        receiveNotifications
+                        receiveNotifications,
+                        user.imageUrl
                     )
                     onSave()
                     oldPassword = ""
@@ -304,7 +407,8 @@ fun EditProfileFields(
                         name,
                         university,
                         PasswordHelper.hashPassword(newPassword),
-                        receiveNotifications
+                        receiveNotifications,
+                        user.imageUrl
                     )
                     onSave()
                     onSave()
@@ -750,7 +854,8 @@ fun EditProfileScreenPreview() {
             "12345678900",
             "Universidade Federal de Viçosa (UFV)",
             "****",
-            true
+            true,
+            null
         ), navController = rememberNavController()
     )
 }
