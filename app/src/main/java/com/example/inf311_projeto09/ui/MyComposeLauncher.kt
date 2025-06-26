@@ -190,28 +190,38 @@ fun AppNavHost(
             }
 
             composable(ScreenType.LOGIN.route) {
-                // TODO: precisa ter os dados preenchidos e verificar
                 LoginScreen(
                     onLoginSuccess = { email, password, rememberUser ->
-                        user = RubeusApi.searchUserByEmail(email)
-                        val isValidPassword =
-                            PasswordHelper.verifyPassword(password, user?.password)
-
-                        if (isValidPassword) {
-                            if (rememberUser) {
-                                setRememberedEmail(activity, email)
-                            }
-
-                            userEvents =
-                                user?.let { RubeusApi.listUserEvents(it.id) } ?: emptyList()
-                            todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)
-
-                            navController.navigate(ScreenType.HOME.route) {
-                                popUpTo(ScreenType.WELCOME.route) { inclusive = true }
-                            }
+                        if (email.isEmpty()) {
+                            AppSnackBarManager.showMessage("O campo 'Email' é obrigatório")
+                        } else if (password.isEmpty()) {
+                            AppSnackBarManager.showMessage("O campo 'Senha' é obrigatório")
                         } else {
-                            Log.e("LOGIN", "Login inválido.")
-                            // TODO: mensagem de login não válido
+                            user = RubeusApi.searchUserByEmail(email)
+                            if (user == null) {
+                                AppSnackBarManager.showMessage("Dados inválidos")
+                            } else {
+                                val isValidPassword =
+                                    PasswordHelper.verifyPassword(password, user?.password)
+
+                                if (isValidPassword) {
+                                    if (rememberUser) {
+                                        setRememberedEmail(activity, email)
+                                    }
+
+                                    userEvents =
+                                        user?.let { RubeusApi.listUserEvents(it.id) } ?: emptyList()
+                                    todayEvents =
+                                        AppDateHelper().getEventsForDate(userEvents, today.time)
+
+                                    navController.navigate(ScreenType.HOME.route) {
+                                        popUpTo(ScreenType.WELCOME.route) { inclusive = true }
+                                    }
+                                } else {
+                                    Log.e("LOGIN", "Login inválido.")
+                                    AppSnackBarManager.showMessage("Dados inválidos")
+                                }
+                            }
                         }
                     },
                     onSignUpClick = {

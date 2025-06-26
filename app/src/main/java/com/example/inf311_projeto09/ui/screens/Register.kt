@@ -532,6 +532,7 @@ fun validateRegister(
     cpf: String,
     userRole: User.UserRole
 ): Boolean? {
+    // TODO: ver se ja tem esse email e cpf
     when {
         cpf.isEmpty() -> AppSnackBarManager.showMessage("O campo 'CPF' é obrigatório")
         !UserHelper.validateCPF(cpf) -> AppSnackBarManager.showMessage("Insira um CPF válido")
