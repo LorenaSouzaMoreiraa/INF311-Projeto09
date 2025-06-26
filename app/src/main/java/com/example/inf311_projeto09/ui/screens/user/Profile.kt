@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.R
+import com.example.inf311_projeto09.helper.EventHelper
+import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.NavBar
@@ -47,11 +49,11 @@ import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import java.util.Calendar
-import kotlin.random.Random
 
 @Composable
 fun ProfileScreen(
     user: User,
+    allEvents: List<Event>,
     onLogout: () -> Unit = {},
     navController: NavHostController
 ) {
@@ -76,11 +78,11 @@ fun ProfileScreen(
                 .padding(top = 30.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            CardStatistics(user, navController)
+            CardStatistics(allEvents, navController)
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            MonthStatistics(user)
+            MonthStatistics(allEvents)
         }
 
         NavBar(navController, NavBarOption.PROFILE, user)
@@ -185,10 +187,9 @@ fun TopBarProfile(
 
 @Composable
 fun CardStatistics(
-    user: User,
+    allEvents: List<Event>,
     navController: NavHostController
 ) {
-    // TODO: pegar dados reais, por agora está fictícil
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -199,64 +200,93 @@ fun CardStatistics(
             modifier = Modifier.fillMaxHeight(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatisticCard(12, "eventos participados", modifier = Modifier.weight(1f))
-            StatisticCard(8, "faltas em eventos", modifier = Modifier.weight(1f))
+            StatisticCard(
+                EventHelper.numberOfEventsParticipated(allEvents),
+                "eventos participados",
+                modifier = Modifier.weight(1f)
+            )
+            StatisticCard(
+                EventHelper.numberOfMissedEvents(allEvents),
+                "faltas em eventos",
+                modifier = Modifier.weight(1f)
+            )
         }
         Row(
             modifier = Modifier.fillMaxHeight(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatisticCard(5, "atrasos no registro de presença", modifier = Modifier.weight(1f))
+            StatisticCard(
+                EventHelper.numberOfDelayedEvents(allEvents),
+                "atrasos no registro de presença",
+                modifier = Modifier.weight(1f)
+            )
             SeeEventsCard(modifier = Modifier.weight(1f), navController)
         }
     }
 }
 
-enum class PresenceStatus {
-    PRESENT_FULL,
-    PRESENT_75,
-    PRESENT_50,
-    PRESENT_25,
-    ABSENT
+enum class DatEventsStatus {
+    NONE_EVENT,
+    ONE_EVENT,
+    TWO_EVENTS,
+    THREE_EVENTS,
+    FOUR_MORE_EVENTS
 }
 
 data class CalendarDay(
     val dayOfMonth: Int,
-    val status: PresenceStatus
+    val status: DatEventsStatus
 )
 
 @Composable
 fun MonthStatistics(
-    user: User
+    allEvents: List<Event>
 ) {
-    // TODO: pegar dados reais, por agora está fictícil
     val currentMonth = AppDateHelper().getCurrentMonth()
     val daysInMonth = Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH)
 
-    val totalEvents = 10
-    val participationPercentage = 98
-    val lateCount = 3
+    val currentMonthNumber = AppDateHelper().getCurrentMonthNumber()
+    val currentYearNumber = AppDateHelper().getCurrentYearNumber()
+
+    val totalEvents = EventHelper.numberOfEventsParticipatedInMonth(
+        allEvents,
+        currentMonthNumber,
+        currentYearNumber
+    )
+    val participationPercentage = if (totalEvents == 0) 0
+    else ((totalEvents - EventHelper.numberOfMissedEventsInMonth(
+        allEvents,
+        currentMonthNumber,
+        currentYearNumber
+    )) * 100 / totalEvents)
+    val lateCount = EventHelper.numberOfDelayedEventsInMonth(
+        allEvents,
+        currentMonthNumber,
+        currentYearNumber
+    )
 
     val days: List<CalendarDay> = (1..daysInMonth).map { day ->
-        val status = if (day <= 25) {
-            when (Random.nextInt(5)) {
-                0 -> PresenceStatus.PRESENT_FULL
-                1 -> PresenceStatus.PRESENT_75
-                2 -> PresenceStatus.PRESENT_50
-                3 -> PresenceStatus.PRESENT_25
-                else -> PresenceStatus.ABSENT
-            }
-        } else {
-            PresenceStatus.ABSENT
+        val eventCount = EventHelper.numberOfEventsParticipatedInDay(
+            allEvents,
+            day,
+            currentMonthNumber,
+            currentYearNumber
+        )
+        val status = when {
+            eventCount >= 4 -> DatEventsStatus.FOUR_MORE_EVENTS
+            eventCount == 3 -> DatEventsStatus.THREE_EVENTS
+            eventCount == 2 -> DatEventsStatus.TWO_EVENTS
+            eventCount == 1 -> DatEventsStatus.ONE_EVENT
+            else -> DatEventsStatus.NONE_EVENT
         }
         CalendarDay(day, status)
     }
 
-    val presentFullColor = AppColors().darkGreen
-    val present75Color = AppColors().darkPastelGreen
-    val present50Color = AppColors().pastelGreen
-    val present25Color = AppColors().lightPastelGreen
-    val absentColor = AppColors().darkGrey
+    val noneEventColor = AppColors().darkGrey
+    val oneEventColor = AppColors().lightPastelGreen
+    val twoEventsColor = AppColors().pastelGreen
+    val threeEventsColor = AppColors().darkPastelGreen
+    val fourOrMoreEventsColor = AppColors().darkGreen
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -309,11 +339,11 @@ fun MonthStatistics(
                         ) {
                             week.forEach { day ->
                                 val color = when (day.status) {
-                                    PresenceStatus.PRESENT_FULL -> presentFullColor
-                                    PresenceStatus.PRESENT_75 -> present75Color
-                                    PresenceStatus.PRESENT_50 -> present50Color
-                                    PresenceStatus.PRESENT_25 -> present25Color
-                                    PresenceStatus.ABSENT -> absentColor
+                                    DatEventsStatus.FOUR_MORE_EVENTS -> fourOrMoreEventsColor
+                                    DatEventsStatus.THREE_EVENTS -> threeEventsColor
+                                    DatEventsStatus.TWO_EVENTS -> twoEventsColor
+                                    DatEventsStatus.ONE_EVENT -> oneEventColor
+                                    DatEventsStatus.NONE_EVENT -> noneEventColor
                                 }
 
                                 Box(
@@ -362,7 +392,7 @@ fun MonthStatistics(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "$totalEvents eventos",
+                    text = "$totalEvents evento(s)",
                     fontFamily = AppFonts().montserrat,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 12.sp,
@@ -469,6 +499,8 @@ fun ProfileScreenPreview() {
             "UFV",
             "****",
             true
-        ), navController = rememberNavController()
+        ),
+        allEvents = listOf(),
+        navController = rememberNavController()
     )
 }

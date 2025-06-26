@@ -263,6 +263,7 @@ fun AppNavHost(
             user?.let { nonNullUser ->
                 ProfileScreen(
                     user = nonNullUser,
+                    allEvents = userEvents,
                     navController = navController,
                     onLogout = {
                         setRememberedEmail(activity, "")

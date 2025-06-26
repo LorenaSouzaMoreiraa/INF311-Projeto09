@@ -79,6 +79,16 @@ class AppDateHelper {
         return format.format(Date()).replaceFirstChar { it.uppercase() }
     }
 
+    fun getCurrentMonthNumber(): Int {
+        val calendar = Calendar.getInstance(TIME_ZONE_SAO_PAULO, LOCALE_PT_BR)
+        return calendar[Calendar.MONTH]
+    }
+
+    fun getCurrentYearNumber(): Int {
+        val calendar = Calendar.getInstance(TIME_ZONE_SAO_PAULO, LOCALE_PT_BR)
+        return calendar[Calendar.YEAR]
+    }
+
     fun isThisMonth(date: Date): Boolean {
         val now = Calendar.getInstance()
         val cal = Calendar.getInstance().apply { time = date }
