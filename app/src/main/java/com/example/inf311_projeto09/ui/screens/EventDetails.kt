@@ -139,7 +139,7 @@ fun EventDetailsScreen(
     var isEditingMode by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Dados") }
 
-    val selectedFilters = remember { mutableStateOf(setOf< ParticipantsFilter>()) }
+    val selectedFilters = remember { mutableStateOf(setOf<ParticipantsFilter>()) }
     val showFilterDialog = remember { mutableStateOf(false) }
 
     val filteredParticipants = remember(participants, selectedFilters.value) {
@@ -381,8 +381,8 @@ fun MainContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if(user.type == User.UserRole.ADMIN && isBeforeStart) {
-                    if(selectedTab == "Dados") {
+                if (user.type == User.UserRole.ADMIN && isBeforeStart) {
+                    if (selectedTab == "Dados") {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -401,7 +401,7 @@ fun MainContent(
                             }
                         }
                     }
-                }else{
+                } else {
                     Spacer(modifier = Modifier.height(20.dp))
                 }
 
@@ -489,6 +489,7 @@ fun MainContent(
                             Spacer(modifier = Modifier.height(20.dp))
                         }
                     }
+
                     "Participantes" -> {
 
                         Row(
@@ -779,7 +780,11 @@ fun EventTypeDropdown(
 }
 
 @Composable
-fun DescriptionField(description: String, onDescriptionChange: (String) -> Unit, isEditingMode: Boolean) {
+fun DescriptionField(
+    description: String,
+    onDescriptionChange: (String) -> Unit,
+    isEditingMode: Boolean
+) {
     OutlinedTextField(
         value = description,
         onValueChange = onDescriptionChange,
@@ -1165,7 +1170,8 @@ fun EventDetailsScreenPreview() {
         "12345678900",
         "Universidade Federal de Viçosa (UFV)",
         "****",
-        true
+        true,
+        null
     )
 
     EventDetailsScreen(navController = rememberNavController(), event = event, user = user)

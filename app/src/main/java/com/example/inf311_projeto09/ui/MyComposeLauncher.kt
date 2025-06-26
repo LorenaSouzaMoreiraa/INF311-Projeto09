@@ -4,8 +4,22 @@ import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -29,7 +43,10 @@ import com.example.inf311_projeto09.ui.screens.user.NotificationsScreen
 import com.example.inf311_projeto09.ui.screens.user.ProfileScreen
 import com.example.inf311_projeto09.ui.screens.user.QrScannerScreen
 import com.example.inf311_projeto09.ui.screens.user.VerificationCodeScreen
+import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
+import com.example.inf311_projeto09.ui.utils.AppFonts
+import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
 import java.util.Calendar
 
 enum class ScreenType(val route: String) {
@@ -107,234 +124,273 @@ fun AppNavHost(
     var todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)
     // TODO: atualizar os eventos de tempos em tempos?
 
-    NavHost(
-        navController = navController,
-        startDestination = startDestination
-    ) {
-        composable(ScreenType.WELCOME.route) {
-            WelcomeScreen(
-                onContinue = {
-                    setHasSeenWelcome(activity)
-                    navController.navigate(ScreenType.LOGIN.route) {
-                        popUpTo(ScreenType.WELCOME.route) { inclusive = true }
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = AppSnackBarManager.snackBarHostState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp)
+            ) { data ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, bottom = 40.dp)
+                ) {
+                    Snackbar(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp)),
+                        containerColor = AppColors().darkGreen,
+                        contentColor = AppColors().white,
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = data.visuals.message,
+                            fontFamily = AppFonts().montserrat,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 18.sp,
+                            color = AppColors().white,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
-            )
+            }
         }
-
-        composable(ScreenType.LOGIN.route) {
-            // TODO: precisa ter os dados preenchidos e verificar
-            LoginScreen(
-                onLoginSuccess = { email, password, rememberUser ->
-                    user = RubeusApi.searchUserByEmail(email)
-                    val isValidPassword = PasswordHelper.verifyPassword(password, user?.password)
-
-                    if (isValidPassword) {
-                        if (rememberUser) {
-                            setRememberedEmail(activity, email)
-                        }
-
-                        userEvents = user?.let { RubeusApi.listUserEvents(it.id) } ?: emptyList()
-                        todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)
-
-                        navController.navigate(ScreenType.HOME.route) {
+    ) { _ ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination
+        ) {
+            composable(ScreenType.WELCOME.route) {
+                WelcomeScreen(
+                    onContinue = {
+                        setHasSeenWelcome(activity)
+                        navController.navigate(ScreenType.LOGIN.route) {
                             popUpTo(ScreenType.WELCOME.route) { inclusive = true }
                         }
-                    } else {
-                        Log.e("LOGIN", "Login inválido.")
-                        // TODO: mensagem de login não válido
                     }
-                },
-                onSignUpClick = {
-                    navController.navigate(ScreenType.USER_ROLE.route)
-                },
-                onForgotPasswordClick = {
-                    navController.navigate(ScreenType.RECOVER_PASSWORD.route)
-                }
-            )
-        }
+                )
+            }
 
-        composable(ScreenType.RECOVER_PASSWORD.route) {
-            RecoverPasswordScreen(
-                onSendRecoveryLinkClick = { email ->
-                    // TODO: Talvez fazer o envio real de um link para esse email
-                },
-                onBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
+            composable(ScreenType.LOGIN.route) {
+                // TODO: precisa ter os dados preenchidos e verificar
+                LoginScreen(
+                    onLoginSuccess = { email, password, rememberUser ->
+                        user = RubeusApi.searchUserByEmail(email)
+                        val isValidPassword =
+                            PasswordHelper.verifyPassword(password, user?.password)
 
-        composable(ScreenType.USER_ROLE.route) {
-            // TODO: precisa ter uma opção selecionada
-            UserRoleScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                onRoleSelected = { selectedRole ->
-                    navController.navigate("${ScreenType.REGISTER.route}/$selectedRole")
-                }
-            )
-        }
+                        if (isValidPassword) {
+                            if (rememberUser) {
+                                setRememberedEmail(activity, email)
+                            }
 
-        composable("${ScreenType.REGISTER.route}/{userRole}") { backStackEntry ->
-            val userRole =
-                backStackEntry.arguments?.getString("userRole")?.let { User.UserRole.valueOf(it) }
+                            userEvents =
+                                user?.let { RubeusApi.listUserEvents(it.id) } ?: emptyList()
+                            todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)
 
-            // TODO: exibir mensagem falando que precisa ter selecionado pelo menos um
-            if (userRole != null) {
-                RegisterScreen(
+                            navController.navigate(ScreenType.HOME.route) {
+                                popUpTo(ScreenType.WELCOME.route) { inclusive = true }
+                            }
+                        } else {
+                            Log.e("LOGIN", "Login inválido.")
+                            // TODO: mensagem de login não válido
+                        }
+                    },
+                    onSignUpClick = {
+                        navController.navigate(ScreenType.USER_ROLE.route)
+                    },
+                    onForgotPasswordClick = {
+                        navController.navigate(ScreenType.RECOVER_PASSWORD.route)
+                    }
+                )
+            }
+
+            composable(ScreenType.RECOVER_PASSWORD.route) {
+                RecoverPasswordScreen(
+                    onSendRecoveryLinkClick = { email ->
+                        // TODO: Talvez fazer o envio real de um link para esse email
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(ScreenType.USER_ROLE.route) {
+                // TODO: precisa ter uma opção selecionada
+                UserRoleScreen(
                     onBack = {
                         navController.popBackStack()
                     },
-                    onSignUpSuccess = { signUpSuccess ->
-                        if (signUpSuccess) {
+                    onRoleSelected = { selectedRole ->
+                        navController.navigate("${ScreenType.REGISTER.route}/$selectedRole")
+                    }
+                )
+            }
+
+            composable("${ScreenType.REGISTER.route}/{userRole}") { backStackEntry ->
+                val userRole =
+                    backStackEntry.arguments?.getString("userRole")
+                        ?.let { User.UserRole.valueOf(it) }
+
+                // TODO: exibir mensagem falando que precisa ter selecionado pelo menos um
+                if (userRole != null) {
+                    RegisterScreen(
+                        onBack = {
+                            navController.popBackStack()
+                        },
+                        onSignUpSuccess = { signUpSuccess ->
+                            if (signUpSuccess) {
+                                navController.navigate(ScreenType.LOGIN.route) {
+                                    popUpTo(ScreenType.LOGIN.route) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                Log.e("REGISTER", "Registro inválido.")
+                                // TODO: mensagem de erro
+                            }
+                        },
+                        onLoginClick = {
                             navController.navigate(ScreenType.LOGIN.route) {
                                 popUpTo(ScreenType.LOGIN.route) { inclusive = false }
                                 launchSingleTop = true
                             }
-                        } else {
-                            Log.e("REGISTER", "Registro inválido.")
-                            // TODO: mensagem de erro
-                        }
-                    },
-                    onLoginClick = {
-                        navController.navigate(ScreenType.LOGIN.route) {
-                            popUpTo(ScreenType.LOGIN.route) { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    },
-                    userRole = userRole
-                )
-            }
-        }
-
-        composable(ScreenType.HOME.route) {
-            user?.let { nonNullUser ->
-                HomeScreen(
-                    user = nonNullUser,
-                    todayEvents = todayEvents,
-                    navController = navController
-                )
-            } ?: run {
-                setRememberedEmail(activity, "")
-                navController.navigate(ScreenType.LOGIN.route) {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
+                        },
+                        userRole = userRole
+                    )
                 }
             }
-        }
 
-        composable(ScreenType.CALENDAR.route) {
-            user?.let { nonNullUser ->
-                CalendarScreen(
-                    user = nonNullUser,
-                    allEvents = userEvents,
-                    navController = navController
-                )
-            } ?: run {
-                setRememberedEmail(activity, "")
-                navController.navigate(ScreenType.LOGIN.route) {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
-                }
-            }
-        }
-
-        composable(ScreenType.EVENTS.route) {
-            user?.let { nonNullUser ->
-                EventsScreen(
-                    user = nonNullUser,
-                    allEvents = userEvents,
-                    navController = navController
-                )
-            } ?: run {
-                setRememberedEmail(activity, "")
-                navController.navigate(ScreenType.LOGIN.route) {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
-                }
-            }
-        }
-
-        composable(ScreenType.PROFILE.route) {
-            user?.let { nonNullUser ->
-                ProfileScreen(
-                    user = nonNullUser,
-                    allEvents = userEvents,
-                    navController = navController,
-                    onLogout = {
-                        setRememberedEmail(activity, "")
-                        navController.navigate(ScreenType.LOGIN.route)
+            composable(ScreenType.HOME.route) {
+                user?.let { nonNullUser ->
+                    HomeScreen(
+                        user = nonNullUser,
+                        todayEvents = todayEvents,
+                        navController = navController
+                    )
+                } ?: run {
+                    setRememberedEmail(activity, "")
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
                     }
-                )
-            } ?: run {
-                setRememberedEmail(activity, "")
-                navController.navigate(ScreenType.LOGIN.route) {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
                 }
             }
-        }
 
-        composable(ScreenType.NOTIFICATIONS.route) {
-            // TODO: apagar mock
-            NotificationsScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                notificationsMock = notificationsMock
-            )
-        }
-
-        composable(ScreenType.QR_SCANNER.route) {
-            QrScannerScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                navController = navController
-            )
-        }
-
-        composable(ScreenType.VERIFICATION_CODE.route) {
-            VerificationCodeScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                navController = navController
-            )
-        }
-
-        composable(ScreenType.EDIT_PROFILE.route) {
-            user?.let { nonNullUser ->
-                EditProfileScreen(
-                    user = nonNullUser,
-                    navController = navController,
-                    onDeactivateAccount = {
-                        setRememberedEmail(activity, "")
-                        navController.navigate(ScreenType.LOGIN.route)
+            composable(ScreenType.CALENDAR.route) {
+                user?.let { nonNullUser ->
+                    CalendarScreen(
+                        user = nonNullUser,
+                        allEvents = userEvents,
+                        navController = navController
+                    )
+                } ?: run {
+                    setRememberedEmail(activity, "")
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
                     }
-                )
-            } ?: run {
-                setRememberedEmail(activity, "")
-                navController.navigate(ScreenType.LOGIN.route) {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
                 }
             }
-        }
 
-        composable(ScreenType.REGISTER_EVENT.route) {
-            user?.let { nonNullUser ->
-                RegisterEventScreen(
-                    user = nonNullUser,
+            composable(ScreenType.EVENTS.route) {
+                user?.let { nonNullUser ->
+                    EventsScreen(
+                        user = nonNullUser,
+                        allEvents = userEvents,
+                        navController = navController
+                    )
+                } ?: run {
+                    setRememberedEmail(activity, "")
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+
+            composable(ScreenType.PROFILE.route) {
+                user?.let { nonNullUser ->
+                    ProfileScreen(
+                        user = nonNullUser,
+                        allEvents = userEvents,
+                        navController = navController,
+                        onLogout = {
+                            setRememberedEmail(activity, "")
+                            navController.navigate(ScreenType.LOGIN.route)
+                        }
+                    )
+                } ?: run {
+                    setRememberedEmail(activity, "")
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+
+            composable(ScreenType.NOTIFICATIONS.route) {
+                // TODO: apagar mock
+                NotificationsScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    notificationsMock = notificationsMock
+                )
+            }
+
+            composable(ScreenType.QR_SCANNER.route) {
+                QrScannerScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    },
                     navController = navController
                 )
-            } ?: run {
-                setRememberedEmail(activity, "")
-                navController.navigate(ScreenType.LOGIN.route) {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
+            }
+
+            composable(ScreenType.VERIFICATION_CODE.route) {
+                VerificationCodeScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    navController = navController
+                )
+            }
+
+            composable(ScreenType.EDIT_PROFILE.route) {
+                user?.let { nonNullUser ->
+                    EditProfileScreen(
+                        user = nonNullUser,
+                        navController = navController,
+                        onDeactivateAccount = {
+                            setRememberedEmail(activity, "")
+                            navController.navigate(ScreenType.LOGIN.route)
+                        }
+                    )
+                } ?: run {
+                    setRememberedEmail(activity, "")
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+
+            composable(ScreenType.REGISTER_EVENT.route) {
+                user?.let { nonNullUser ->
+                    RegisterEventScreen(
+                        user = nonNullUser,
+                        navController = navController
+                    )
+                } ?: run {
+                    setRememberedEmail(activity, "")
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             }
         }

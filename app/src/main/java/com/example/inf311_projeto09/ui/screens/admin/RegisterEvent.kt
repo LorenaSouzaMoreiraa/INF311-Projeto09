@@ -350,7 +350,6 @@ fun MainContent(
             Spacer(modifier = Modifier.height(15.dp))
 
             CreateEventButton(onClick = {
-                // TODO: importar lista de participantes e cadastrar eles
                 // TODO: validar os dados
                 // TODO: campo de descrição, localização...
                 // TODO: sair da tela ao terminar de criar

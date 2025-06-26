@@ -71,6 +71,7 @@ import com.example.inf311_projeto09.ui.components.NavBarOption
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
@@ -374,7 +375,7 @@ fun EditProfileFields(
         isEditingMode = isEditingMode,
         onSaveClick = {
             if (name.isEmpty() || university.isEmpty()) {
-                // TODO: não pode opções vazias
+                AppSnackBarManager.showMessage("O campo 'Nome' é obrigatório")
             } else if (oldPassword.isEmpty() && newPassword.isEmpty() && confirmPassword.isEmpty()) {
                 if (name != user.name || university != user.school || receiveNotifications != user.enableNotifications) {
                     RubeusApi.updateUser(
@@ -392,15 +393,15 @@ fun EditProfileFields(
                 }
             } else {
                 if (oldPassword.isEmpty()) {
-                    // TODO: não pode vazia
+                    AppSnackBarManager.showMessage("O campo 'Senha Antiga' é obrigatório")
                 } else if (newPassword.isEmpty()) {
-                    // TODO: não pode vazia
+                    AppSnackBarManager.showMessage("O campo 'Nova Senha' é obrigatório")
                 } else if (confirmPassword.isEmpty()) {
-                    // TODO: não pode vazia
+                    AppSnackBarManager.showMessage("O campo 'Confirmar Senha' é obrigatório")
                 } else if (!PasswordHelper.verifyPassword(oldPassword, user.password)) {
-                    // TODO: senha antiga incorreta
+                    AppSnackBarManager.showMessage("A 'Senha Antiga' informada é inválida")
                 } else if (newPassword != confirmPassword) {
-                    // TODO: senhas não batem
+                    AppSnackBarManager.showMessage("O campo 'Nova Senha' e 'Confirmar Senha' precisam ser iguais")
                 } else {
                     RubeusApi.updateUser(
                         user,
