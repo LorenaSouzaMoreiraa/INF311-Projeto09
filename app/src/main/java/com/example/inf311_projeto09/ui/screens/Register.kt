@@ -62,16 +62,18 @@ import androidx.compose.ui.unit.sp
 import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
+import com.example.inf311_projeto09.helper.UserHelper
 import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     onBack: () -> Unit = {},
-    onSignUpSuccess: (Boolean) -> Unit = {},
+    onSignUpSuccess: (Boolean?) -> Unit = {},
     onLoginClick: () -> Unit = {},
     userRole: User.UserRole
 ) {
@@ -529,10 +531,17 @@ fun validateRegister(
     confirmPassword: String,
     cpf: String,
     userRole: User.UserRole
-): Boolean {
-    // TODO: validar os dados antes
-    if (password.isNotEmpty() && password == confirmPassword) {
-        return RubeusApi.registerUser(
+): Boolean? {
+    when {
+        cpf.isEmpty() -> AppSnackBarManager.showMessage("O campo 'CPF' é obrigatório")
+        !UserHelper.validateCPF(cpf) -> AppSnackBarManager.showMessage("Insira um CPF válido")
+        name.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Nome completo' é obrigatório")
+        school.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Instituição de Ensino' é obrigatório")
+        email.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Email' é obrigatório")
+        password.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Senha' é obrigatório")
+        confirmPassword.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Confirme a senha' é obrigatório")
+        password != confirmPassword -> AppSnackBarManager.showMessage("O campo 'Senha' e 'Confirme a senha' precisam ser iguais")
+        else -> return RubeusApi.registerUser(
             name,
             email,
             school,
@@ -541,7 +550,7 @@ fun validateRegister(
             userRole
         )
     }
-    return false
+    return null
 }
 
 fun formatCpf(cpf: String): String {

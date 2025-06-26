@@ -256,14 +256,16 @@ fun AppNavHost(
                             navController.popBackStack()
                         },
                         onSignUpSuccess = { signUpSuccess ->
-                            if (signUpSuccess) {
-                                navController.navigate(ScreenType.LOGIN.route) {
-                                    popUpTo(ScreenType.LOGIN.route) { inclusive = false }
-                                    launchSingleTop = true
+                            if (signUpSuccess != null) {
+                                if (signUpSuccess) {
+                                    navController.navigate(ScreenType.LOGIN.route) {
+                                        popUpTo(ScreenType.LOGIN.route) { inclusive = false }
+                                        launchSingleTop = true
+                                    }
+                                } else {
+                                    Log.e("REGISTER", "Registro inválido.")
+                                    AppSnackBarManager.showMessage("Aconteceu um erro ao registrar sua conta")
                                 }
-                            } else {
-                                Log.e("REGISTER", "Registro inválido.")
-                                AppSnackBarManager.showMessage("Aconteceu um erro ao registrar sua conta")
                             }
                         },
                         onLoginClick = {
