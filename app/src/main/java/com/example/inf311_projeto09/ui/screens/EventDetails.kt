@@ -5,15 +5,18 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,12 +32,14 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -56,8 +61,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.Event.EventVerificationMethod
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.components.ReusableDatePickerDialog
 import com.example.inf311_projeto09.ui.components.ReusableTimePickerDialog
 import com.example.inf311_projeto09.ui.utils.AppColors
@@ -66,12 +73,21 @@ import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
+
+enum class ParticipantsFilter(val label: String) {
+    ABSENT("Ausentes"),
+    PRESENT("Presentes"),
+    LATE("Atrasados"),
+    AT_TIME("No horário")
+}
 
 @Composable
 fun EventDetailsScreen(
     navController: NavHostController,
-    event: Event
+    event: Event,
+    user: User
 ) {
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")) }
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale("pt", "BR")) }
@@ -97,6 +113,7 @@ fun EventDetailsScreen(
             Calendar.getInstance().apply { time = event.endTime })
     }
     var selectedEventType by remember { mutableStateOf(event.type) }
+    var eventDescription by remember { mutableStateOf(event.description) }
     var selectedAuthMethod by remember {
         mutableStateOf(
             when (event.verificationMethod) {
@@ -117,9 +134,33 @@ fun EventDetailsScreen(
     var startTimeText by remember { mutableStateOf(timeFormatter.format(event.beginTime)) }
     var endDateText by remember { mutableStateOf(dateFormatter.format(event.endTime)) }
     var endTimeText by remember { mutableStateOf(timeFormatter.format(event.endTime)) }
+    var participants by remember { mutableStateOf(event.participants.toList()) }
 
     var isEditingMode by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Dados") }
+
+    val selectedFilters = remember { mutableStateOf(setOf< ParticipantsFilter>()) }
+    val showFilterDialog = remember { mutableStateOf(false) }
+
+    val filteredParticipants = remember(participants, selectedFilters.value) {
+        val users = participants.mapNotNull { email ->
+            RubeusApi.searchUserByEmail(email)
+        }
+
+        users.filter { _ ->
+            selectedFilters.value.all { filter ->
+                when (filter) {
+                    ParticipantsFilter.ABSENT -> userMissed(event)
+                    ParticipantsFilter.PRESENT -> userCheckedIn(event)
+                    ParticipantsFilter.LATE -> userWasLate(event)
+                    ParticipantsFilter.AT_TIME -> userWasOnTime(event)
+                }
+            }
+        }
+    }
+
+    val currentTime = remember { Date() }
+    val isBeforeStart = currentTime.before(event.beginTime)
 
     LaunchedEffect(isEditingMode) {
         if (!isEditingMode) {
@@ -129,6 +170,7 @@ fun EventDetailsScreen(
             endDateText = dateFormatter.format(event.endTime)
             endTimeText = timeFormatter.format(event.endTime)
             selectedEventType = event.type
+            eventDescription = event.description
             selectedAuthMethod = event.verificationMethod
             autoCheck = event.autoCheck
         }
@@ -153,9 +195,9 @@ fun EventDetailsScreen(
                 .fillMaxWidth()
                 .background(AppColors().darkGreen)
         ) {
-            ScreenTitleAndSubtitle(eventName = eventName)
+            ScreenTitleAndSubtitle(eventName = eventName, eventDescription = eventDescription)
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(25.dp))
 
             MainContent(
                 eventName = eventName,
@@ -173,15 +215,22 @@ fun EventDetailsScreen(
                 eventTypes = listOf("Online", "Presencial", "Híbrido"),
                 selectedEventType = selectedEventType,
                 onSelectedEventTypeChange = { selectedEventType = it },
+                eventDescription = eventDescription,
+                onDescriptionChange = { eventDescription = it },
                 selectedAuthMethod = selectedAuthMethod,
                 onSelectedAuthMethodChange = { selectedAuthMethod = it },
                 autoCheckInOut = autoCheck,
                 onAutoCheckInOutChange = { autoCheck = it },
                 scrollState = scrollState,
                 isEditingMode = isEditingMode,
+                isBeforeStart = isBeforeStart,
                 onToggleEditing = { isEditingMode = !isEditingMode },
                 selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it }
+                onTabSelected = { selectedTab = it },
+                selectedFilters = selectedFilters,
+                showFilterDialog = showFilterDialog,
+                user = user,
+                participants = filteredParticipants
             )
         }
     }
@@ -247,7 +296,7 @@ fun ScreenHeader(onBack: () -> Unit) {
 }
 
 @Composable
-fun ScreenTitleAndSubtitle(eventName: String) {
+fun ScreenTitleAndSubtitle(eventName: String, eventDescription: String) {
     Text(
         text = eventName,
         fontFamily = AppFonts().montserrat,
@@ -261,11 +310,11 @@ fun ScreenTitleAndSubtitle(eventName: String) {
     Spacer(modifier = Modifier.height(5.dp))
 
     Text(
-        text = "Gerencie e registre presenças em eventos de forma simples e rápida, sem papelada ou complicações.",
+        text = eventDescription,
         fontFamily = AppFonts().montserrat,
         fontWeight = FontWeight.Medium,
         color = AppColors().lightGrey,
-        fontSize = 12.sp,
+        fontSize = 14.sp,
         textAlign = TextAlign.Start,
         modifier = Modifier.padding(horizontal = 30.dp)
     )
@@ -289,15 +338,22 @@ fun MainContent(
     eventTypes: List<String>,
     selectedEventType: String,
     onSelectedEventTypeChange: (String) -> Unit,
+    eventDescription: String,
+    onDescriptionChange: (String) -> Unit,
     selectedAuthMethod: EventVerificationMethod,
     onSelectedAuthMethodChange: (EventVerificationMethod) -> Unit,
     autoCheckInOut: Boolean,
     onAutoCheckInOutChange: (Boolean) -> Unit,
     scrollState: androidx.compose.foundation.ScrollState,
     isEditingMode: Boolean,
+    isBeforeStart: Boolean,
     onToggleEditing: () -> Unit,
     selectedTab: String,
-    onTabSelected: (String) -> Unit
+    onTabSelected: (String) -> Unit,
+    selectedFilters: MutableState<Set<ParticipantsFilter>>,
+    showFilterDialog: MutableState<Boolean>,
+    user: User,
+    participants: List<User>
 ) {
     val customDropdownShape =
         RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
@@ -325,25 +381,29 @@ fun MainContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clickable { onToggleEditing() }
-                    ) {
-                        AppIcons.Outline.EditIcon(
-                            boxSize = 24.dp,
-                            colorIcon = if (isEditingMode) AppColors().green else AppColors().black
-                        )
+                if(user.type == User.UserRole.ADMIN && isBeforeStart) {
+                    if(selectedTab == "Dados") {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clickable { onToggleEditing() }
+                            ) {
+                                AppIcons.Outline.EditIcon(
+                                    boxSize = 24.dp,
+                                    colorIcon = if (isEditingMode) AppColors().green else AppColors().black
+                                )
+                            }
+                        }
                     }
+                }else{
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
-
-                Spacer(modifier = Modifier.height(2.dp))
 
                 when (selectedTab) {
                     "Dados" -> {
@@ -389,6 +449,14 @@ fun MainContent(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
+                        DescriptionField(
+                            description = eventDescription,
+                            onDescriptionChange = onDescriptionChange,
+                            isEditingMode = isEditingMode
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
                         AuthMethodSelection(
                             selectedAuthMethod = selectedAuthMethod,
                             onSelectedAuthMethodChange = onSelectedAuthMethodChange,
@@ -403,32 +471,81 @@ fun MainContent(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        ActionButton(
-                            isEditingMode = isEditingMode,
-                            onSaveClick = {
-                                if (eventName.isEmpty() || startDateText.isEmpty() || endDateText.isEmpty() || startTimeText.isEmpty() || endTimeText.isEmpty() || selectedEventType.isEmpty() || selectedAuthMethod == EventVerificationMethod.NONE) {
-                                    // TODO: não pode opções vazias
-                                } else {
-                                    // TODO: Salvar alterações
+                        if (user.type == User.UserRole.ADMIN && isBeforeStart) {
+                            ActionButton(
+                                isEditingMode = isEditingMode,
+                                onSaveClick = {
+                                    if (eventName.isEmpty() || startDateText.isEmpty() || endDateText.isEmpty() || startTimeText.isEmpty() || endTimeText.isEmpty() || selectedEventType.isEmpty() || selectedAuthMethod == EventVerificationMethod.NONE) {
+                                        // TODO: não pode opções vazias (só descrição e iniciar check-in e check-out auto)
+                                    } else {
+                                        // TODO: Salvar alterações
+                                    }
+                                },
+                                onDeleteClick = {
+                                    // TODO: Perguntar se realmente deseja excluir e deleta-lo
                                 }
-                            },
-                            onDeleteClick = {
-                                // TODO: Perguntar se realmente deseja excluir e deleta-lo
-                            }
-                        )
+                            )
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
                     }
-
                     "Participantes" -> {
-                        Text(
-                            text = "Conteúdo da aba Participantes",
-                            fontFamily = AppFonts().montserrat,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 20.sp,
-                            color = AppColors().black,
-                            modifier = Modifier.padding(top = 50.dp)
-                        )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(0.81f)
+                                .horizontalScroll(rememberScrollState()),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            selectedFilters.value.forEach { filter ->
+                                FilterChip(text = filter.label) {
+                                    selectedFilters.value = selectedFilters.value - filter
+                                }
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth(0.81f)
+                                    .horizontalScroll(rememberScrollState()),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                selectedFilters.value.forEach { filter ->
+                                    FilterChip(text = filter.label) {
+                                        selectedFilters.value = selectedFilters.value - filter
+                                    }
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(end = 0.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .clickable { showFilterDialog.value = true }
+                                        .padding(start = 4.dp)
+                                ) {
+                                    AppIcons.Outline.Filter(24.dp, AppColors().black)
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .clickable { }
+                                ) {
+                                    AppIcons.Outline.FileGenerator(24.dp, AppColors().black)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -662,6 +779,43 @@ fun EventTypeDropdown(
 }
 
 @Composable
+fun DescriptionField(description: String, onDescriptionChange: (String) -> Unit, isEditingMode: Boolean) {
+    OutlinedTextField(
+        value = description,
+        onValueChange = onDescriptionChange,
+        label = {
+            Text(
+                "Descrição do evento",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = AppColors().grey
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 100.dp),
+        textStyle = LocalTextStyle.current.copy(
+            fontFamily = AppFonts().montserrat,
+            fontSize = 14.sp
+        ),
+        shape = RoundedCornerShape(8.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = AppColors().black,
+            unfocusedTextColor = AppColors().black,
+            focusedBorderColor = AppColors().lightGrey,
+            unfocusedBorderColor = AppColors().lightGrey,
+            cursorColor = AppColors().black,
+            disabledTextColor = AppColors().black,
+            disabledBorderColor = AppColors().lightGrey,
+            disabledLabelColor = AppColors().grey
+        ),
+        readOnly = !isEditingMode,
+        maxLines = Int.MAX_VALUE
+    )
+}
+
+@Composable
 fun AuthMethodSelection(
     selectedAuthMethod: EventVerificationMethod,
     onSelectedAuthMethodChange: (EventVerificationMethod) -> Unit,
@@ -754,7 +908,9 @@ fun AutoCheckInOutCheckbox(
     isEditingMode: Boolean
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .offset(y = (-5).dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
@@ -959,6 +1115,26 @@ fun TabRow(
     }
 }
 
+fun userCheckedIn(event: Event): Boolean {
+    return event.checkInTime != null
+}
+
+fun userWasLate(event: Event): Boolean {
+    val checkIn = event.checkInTime
+    val scheduled = event.checkInEnabled
+    return checkIn != null && scheduled != null && checkIn.after(scheduled)
+}
+
+fun userWasOnTime(event: Event): Boolean {
+    val checkIn = event.checkInTime
+    val scheduled = event.checkInEnabled
+    return checkIn != null && scheduled != null && checkIn == scheduled
+}
+
+fun userMissed(event: Event): Boolean {
+    return event.checkInTime == null
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun EventDetailsScreenPreview() {
@@ -971,8 +1147,8 @@ fun EventDetailsScreenPreview() {
         "ABC123",
         true,
         "XYZ789",
-        AppDateHelper().getDate(2025, 2, 25),
-        AppDateHelper().getDate(2025, 2, 25),
+        AppDateHelper().getFullDate(2025, 6, 25, 23, 56, 0),
+        AppDateHelper().getFullDate(2025, 6, 25, 23, 56, 0),
         null,
         null,
         null,
@@ -981,5 +1157,16 @@ fun EventDetailsScreenPreview() {
         listOf()
     )
 
-    EventDetailsScreen(navController = rememberNavController(), event = event)
+    var user = User(
+        0,
+        "Erick Soares",
+        User.UserRole.ADMIN,
+        "teste@teste.com",
+        "12345678900",
+        "Universidade Federal de Viçosa (UFV)",
+        "****",
+        true
+    )
+
+    EventDetailsScreen(navController = rememberNavController(), event = event, user = user)
 }
