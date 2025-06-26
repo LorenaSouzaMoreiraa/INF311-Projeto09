@@ -37,6 +37,8 @@ import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
+import com.example.inf311_projeto09.ui.utils.SnackBarColor
 
 @Composable
 fun UserRoleScreen(
@@ -136,7 +138,14 @@ fun UserRoleScreen(
 
             Button(
                 onClick = {
-                    selectedRole?.let { onRoleSelected(it) }
+                    if (selectedRole != null) {
+                        onRoleSelected(selectedRole!!)
+                    } else {
+                        AppSnackBarManager.showMessage(
+                            "É necessário escolher um tipo de conta",
+                            SnackBarColor.LIGHT_GREEN
+                        )
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppColors().lightGreen,

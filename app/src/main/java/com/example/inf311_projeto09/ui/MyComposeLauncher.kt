@@ -47,6 +47,7 @@ import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
+import com.example.inf311_projeto09.ui.utils.SnackBarColor
 import java.util.Calendar
 
 enum class ScreenType(val route: String) {
@@ -130,19 +131,33 @@ fun AppNavHost(
                 hostState = AppSnackBarManager.snackBarHostState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 32.dp)
+                    .padding(bottom = 100.dp)
             ) { data ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 15.dp, end = 15.dp, bottom = 40.dp)
                 ) {
+                    val backgroundColor = when (AppSnackBarManager.lastMessage?.backgroundColor) {
+                        SnackBarColor.DARK_GREEN -> AppColors().darkGreen.copy(alpha = 0.9f)
+                        SnackBarColor.LIGHT_GREEN -> AppColors().lightGreen.copy(alpha = 0.9f)
+                        SnackBarColor.WHITE -> AppColors().white.copy(alpha = 0.9f)
+                        else -> AppColors().darkGreen.copy(alpha = 0.9f)
+                    }
+
+                    val contentColor = when (AppSnackBarManager.lastMessage?.backgroundColor) {
+                        SnackBarColor.DARK_GREEN -> AppColors().white
+                        SnackBarColor.LIGHT_GREEN -> AppColors().black
+                        SnackBarColor.WHITE -> AppColors().black
+                        else -> AppColors().darkGreen
+                    }
+
                     Snackbar(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp)),
-                        containerColor = AppColors().darkGreen,
-                        contentColor = AppColors().white,
+                        containerColor = backgroundColor,
+                        contentColor = contentColor,
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Text(
@@ -150,7 +165,7 @@ fun AppNavHost(
                             fontFamily = AppFonts().montserrat,
                             fontWeight = FontWeight.Medium,
                             fontSize = 18.sp,
-                            color = AppColors().white,
+                            color = contentColor,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -220,7 +235,6 @@ fun AppNavHost(
             }
 
             composable(ScreenType.USER_ROLE.route) {
-                // TODO: precisa ter uma opção selecionada
                 UserRoleScreen(
                     onBack = {
                         navController.popBackStack()
@@ -236,7 +250,6 @@ fun AppNavHost(
                     backStackEntry.arguments?.getString("userRole")
                         ?.let { User.UserRole.valueOf(it) }
 
-                // TODO: exibir mensagem falando que precisa ter selecionado pelo menos um
                 if (userRole != null) {
                     RegisterScreen(
                         onBack = {
@@ -250,7 +263,7 @@ fun AppNavHost(
                                 }
                             } else {
                                 Log.e("REGISTER", "Registro inválido.")
-                                // TODO: mensagem de erro
+                                AppSnackBarManager.showMessage("Aconteceu um erro ao registrar sua conta")
                             }
                         },
                         onLoginClick = {

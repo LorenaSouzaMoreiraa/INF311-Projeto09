@@ -103,9 +103,8 @@ fun RegisterScreen(
     val annotatedTermsAndPrivacy = buildAnnotatedString {
         append("Ao prosseguir, você declara estar de acordo com os ")
 
-        // TODO: mudar link dos termos de uso
         val terms = LinkAnnotation.Url(
-            "https://github.com/LorenaSouzaMoreiraa/INF311-Projeto09",
+            "https://github.com/LorenaSouzaMoreiraa/INF311-Projeto09/blob/main/app/docs/Termos%20de%20Uso.pdf",
             TextLinkStyles(
                 style = SpanStyle(textDecoration = TextDecoration.Underline),
             )
@@ -115,7 +114,7 @@ fun RegisterScreen(
         append(" e a ")
 
         val privacy = LinkAnnotation.Url(
-            "https://github.com/LorenaSouzaMoreiraa/INF311-Projeto09",
+            "https://github.com/LorenaSouzaMoreiraa/INF311-Projeto09/blob/main/app/docs/Pol%C3%ADtica%20de%20Privacidade.pdf",
             TextLinkStyles(
                 style = SpanStyle(textDecoration = TextDecoration.Underline),
             )

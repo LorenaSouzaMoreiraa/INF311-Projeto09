@@ -71,9 +71,8 @@ fun LoginScreen(
     val annotated = buildAnnotatedString {
         append("Ao prosseguir, você declara estar de acordo com os ")
 
-        // TODO: arrumar o link
         val terms = LinkAnnotation.Url(
-            "https://drive.google.com/file/d/1f6FtKPt5RYfNIsRt_sFtdIsvZPsDdvew/view?usp=sharing",
+            "https://github.com/LorenaSouzaMoreiraa/INF311-Projeto09/blob/main/app/docs/Termos%20de%20Uso.pdf",
             TextLinkStyles(
                 style = SpanStyle(textDecoration = TextDecoration.Underline),
             )
@@ -82,9 +81,8 @@ fun LoginScreen(
 
         append(" e a ")
 
-        // TODO: arrumar o link
         val privacy = LinkAnnotation.Url(
-            "https://drive.google.com/file/d/1tz8EMVy_2NkTkMbRLaMbDboMYKOwGRws/view?usp=sharing",
+            "https://github.com/LorenaSouzaMoreiraa/INF311-Projeto09/blob/main/app/docs/Pol%C3%ADtica%20de%20Privacidade.pdf",
             TextLinkStyles(
                 style = SpanStyle(textDecoration = TextDecoration.Underline),
             )
