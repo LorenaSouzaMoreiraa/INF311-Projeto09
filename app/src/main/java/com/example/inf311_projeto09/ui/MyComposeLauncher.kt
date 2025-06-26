@@ -29,6 +29,7 @@ import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.User
+import com.example.inf311_projeto09.ui.screens.EventDetailsScreen
 import com.example.inf311_projeto09.ui.screens.EventsScreen
 import com.example.inf311_projeto09.ui.screens.HomeScreen
 import com.example.inf311_projeto09.ui.screens.LoginScreen
@@ -64,7 +65,8 @@ enum class ScreenType(val route: String) {
     VERIFICATION_CODE("verification_code"),
     RECOVER_PASSWORD("recover_password"),
     EDIT_PROFILE("edit_profile"),
-    REGISTER_EVENT("register_event")
+    REGISTER_EVENT("register_event"),
+    EVENT_DETAILS("event_details")
 }
 
 val notificationsMock = NotificationsMock()
@@ -326,8 +328,32 @@ fun AppNavHost(
                     EventsScreen(
                         user = nonNullUser,
                         allEvents = userEvents,
-                        navController = navController
+                        navController = navController,
+                        onEventDetails = { event ->
+                            navController.navigate("${ScreenType.EVENT_DETAILS.route}/${event.course}")
+                        }
                     )
+                } ?: run {
+                    setRememberedEmail(activity, "")
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+
+            composable("${ScreenType.EVENT_DETAILS.route}/{event}") { backStackEntry ->
+                val courseId = backStackEntry.arguments?.getString("event")?.toIntOrNull()
+                val selectedEvent = userEvents.find { it.course == courseId }
+
+                user?.let { nonNullUser ->
+                    if (selectedEvent != null) {
+                        EventDetailsScreen(
+                            user = nonNullUser,
+                            event = selectedEvent,
+                            navController = navController
+                        )
+                    }
                 } ?: run {
                     setRememberedEmail(activity, "")
                     navController.navigate(ScreenType.LOGIN.route) {

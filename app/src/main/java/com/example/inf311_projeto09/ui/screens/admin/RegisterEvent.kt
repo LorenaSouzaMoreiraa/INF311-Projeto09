@@ -356,7 +356,7 @@ fun MainContent(
                 val event = Event(
                     0,
                     eventName,
-                    "",
+                    eventDescription,
                     selectedEventType,
                     selectedAuthMethod,
                     EventAuthenticationHelper.generateCheckCode(selectedAuthMethod),

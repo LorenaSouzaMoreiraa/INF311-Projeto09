@@ -158,6 +158,14 @@ public final class RubeusApi {
         return helper.executeRequest(helper.listUserEventsCall(userId), toCustomList, List::of);
     }
 
+    public static Event getUserEvent(final int userId, final int courseId) {
+        final List<Event> events = listUserEvents(userId);
+        return events.stream()
+                .filter(e -> e.getCourse() == courseId)
+                .findFirst()
+                .orElse(null);
+    }
+
     public static Boolean enableCheckIn(final int userId, final Event event, final String checkInTime) {
         event.setCheckInEnabled(parseIsoDate(checkInTime));
         final Boolean result = helper.executeRequest(helper.enableCheckInCall(userId, event.getCourse(), checkInTime));

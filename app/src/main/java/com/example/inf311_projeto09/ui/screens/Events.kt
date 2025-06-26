@@ -65,12 +65,13 @@ enum class EventFilter(val label: String) {
 fun EventsScreen(
     user: User,
     allEvents: List<Event> = emptyList(),
-    navController: NavHostController
+    navController: NavHostController,
+    onEventDetails: (Event) -> Unit = {}
 ) {
     val selectedFilters = remember { mutableStateOf(setOf<EventFilter>()) }
     val showFilterDialog = remember { mutableStateOf(false) }
 
-    EventsContent(user, navController, allEvents, selectedFilters, showFilterDialog)
+    EventsContent(user, navController, allEvents, selectedFilters, showFilterDialog, onEventDetails)
 }
 
 @Composable
@@ -79,7 +80,8 @@ fun EventsContent(
     navController: NavHostController,
     allEvents: List<Event>,
     selectedFilters: MutableState<Set<EventFilter>>,
-    showFilterDialog: MutableState<Boolean>
+    showFilterDialog: MutableState<Boolean>,
+    onEventDetails: (Event) -> Unit = {}
 ) {
     val helper = AppDateHelper()
 
@@ -205,7 +207,7 @@ fun EventsContent(
                         )
                     } else {
                         filteredEvents.forEach { event ->
-                            EventCard(event)
+                            EventCard(event, onEventDetails)
                             Spacer(modifier = Modifier.height(3.dp))
                         }
                     }
@@ -256,7 +258,7 @@ fun FilterChip(text: String, onRemove: () -> Unit) {
 @Composable
 fun EventCard(
     event: Event,
-    onEventDetails: () -> Unit = {}
+    onEventDetails: (Event) -> Unit = {}
 ) {
     val currentEvent = event.eventStage == Event.EventStage.CURRENT
     val backgroundColor = if (currentEvent) AppColors().darkGreen else AppColors().white
@@ -329,7 +331,7 @@ fun EventCard(
                 color = seeMoreColor,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
-                    .clickable { onEventDetails() }
+                    .clickable { onEventDetails(event) }
                     .padding(0.dp)
             )
         }

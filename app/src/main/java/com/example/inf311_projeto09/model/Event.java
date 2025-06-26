@@ -29,12 +29,12 @@ public class Event {
                  final List<String> participants) {
         this.course = course;
         this.title = title;
-        this.description = description;
+        this.description = description == null ? "" : description;
         this.type = type;
         this.verificationMethod = verificationMethod;
         this.checkInCode = checkInCode;
         this.autoCheck = autoCheck;
-        this.location = location;
+        this.location = location == null ? "" : location;
         this.beginTime = beginTime;
         this.endTime = endTime;
         this.checkInEnabled = checkInEnabled;
