@@ -30,6 +30,7 @@ import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.screens.CheckRoomScreen
+import com.example.inf311_projeto09.ui.screens.EventDetailsScreen
 import com.example.inf311_projeto09.ui.screens.EventsScreen
 import com.example.inf311_projeto09.ui.screens.HomeScreen
 import com.example.inf311_projeto09.ui.screens.LoginScreen
@@ -67,6 +68,8 @@ enum class ScreenType(val route: String) {
     EDIT_PROFILE("edit_profile"),
     REGISTER_EVENT("register_event"),
     CHECK_OUT("check_out")
+    REGISTER_EVENT("register_event"),
+    EVENT_DETAILS("event_details")
 }
 
 val notificationsMock = NotificationsMock()

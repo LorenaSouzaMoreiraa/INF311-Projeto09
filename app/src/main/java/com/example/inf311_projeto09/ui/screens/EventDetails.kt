@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -48,11 +49,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,6 +66,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.Event.EventVerificationMethod
@@ -134,7 +142,13 @@ fun EventDetailsScreen(
     var startTimeText by remember { mutableStateOf(timeFormatter.format(event.beginTime)) }
     var endDateText by remember { mutableStateOf(dateFormatter.format(event.endTime)) }
     var endTimeText by remember { mutableStateOf(timeFormatter.format(event.endTime)) }
-    var participants by remember { mutableStateOf(event.participants.toList()) }
+    val participants by remember { mutableStateOf(event.participants.toList()) }
+    val users = participants.mapNotNull { email ->
+        RubeusApi.searchUserByEmail(email)
+    }
+    // TODO: para cada usuario pegar o id (users[i].id) e o course (event.course)
+    // ai dessa forma vc ja tem os usuarios e consegue fazer o get desse evento específico
+    // RubeusApi.getUserEvent(, event.course)
 
     var isEditingMode by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Dados") }
@@ -143,10 +157,6 @@ fun EventDetailsScreen(
     val showFilterDialog = remember { mutableStateOf(false) }
 
     val filteredParticipants = remember(participants, selectedFilters.value) {
-        val users = participants.mapNotNull { email ->
-            RubeusApi.searchUserByEmail(email)
-        }
-
         users.filter { _ ->
             selectedFilters.value.all { filter ->
                 when (filter) {
@@ -320,7 +330,6 @@ fun ScreenTitleAndSubtitle(eventName: String, eventDescription: String) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent(
     eventName: String,
@@ -547,9 +556,64 @@ fun MainContent(
                                 }
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        participants
+                            .forEach { participant ->
+                                ParticipantItem(participant)
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun ParticipantItem(participant: User) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(participant.imageUrl)
+                .crossfade(true)
+                .crossfade(300)
+                .build(),
+            contentDescription = "Foto do usuário",
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.profile_image),
+            error = painterResource(R.drawable.profile_image),
+            modifier = Modifier
+                .size(50.dp)
+                .clip(CircleShape)
+        )
+        Column(
+            modifier = Modifier
+                .padding(start = 10.dp),
+        ) {
+            Text(
+                text = participant.name,
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors().black,
+                fontSize = 20.sp
+            )
+
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Text(
+                text = participant.school,
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                color = AppColors().lightBlack,
+                fontSize = 12.sp
+            )
         }
     }
 }
