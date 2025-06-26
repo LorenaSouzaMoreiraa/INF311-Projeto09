@@ -167,6 +167,19 @@ class AppDateHelper {
         return calendar.time
     }
 
+    fun getFullDate(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int): Date {
+        val calendar = Calendar.getInstance()
+        calendar[Calendar.YEAR] = year
+        calendar[Calendar.MONTH] = month
+        calendar[Calendar.DAY_OF_MONTH] = day
+
+        calendar[Calendar.HOUR_OF_DAY] = hour
+        calendar[Calendar.MINUTE] = minute
+        calendar[Calendar.SECOND] = second
+        calendar[Calendar.MILLISECOND] = 0
+        return calendar.time
+    }
+
     fun getEventsForDate(events: List<Event>, date: Date): List<Event> {
         val cal1 = Calendar.getInstance().apply { time = date }
 

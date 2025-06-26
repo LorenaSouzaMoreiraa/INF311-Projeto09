@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,6 +34,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -82,6 +84,7 @@ fun RegisterEventScreen(
     var eventTypeExpanded by remember { mutableStateOf(false) }
     val eventTypes = listOf("Online", "Presencial", "Híbrido")
     var selectedEventType by remember { mutableStateOf("") }
+    var eventDescription by remember { mutableStateOf("") }
     var selectedAuthMethod by remember { mutableStateOf(Event.EventVerificationMethod.NONE) }
     var autoCheckInOut by remember { mutableStateOf(false) }
     var emailsImported by remember { mutableStateOf(listOf<String>()) }
@@ -140,6 +143,8 @@ fun RegisterEventScreen(
                 eventTypes = eventTypes,
                 selectedEventType = selectedEventType,
                 onSelectedEventTypeChange = { selectedEventType = it },
+                eventDescription = eventDescription,
+                onDescriptionChange = { eventDescription = it },
                 selectedAuthMethod = selectedAuthMethod,
                 onSelectedAuthMethodChange = { selectedAuthMethod = it },
                 autoCheckInOut = autoCheckInOut,
@@ -254,6 +259,8 @@ fun MainContent(
     eventTypes: List<String>,
     selectedEventType: String,
     onSelectedEventTypeChange: (String) -> Unit,
+    eventDescription: String,
+    onDescriptionChange: (String) -> Unit,
     selectedAuthMethod: Event.EventVerificationMethod,
     onSelectedAuthMethodChange: (Event.EventVerificationMethod) -> Unit,
     autoCheckInOut: Boolean,
@@ -313,6 +320,13 @@ fun MainContent(
                 selectedEventType = selectedEventType,
                 onSelectedEventTypeChange = onSelectedEventTypeChange,
                 customDropdownShape = customDropdownShape
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            DescriptionField(
+                description = eventDescription,
+                onDescriptionChange = onDescriptionChange
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -563,6 +577,42 @@ fun EventTypeDropdown(
             }
         }
     }
+}
+
+@Composable
+fun DescriptionField(description: String, onDescriptionChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = description,
+        onValueChange = onDescriptionChange,
+        label = {
+            Text(
+                "Descrição do evento",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = AppColors().grey
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 100.dp),
+        textStyle = LocalTextStyle.current.copy(
+            fontFamily = AppFonts().montserrat,
+            fontSize = 14.sp
+        ),
+        shape = RoundedCornerShape(8.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = AppColors().black,
+            unfocusedTextColor = AppColors().black,
+            focusedBorderColor = AppColors().lightGrey,
+            unfocusedBorderColor = AppColors().lightGrey,
+            cursorColor = AppColors().black,
+            disabledTextColor = AppColors().black,
+            disabledBorderColor = AppColors().lightGrey,
+            disabledLabelColor = AppColors().grey
+        ),
+        maxLines = Int.MAX_VALUE
+    )
 }
 
 @Composable
