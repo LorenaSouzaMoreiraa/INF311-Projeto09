@@ -29,6 +29,7 @@ import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.User
+import com.example.inf311_projeto09.ui.screens.CheckRoomScreen
 import com.example.inf311_projeto09.ui.screens.EventsScreen
 import com.example.inf311_projeto09.ui.screens.HomeScreen
 import com.example.inf311_projeto09.ui.screens.LoginScreen
@@ -64,7 +65,8 @@ enum class ScreenType(val route: String) {
     VERIFICATION_CODE("verification_code"),
     RECOVER_PASSWORD("recover_password"),
     EDIT_PROFILE("edit_profile"),
-    REGISTER_EVENT("register_event")
+    REGISTER_EVENT("register_event"),
+    CHECK_OUT("check_out")
 }
 
 val notificationsMock = NotificationsMock()
@@ -417,6 +419,14 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 }
+            }
+            composable(ScreenType.CHECK_OUT.route) {
+                CheckRoomScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    navController = navController
+                )
             }
         }
     }
