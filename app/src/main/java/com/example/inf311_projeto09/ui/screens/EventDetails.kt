@@ -25,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -38,6 +39,7 @@ import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -79,6 +81,7 @@ import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -240,7 +243,8 @@ fun EventDetailsScreen(
                 selectedFilters = selectedFilters,
                 showFilterDialog = showFilterDialog,
                 user = user,
-                participants = filteredParticipants
+                participants = filteredParticipants,
+                event = event
             )
         }
     }
@@ -362,10 +366,13 @@ fun MainContent(
     selectedFilters: MutableState<Set<ParticipantsFilter>>,
     showFilterDialog: MutableState<Boolean>,
     user: User,
-    participants: List<User>
+    participants: List<User>,
+    event: Event
 ) {
     val customDropdownShape =
         RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
+
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -484,14 +491,98 @@ fun MainContent(
                             ActionButton(
                                 isEditingMode = isEditingMode,
                                 onSaveClick = {
-                                    if (eventName.isEmpty() || startDateText.isEmpty() || endDateText.isEmpty() || startTimeText.isEmpty() || endTimeText.isEmpty() || selectedEventType.isEmpty() || selectedAuthMethod == EventVerificationMethod.NONE) {
-                                        // TODO: não pode opções vazias (só descrição e iniciar check-in e check-out auto)
-                                    } else {
-                                        // TODO: Salvar alterações
+                                    val now = Date()
+
+                                    when {
+                                        eventName.isEmpty() -> {
+                                            AppSnackBarManager.showMessage("O campo 'Nome do evento' é obrigatório")
+                                            return@ActionButton
+                                        }
+
+                                        startDateText.isEmpty() -> {
+                                            AppSnackBarManager.showMessage("O campo 'Data início' é obrigatório")
+                                            return@ActionButton
+                                        }
+
+                                        startTimeText.isEmpty() -> {
+                                            AppSnackBarManager.showMessage("O campo 'Hora início' é obrigatório")
+                                            return@ActionButton
+                                        }
                                     }
+
+                                    val beginTime =
+                                        AppDateHelper().getDateByDateStringAndTimeString(
+                                            startDateText,
+                                            startTimeText
+                                        )
+                                    if (beginTime.before(now)) {
+                                        AppSnackBarManager.showMessage("A data e hora de início devem ser futuras")
+                                        return@ActionButton
+                                    }
+
+                                    when {
+                                        endDateText.isEmpty() -> {
+                                            AppSnackBarManager.showMessage("O campo 'Data fim' é obrigatório")
+                                            return@ActionButton
+                                        }
+
+                                        endTimeText.isEmpty() -> {
+                                            AppSnackBarManager.showMessage("O campo 'Hora fim' é obrigatório")
+                                            return@ActionButton
+                                        }
+                                    }
+
+                                    val endTime =
+                                        AppDateHelper().getDateByDateStringAndTimeString(
+                                            endDateText,
+                                            endTimeText
+                                        )
+                                    if (endTime.before(now)) {
+                                        AppSnackBarManager.showMessage("A data e hora de término devem ser futuras")
+                                        return@ActionButton
+                                    }
+
+                                    when {
+                                        !endTime.after(beginTime) -> {
+                                            AppSnackBarManager.showMessage("A data e hora de término devem ser posteriores à data e hora de início")
+                                            return@ActionButton
+                                        }
+
+                                        selectedEventType.isEmpty() -> {
+                                            AppSnackBarManager.showMessage("O campo 'Tipo de evento' é obrigatório")
+                                            return@ActionButton
+                                        }
+
+                                        selectedAuthMethod == EventVerificationMethod.NONE -> {
+                                            AppSnackBarManager.showMessage("O campo 'Método de autenticação' é obrigatório")
+                                            return@ActionButton
+                                        }
+                                    }
+
+                                    if (event.title == eventName &&
+                                        event.beginTime == beginTime &&
+                                        event.endTime == endTime &&
+                                        event.type == selectedEventType &&
+                                        event.description == eventDescription &&
+                                        event.verificationMethod == selectedAuthMethod &&
+                                        event.autoCheck == autoCheckInOut
+                                    ) {
+                                        onToggleEditing()
+                                        return@ActionButton
+                                    }
+
+                                    event.title = eventName
+                                    event.beginTime = beginTime
+                                    event.endTime = endTime
+                                    event.type = selectedEventType
+                                    event.description = eventDescription
+                                    event.verificationMethod = selectedAuthMethod
+                                    event.autoCheck = autoCheckInOut
+                                    RubeusApi.updateEvent(user.id, event)
+                                    onToggleEditing()
                                 },
                                 onDeleteClick = {
-                                    // TODO: Perguntar se realmente deseja excluir e deleta-lo
+                                    showConfirmDialog = true
                                 }
                             )
 
@@ -569,6 +660,60 @@ fun MainContent(
             }
         }
     }
+
+    if (showConfirmDialog) {
+        ConfirmEnableCheckDialog(
+            onConfirm = {
+                showConfirmDialog = false
+                // TODO: fazer na api da rubeus a deleção
+            },
+            onDismiss = {
+                showConfirmDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun ConfirmEnableCheckDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    text = "Sim",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "Não",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        text = {
+            Text(
+                text = "Realmente deseja excluir o evento? Essa ação é irreversível.",
+                color = AppColors().darkGreen,
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
+            )
+        },
+        containerColor = AppColors().white
+    )
 }
 
 @Composable

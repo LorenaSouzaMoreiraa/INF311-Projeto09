@@ -58,7 +58,6 @@ enum class EventFilter(val label: String) {
     PREVIOUS_YEARS("Nos anos anteriores")
 }
 
-// TODO: fixar evento atual no topo
 // TODO: gerar arquivo de saída
 
 @Composable
@@ -86,7 +85,7 @@ fun EventsContent(
     val helper = AppDateHelper()
 
     val filteredEvents = remember(allEvents, selectedFilters.value) {
-        if (selectedFilters.value.isEmpty()) {
+        val filtered = if (selectedFilters.value.isEmpty()) {
             allEvents
         } else {
             allEvents.filter { event ->
@@ -111,6 +110,11 @@ fun EventsContent(
                 }
             }
         }
+
+        filtered.sortedWith(
+            compareByDescending<Event> { it.eventStage == Event.EventStage.CURRENT }
+                .thenByDescending { it.beginTime }
+        )
     }
 
     Box(

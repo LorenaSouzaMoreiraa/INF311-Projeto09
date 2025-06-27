@@ -115,6 +115,61 @@ public final class RubeusApi {
         return helper.executeRequest(helper.searchUserByEmailCall(email), toUser, () -> null);
     }
 
+    public static User searchUserByCpf(final String cpf) {
+        final Function<List<User.RawUserResponse>, User> toUser = users -> users.stream()
+                .filter(user -> cpf.equals(user.cpf()))
+                .map(user -> {
+                    final List<Object> customFields = user.camposPersonalizados();
+
+                    final String email = (String) ((Map<String, Object>) user.emails().get("principal")).get("email");
+                    final String password = customFields.stream()
+                            .filter(field -> RubeusFields.UserAccount.PASSWORD.getIdentifier()
+                                    .equals(((Map<String, Object>) field).get("coluna")))
+                            .map(field -> (String) ((Map<String, Object>) field).get("valor"))
+                            .collect(Collectors.toList())
+                            .get(0);
+                    final String userRole = customFields.stream()
+                            .filter(field -> RubeusFields.UserAccount.TYPE.getIdentifier()
+                                    .equals(((Map<String, Object>) field).get("coluna")))
+                            .map(field -> (String) ((Map<String, Object>) field).get("valor"))
+                            .collect(Collectors.toList())
+                            .get(0);
+                    final String enableNotifications = customFields.stream()
+                            .filter(field -> RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier()
+                                    .equals(((Map<String, Object>) field).get("coluna")))
+                            .map(field -> (String) ((Map<String, Object>) field).get("valor"))
+                            .collect(Collectors.toList())
+                            .get(0);
+                    final List<String> notificationsString = customFields.stream()
+                            .filter(field -> RubeusFields.UserAccount.NOTIFICATIONS.getIdentifier()
+                                    .equals(((Map<String, Object>) field).get("coluna")))
+                            .map(field -> (List<String>) ((Map<String, Object>) field).get("valor"))
+                            .collect(Collectors.toList())
+                            .get(0);
+
+                    final List<Notification> notifications = notificationsString != null
+                            ? notificationsString.stream()
+                            .map(Notification::new).
+                            collect(Collectors.toList())
+                            : new ArrayList<>();
+                    notifications.sort(Comparator.comparing(Notification::getNotificationTime).reversed());
+
+                    return new User(Integer.parseInt(user.id()),
+                            user.nome(),
+                            userRole.equals("User") ? User.UserRole.USER : User.UserRole.ADMIN,
+                            email,
+                            cpf,
+                            user.escolaOrigem(),
+                            password,
+                            "1".equals(enableNotifications),
+                            user.imagem(),
+                            notifications);
+                })
+                .collect(Collectors.toList()).get(0);
+
+        return helper.executeRequest(helper.searchUserByCpfCall(cpf), toUser, () -> null);
+    }
+
     private static Boolean registerOffer(final String eventName, final String timestamp, final String eventType, final String school) {
         return helper.executeRequest(helper.registerOfferCall(eventName, timestamp, eventType, school));
     }
@@ -191,6 +246,19 @@ public final class RubeusApi {
                 .filter(e -> e.getCourse() == courseId)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public static Boolean updateEvent(final int userId, final Event event) {
+        final Boolean result = helper.executeRequest(helper.updateEventCall(userId, event.getCourse(), event));
+
+        event.getParticipants().forEach(participantEmail -> {
+            final User participant = searchUserByEmail(participantEmail);
+            if (participant != null) {
+                helper.executeRequest(helper.updateEventCall(participant.getId(), event.getCourse(), event));
+            }
+        });
+
+        return result;
     }
 
     public static Boolean enableCheckIn(final int userId, final Event event, final String checkInTime) {

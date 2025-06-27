@@ -40,6 +40,9 @@ interface RubeusService {
     Call<ApiResponse<Object>> registerEvent(@Body Map<String, Object> body);
 
     @POST("Evento/cadastro")
+    Call<ApiResponse<Object>> updateEvent(@Body Map<String, Object> body);
+
+    @POST("Evento/cadastro")
     Call<ApiResponse<Object>> enableCheckIn(@Body Map<String, Object> body);
 
     @POST("Evento/cadastro")

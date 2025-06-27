@@ -196,6 +196,15 @@ final class RubeusApiHelper {
         return this.service.searchUserByEmail(body);
     }
 
+    public Call<ApiResponse<List<User.RawUserResponse>>> searchUserByCpfCall(final String cpf) {
+        final Map<String, Object> body = this.defaultBody();
+
+        body.put("camposRetorno", this.getUserFieldsReturn());
+        body.put("cpf", cpf);
+
+        return this.service.searchUserByEmail(body);
+    }
+
     public Call<ApiResponse<Object>> registerOfferCall(final String eventName, final String timestamp, final String eventType, final String school) {
         final Map<String, Object> body = this.defaultBody();
 
@@ -271,6 +280,26 @@ final class RubeusApiHelper {
         body.put("camposRetorno", List.of("curso", "processoNome", "etapaNome", customFields));
 
         return this.service.listUserEvents(body);
+    }
+
+    public Call<ApiResponse<Object>> updateEventCall(final int userId, final int courseId, final Event event) {
+        final Map<String, Object> body = this.defaultBody();
+        final Map<String, Object> customFields = new HashMap<>();
+
+        customFields.put(RubeusFields.UserEvent.TITLE.getIdentifier(), event.getTitle());
+        customFields.put(RubeusFields.UserEvent.BEGIN_TIME.getIdentifier(), this.formatDate(event.getBeginTime()));
+        customFields.put(RubeusFields.UserEvent.END_TIME.getIdentifier(), this.formatDate(event.getEndTime()));
+        customFields.put(RubeusFields.UserEvent.TYPE.getIdentifier(), event.getType());
+        customFields.put(RubeusFields.UserEvent.DESCRIPTION.getIdentifier(), event.getDescription());
+        customFields.put(RubeusFields.UserEvent.VERIFICATION_TYPE.getIdentifier(), event.getVerificationMethod().getIdentifier());
+        customFields.put(RubeusFields.UserEvent.AUTO_CHECK.getIdentifier(), event.getAutoCheck() ? "1" : "0");
+
+        body.put("tipo", 121);
+        body.put("pessoa", Map.of("id", userId));
+        body.put("curso", courseId);
+        body.put(CAMPOS_PERSONALIZADOS, customFields);
+
+        return this.service.updateEvent(body);
     }
 
     public Call<ApiResponse<Object>> enableCheckInCall(final int userId, final int courseId, final String checkInTime) {

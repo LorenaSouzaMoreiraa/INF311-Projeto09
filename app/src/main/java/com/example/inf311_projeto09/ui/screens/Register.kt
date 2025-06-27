@@ -532,13 +532,14 @@ fun validateRegister(
     cpf: String,
     userRole: User.UserRole
 ): Boolean? {
-    // TODO: ver se ja tem esse email e cpf
     when {
         cpf.isEmpty() -> AppSnackBarManager.showMessage("O campo 'CPF' é obrigatório")
         !UserHelper.validateCPF(cpf) -> AppSnackBarManager.showMessage("Insira um CPF válido")
+        RubeusApi.searchUserByCpf(cpf) != null -> AppSnackBarManager.showMessage("CPF já cadastrado")
         name.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Nome completo' é obrigatório")
         school.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Instituição de Ensino' é obrigatório")
         email.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Email' é obrigatório")
+        RubeusApi.searchUserByEmail(email) != null -> AppSnackBarManager.showMessage("Email já cadastrado")
         password.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Senha' é obrigatório")
         confirmPassword.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Confirme a senha' é obrigatório")
         password != confirmPassword -> AppSnackBarManager.showMessage("O campo 'Senha' e 'Confirme a senha' precisam ser iguais")

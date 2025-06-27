@@ -27,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
+import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.screens.CheckRoomScreen
 import com.example.inf311_projeto09.ui.screens.EventDetailsScreen
@@ -452,13 +453,17 @@ fun AppNavHost(
             }
 
             composable(ScreenType.CHECK_OUT.route) {
-                CheckRoomScreen(
-                    event = todayEvents[0], // TODO: corrigir, passar o current event
-                    onBack = {
-                        navController.popBackStack()
-                    },
-                    navController = navController
-                )
+                val currentEvent = todayEvents.find { it.eventStage == Event.EventStage.CURRENT }
+
+                currentEvent?.let { nonNullCurrentEvent ->
+                    CheckRoomScreen(
+                        event = nonNullCurrentEvent,
+                        onBack = {
+                            navController.popBackStack()
+                        },
+                        navController = navController
+                    )
+                }
             }
         }
     }
