@@ -70,6 +70,7 @@ import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
 import kotlinx.coroutines.delay
 import java.util.Date
 import java.util.Locale
@@ -90,6 +91,8 @@ fun EventCard(
     val backgroundCardColor = if (isCurrentEvent) AppColors().darkGreen else AppColors().transparent
     val titleColor = if (isCurrentEvent) AppColors().white else AppColors().darkGreen
     val subtitleColor = if (isCurrentEvent) AppColors().lightGrey else AppColors().grey
+
+    var showConfirmDialog by remember { mutableStateOf(false to "") }
 
     Card(
         modifier = modifier
@@ -144,12 +147,11 @@ fun EventCard(
                     isAdminHome = isAdminHome,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        handleCheckInClick(
-                            event,
-                            user,
-                            isAdminHome,
-                            navController
-                        )
+                        if (isAdminHome && event.checkInEnabled == null && isCurrentEvent) {
+                            showConfirmDialog = true to CHECK_IN
+                        } else if (!isAdminHome) {
+                            handleCheckInClick(event, navController)
+                        }
                     }
                 )
 
@@ -162,12 +164,15 @@ fun EventCard(
                     isAdminHome = isAdminHome,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        handleCheckOutClick(
-                            event,
-                            user,
-                            isAdminHome,
-                            navController
-                        )
+                        if (isAdminHome && isCurrentEvent) {
+                            if (event.checkInEnabled == null) {
+                                AppSnackBarManager.showMessage("É necessário realizar o check-in antes")
+                            } else if (event.checkOutEnabled == null) {
+                                showConfirmDialog = true to CHECK_OUT
+                            }
+                        } else if (!isAdminHome) {
+                            handleCheckOutClick(event, navController)
+                        }
                     }
                 )
             }
@@ -200,6 +205,62 @@ fun EventCard(
             )
         }
     }
+
+    if (showConfirmDialog.first) {
+        ConfirmEnableCheckDialog(
+            checkType = showConfirmDialog.second,
+            onConfirm = {
+                handleEnableCheckClick(event, user, showConfirmDialog.second)
+                showConfirmDialog = false to ""
+            },
+            onDismiss = {
+                showConfirmDialog = false to ""
+            }
+        )
+    }
+}
+
+@Composable
+fun ConfirmEnableCheckDialog(
+    checkType: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    text = "Sim",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "Não",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        text = {
+            Text(
+                text = "Deseja habilitar o $checkType?",
+                color = AppColors().darkGreen,
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
+            )
+        },
+        containerColor = AppColors().white
+    )
 }
 
 @Composable
@@ -402,36 +463,24 @@ fun saveBitmapToGallery(context: Context, bitmap: Bitmap, filename: String) {
 
 fun handleCheckInClick(
     event: Event,
-    user: User,
-    isAdminHome: Boolean,
     navController: NavHostController
 ) {
     val now = Date()
 
-    if (isAdminHome) {
-        handleEnableCheckClick(event, user, CHECK_IN)
-    } else {
-        val canCheckIn =
-            event.checkInEnabled != null && event.checkInTime == null && now >= event.checkInEnabled
-        handleCheckClick(CHECK_IN, canCheckIn, event.verificationMethod, navController)
-    }
+    val canCheckIn =
+        event.checkInEnabled != null && event.checkInTime == null && now >= event.checkInEnabled
+    handleCheckClick(CHECK_IN, canCheckIn, event.verificationMethod, navController)
 }
 
 fun handleCheckOutClick(
     event: Event,
-    user: User,
-    isAdminHome: Boolean,
     navController: NavHostController
 ) {
     val now = Date()
 
-    if (isAdminHome) {
-        handleEnableCheckClick(event, user, CHECK_OUT)
-    } else {
-        val canCheckOut =
-            event.checkOutEnabled != null && event.checkInTime != null && event.checkOutTime == null && now >= event.checkOutEnabled
-        handleCheckClick(CHECK_OUT, canCheckOut, event.verificationMethod, navController)
-    }
+    val canCheckOut =
+        event.checkOutEnabled != null && event.checkInTime != null && event.checkOutTime == null && now >= event.checkOutEnabled
+    handleCheckClick(CHECK_OUT, canCheckOut, event.verificationMethod, navController)
 }
 
 fun handleEnableCheckClick(
@@ -439,7 +488,6 @@ fun handleEnableCheckClick(
     user: User,
     checkType: String
 ) {
-    // TODO: confirmar se quer fazer a ação e exibir mensagens, check-out só depois de check-in...
     if (checkType == CHECK_IN && event.checkInEnabled == null) {
         RubeusApi.enableCheckIn(user.id, event, AppDateHelper().getCurrentCompleteTime())
     } else if (checkType == CHECK_OUT && event.checkInEnabled != null && event.checkOutEnabled == null) {
@@ -857,7 +905,15 @@ fun SeeEventsCard(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(15.dp)
-                .clickable { /* TODO: navController.navigate(ScreenType.EVENTS?.route) */ },
+                .clickable {
+                    navController.navigate(ScreenType.EVENTS.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                    }
+                },
             contentAlignment = Alignment.BottomStart
         ) {
             Text(

@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 
 public final class RubeusApi {
 
+    // TODO: colocar tela de carregando durante todas essas operações
+
     private static final RubeusApiHelper helper = new RubeusApiHelper();
 
     private RubeusApi() {
@@ -159,6 +161,8 @@ public final class RubeusApi {
                     final Date beginTime = parseIsoDate(customFields.get(RubeusFields.UserEvent.BEGIN_TIME.getIdentifier()));
                     final Date endTime = parseIsoDate(customFields.get(RubeusFields.UserEvent.END_TIME.getIdentifier()));
 
+                    final List<String> participants = (List<String>) customFields.get(RubeusFields.UserEvent.PARTICIPANTS.getIdentifier());
+
                     return new Event(event.curso(),
                             (String) customFields.get(RubeusFields.UserEvent.TITLE.getIdentifier()),
                             (String) customFields.get(RubeusFields.UserEvent.DESCRIPTION.getIdentifier()),
@@ -174,7 +178,7 @@ public final class RubeusApi {
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_IN_TIME.getIdentifier())),
                             parseIsoDate(customFields.get(RubeusFields.UserEvent.CHECK_OUT_TIME.getIdentifier())),
                             calculateEventStage(beginTime, endTime),
-                            (List<String>) customFields.get(RubeusFields.UserEvent.PARTICIPANTS.getIdentifier()));
+                            participants == null ? List.of() : participants);
                 })
                 .collect(Collectors.toList());
 

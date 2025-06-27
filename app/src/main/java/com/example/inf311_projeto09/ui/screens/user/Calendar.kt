@@ -227,7 +227,7 @@ fun CalendarScreen(
                 },
             contentAlignment = Alignment.Center
         ) {
-            AppIcons.Outline.Target(25.dp, AppColors().lightGreen)
+            AppIcons.Outline.Target(30.dp, AppColors().lightGreen)
         }
     }
 }

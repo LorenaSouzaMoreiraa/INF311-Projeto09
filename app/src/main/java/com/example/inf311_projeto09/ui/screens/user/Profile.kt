@@ -41,6 +41,7 @@ import com.example.inf311_projeto09.R
 import com.example.inf311_projeto09.helper.EventHelper
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.User
+import com.example.inf311_projeto09.model.User.UserRole
 import com.example.inf311_projeto09.ui.ScreenType
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
@@ -80,11 +81,11 @@ fun ProfileScreen(
                 .padding(top = 30.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            CardStatistics(allEvents, navController)
+            CardStatistics(user.type == UserRole.ADMIN, allEvents, navController)
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            MonthStatistics(allEvents)
+            MonthStatistics(user.type == UserRole.ADMIN, allEvents)
         }
 
         NavBar(navController, NavBarOption.PROFILE, user)
@@ -183,6 +184,7 @@ fun TopBarProfile(
 
 @Composable
 fun CardStatistics(
+    isAdmin: Boolean,
     allEvents: List<Event>,
     navController: NavHostController
 ) {
@@ -196,26 +198,47 @@ fun CardStatistics(
             modifier = Modifier.fillMaxHeight(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatisticCard(
-                EventHelper.numberOfEventsParticipated(allEvents),
-                "eventos participados",
-                modifier = Modifier.weight(1f)
-            )
-            StatisticCard(
-                EventHelper.numberOfMissedEvents(allEvents),
-                "faltas em eventos",
-                modifier = Modifier.weight(1f)
-            )
+            if (isAdmin) {
+                StatisticCard(
+                    allEvents.size,
+                    "eventos criados",
+                    modifier = Modifier.weight(1f)
+                )
+                StatisticCard(
+                    EventHelper.getEndedEvents(allEvents),
+                    "eventos finalizados",
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                StatisticCard(
+                    EventHelper.numberOfEventsParticipated(allEvents),
+                    "eventos participados",
+                    modifier = Modifier.weight(1f)
+                )
+                StatisticCard(
+                    EventHelper.numberOfMissedEvents(allEvents),
+                    "faltas em eventos",
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
         Row(
             modifier = Modifier.fillMaxHeight(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatisticCard(
-                EventHelper.numberOfDelayedEvents(allEvents),
-                "atrasos no registro de presença",
-                modifier = Modifier.weight(1f)
-            )
+            if (isAdmin) {
+                StatisticCard(
+                    EventHelper.getNextEvents(allEvents),
+                    "eventos futuros",
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                StatisticCard(
+                    EventHelper.numberOfDelayedEvents(allEvents),
+                    "atrasos no registro de presença",
+                    modifier = Modifier.weight(1f)
+                )
+            }
             SeeEventsCard(modifier = Modifier.weight(1f), navController)
         }
     }
@@ -236,6 +259,7 @@ data class CalendarDay(
 
 @Composable
 fun MonthStatistics(
+    isAdmin: Boolean,
     allEvents: List<Event>
 ) {
     val currentMonth = AppDateHelper().getCurrentMonth()
@@ -397,23 +421,53 @@ fun MonthStatistics(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                Text(
-                    text = "$participationPercentage% participação",
-                    fontFamily = AppFonts().montserrat,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 12.sp,
-                    color = AppColors().black
-                )
+                if (isAdmin) {
+                    val nextEvents = EventHelper.getNextEventsInMonth(
+                        allEvents,
+                        currentMonthNumber,
+                        currentYearNumber
+                    )
+                    Text(
+                        text = "$nextEvents evento(s) futuro(s)",
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        color = AppColors().black
+                    )
+                } else {
+                    Text(
+                        text = "$participationPercentage% participação",
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        color = AppColors().black
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                Text(
-                    text = "$lateCount atraso(s)",
-                    fontFamily = AppFonts().montserrat,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 12.sp,
-                    color = AppColors().black
-                )
+                if (isAdmin) {
+                    val endedEvents = EventHelper.getEndedEventsInMonth(
+                        allEvents,
+                        currentMonthNumber,
+                        currentYearNumber
+                    )
+                    Text(
+                        text = "$endedEvents evento(s) finalizado(s)",
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        color = AppColors().black
+                    )
+                } else {
+                    Text(
+                        text = "$lateCount atraso(s)",
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        color = AppColors().black
+                    )
+                }
             }
         }
     }
@@ -489,7 +543,7 @@ fun ProfileScreenPreview() {
         user = User(
             0,
             "Erick",
-            User.UserRole.USER,
+            UserRole.USER,
             "teste@teste.com",
             "cpf",
             "UFV",

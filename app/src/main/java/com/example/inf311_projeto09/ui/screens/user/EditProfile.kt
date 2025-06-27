@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -37,6 +38,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -316,6 +318,8 @@ fun EditProfileFields(
 
     val universities = remember { RubeusApi.listSchools().toList() }
 
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
     CpfField(cpf = cpf)
 
     Spacer(modifier = Modifier.height(18.dp))
@@ -361,7 +365,6 @@ fun EditProfileFields(
 
     Spacer(modifier = Modifier.height(10.dp))
 
-    // TODO: voltar depois que implementar a "Notificação"
     NotificationsSwitch(
         originalReceiveNotifications = user.enableNotifications,
         receiveNotifications = receiveNotifications,
@@ -390,40 +393,95 @@ fun EditProfileFields(
                     oldPassword = ""
                     newPassword = ""
                     confirmPassword = ""
+                } else {
+                    onSave()
                 }
             } else {
-                if (oldPassword.isEmpty()) {
-                    AppSnackBarManager.showMessage("O campo 'Senha Antiga' é obrigatório")
-                } else if (newPassword.isEmpty()) {
-                    AppSnackBarManager.showMessage("O campo 'Nova Senha' é obrigatório")
-                } else if (confirmPassword.isEmpty()) {
-                    AppSnackBarManager.showMessage("O campo 'Confirmar Senha' é obrigatório")
-                } else if (!PasswordHelper.verifyPassword(oldPassword, user.password)) {
-                    AppSnackBarManager.showMessage("A 'Senha Antiga' informada é inválida")
-                } else if (newPassword != confirmPassword) {
-                    AppSnackBarManager.showMessage("O campo 'Nova Senha' e 'Confirmar Senha' precisam ser iguais")
-                } else {
-                    RubeusApi.updateUser(
-                        user,
-                        name,
-                        university,
-                        PasswordHelper.hashPassword(newPassword),
-                        receiveNotifications,
-                        user.imageUrl
-                    )
-                    onSave()
-                    onSave()
-                    oldPassword = ""
-                    newPassword = ""
-                    confirmPassword = ""
+                when {
+                    oldPassword.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Senha Antiga' é obrigatório")
+                    newPassword.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Nova Senha' é obrigatório")
+                    confirmPassword.isEmpty() -> AppSnackBarManager.showMessage("O campo 'Confirmar Senha' é obrigatório")
+                    !PasswordHelper.verifyPassword(
+                        oldPassword,
+                        user.password
+                    ) -> AppSnackBarManager.showMessage("A 'Senha Antiga' informada é inválida")
+
+                    newPassword != confirmPassword -> AppSnackBarManager.showMessage("O campo 'Nova Senha' e 'Confirmar Senha' precisam ser iguais")
+                    else -> {
+                        RubeusApi.updateUser(
+                            user,
+                            name,
+                            university,
+                            PasswordHelper.hashPassword(newPassword),
+                            receiveNotifications,
+                            user.imageUrl
+                        )
+                        onSave()
+                        oldPassword = ""
+                        newPassword = ""
+                        confirmPassword = ""
+                    }
                 }
             }
         },
         onDeactivateClick = {
-            RubeusApi.deleteUser(user.id)
-            onDeactivateAccount()
-            // TODO: Perguntar se realmente deseja excluir
+            showConfirmDialog = true
         }
+    )
+
+    if (showConfirmDialog) {
+        ConfirmEnableCheckDialog(
+            onConfirm = {
+                showConfirmDialog = false
+                RubeusApi.deleteUser(user.id)
+                onDeactivateAccount()
+            },
+            onDismiss = {
+                showConfirmDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun ConfirmEnableCheckDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    text = "Sim",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "Não",
+                    color = AppColors().darkGreen,
+                    fontFamily = AppFonts().montserrat,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        },
+        text = {
+            Text(
+                text = "Realmente deseja desatitar a conta? Essa ação é irreversível.",
+                color = AppColors().darkGreen,
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
+            )
+        },
+        containerColor = AppColors().white
     )
 }
 

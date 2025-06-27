@@ -67,8 +67,10 @@ import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 @Composable
@@ -151,7 +153,8 @@ fun RegisterEventScreen(
                 onAutoCheckInOutChange = { autoCheckInOut = it },
                 emailsImported = emailsImported,
                 onEmailsImported = { emailsImported = it },
-                scrollState = scrollState
+                scrollState = scrollState,
+                navController = navController
             )
         }
     }
@@ -267,7 +270,8 @@ fun MainContent(
     onAutoCheckInOutChange: (Boolean) -> Unit,
     emailsImported: List<String>,
     onEmailsImported: (List<String>) -> Unit,
-    scrollState: androidx.compose.foundation.ScrollState
+    scrollState: androidx.compose.foundation.ScrollState,
+    navController: NavHostController
 ) {
     val customDropdownShape =
         RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
@@ -350,9 +354,74 @@ fun MainContent(
             Spacer(modifier = Modifier.height(15.dp))
 
             CreateEventButton(onClick = {
-                // TODO: validar os dados
-                // TODO: campo de descrição, localização...
-                // TODO: sair da tela ao terminar de criar
+                val now = Date()
+
+                when {
+                    eventName.isEmpty() -> {
+                        AppSnackBarManager.showMessage("O campo 'Nome do evento' é obrigatório")
+                        return@CreateEventButton
+                    }
+
+                    startDateText.isEmpty() -> {
+                        AppSnackBarManager.showMessage("O campo 'Data início' é obrigatório")
+                        return@CreateEventButton
+                    }
+
+                    startTimeText.isEmpty() -> {
+                        AppSnackBarManager.showMessage("O campo 'Hora início' é obrigatório")
+                        return@CreateEventButton
+                    }
+                }
+
+                val beginTime =
+                    AppDateHelper().getDateByDateStringAndTimeString(startDateText, startTimeText)
+                if (beginTime.before(now)) {
+                    AppSnackBarManager.showMessage("A data e hora de início devem ser futuras")
+                    return@CreateEventButton
+                }
+
+                when {
+                    endDateText.isEmpty() -> {
+                        AppSnackBarManager.showMessage("O campo 'Data fim' é obrigatório")
+                        return@CreateEventButton
+                    }
+
+                    endTimeText.isEmpty() -> {
+                        AppSnackBarManager.showMessage("O campo 'Hora fim' é obrigatório")
+                        return@CreateEventButton
+                    }
+                }
+
+                val endTime =
+                    AppDateHelper().getDateByDateStringAndTimeString(endDateText, endTimeText)
+                if (endTime.before(now)) {
+                    AppSnackBarManager.showMessage("A data e hora de término devem ser futuras")
+                    return@CreateEventButton
+                }
+
+                when {
+                    !endTime.after(beginTime) -> {
+                        AppSnackBarManager.showMessage("A data e hora de término devem ser posteriores à data e hora de início")
+                        return@CreateEventButton
+                    }
+
+                    selectedEventType.isEmpty() -> {
+                        AppSnackBarManager.showMessage("O campo 'Tipo de evento' é obrigatório")
+                        return@CreateEventButton
+                    }
+
+                    selectedAuthMethod == Event.EventVerificationMethod.NONE -> {
+                        AppSnackBarManager.showMessage("O campo 'Método de autenticação' é obrigatório")
+                        return@CreateEventButton
+                    }
+
+                    emailsImported.isEmpty() -> {
+                        AppSnackBarManager.showMessage("É necessário importar um arquivo .csv com os emails dos participantes")
+                        return@CreateEventButton
+                    }
+                }
+
+                // TODO: campo de localização
                 val event = Event(
                     0,
                     eventName,
@@ -362,8 +431,8 @@ fun MainContent(
                     EventAuthenticationHelper.generateCheckCode(selectedAuthMethod),
                     autoCheckInOut,
                     "",
-                    AppDateHelper().getDateByDateStringAndTimeString(startDateText, startTimeText),
-                    AppDateHelper().getDateByDateStringAndTimeString(endDateText, endTimeText),
+                    beginTime,
+                    endTime,
                     if (autoCheckInOut) AppDateHelper().getDateByDateStringAndTimeString(
                         startDateText,
                         startTimeText
@@ -379,6 +448,7 @@ fun MainContent(
                 )
 
                 RubeusApi.registerEvent(event, user)
+                navController.popBackStack()
             })
 
             Spacer(modifier = Modifier.height(20.dp))

@@ -20,6 +20,48 @@ public class EventHelper {
                 .collect(Collectors.toList());
     }
 
+    public static int getEndedEvents(final List<Event> events) {
+        final Date now = new Date();
+        return events.stream()
+                .filter(event -> event.getEndTime().before(now))
+                .collect(Collectors.toList()).size();
+    }
+
+    public static int getEndedEventsInMonth(final List<Event> events, final int month, final int year) {
+        final Date now = new Date();
+        return events.stream()
+                .filter(event -> {
+                    final Date begin = event.getBeginTime();
+                    final Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(begin);
+                    final int eventMonth = calendar.get(Calendar.MONTH);
+                    final int eventYear = calendar.get(Calendar.YEAR);
+                    return eventMonth == month && eventYear == year && event.getEndTime().before(now);
+                })
+                .collect(Collectors.toList()).size();
+    }
+
+    public static int getNextEvents(final List<Event> events) {
+        final Date now = new Date();
+        return events.stream()
+                .filter(event -> event.getBeginTime().after(now))
+                .collect(Collectors.toList()).size();
+    }
+
+    public static int getNextEventsInMonth(final List<Event> events, final int month, final int year) {
+        final Date now = new Date();
+        return events.stream()
+                .filter(event -> {
+                    final Date begin = event.getBeginTime();
+                    final Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(begin);
+                    final int eventMonth = calendar.get(Calendar.MONTH);
+                    final int eventYear = calendar.get(Calendar.YEAR);
+                    return eventMonth == month && eventYear == year && event.getBeginTime().after(now);
+                })
+                .collect(Collectors.toList()).size();
+    }
+
     private static List<Event> getHappenedEventsInMonth(final List<Event> events, final int month, final int year) {
         return events.stream()
                 .filter(event -> {
