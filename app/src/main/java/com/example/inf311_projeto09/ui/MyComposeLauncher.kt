@@ -143,7 +143,7 @@ fun AppNavHost(
     // TODO: atualizar os eventos de tempos em tempos
     LaunchedEffect(Unit) {
         while (true) {
-            delay(25000L)
+            delay(120000L)
             Log.d("AppNavHost", "Atualizando eventos...")
             userState.value?.let { user ->
                 val updatedEvents = RubeusApi.listUserEvents(user.id)
