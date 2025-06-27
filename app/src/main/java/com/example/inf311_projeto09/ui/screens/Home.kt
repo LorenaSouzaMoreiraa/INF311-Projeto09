@@ -56,7 +56,6 @@ import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.components.EventCard
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
-import com.example.inf311_projeto09.ui.notificationsMock
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
@@ -143,7 +142,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            TopBarSection(user.name.split(" ").first(), navController)
+            TopBarSection(user, navController)
 
             Spacer(modifier = Modifier.height(15.dp))
 
@@ -257,9 +256,11 @@ fun CurrentEvent(
 
 @Composable
 fun TopBarSection(
-    userName: String,
+    user: User,
     navController: NavHostController
 ) {
+    val userName = user.name.split(" ").first()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -273,13 +274,12 @@ fun TopBarSection(
             modifier = Modifier.height(40.dp)
         )
 
-        // TODO: colocar bolinha vermelha quando tem notificação não lida
         IconButton(
             onClick = { navController.navigate(ScreenType.NOTIFICATIONS.route) },
             modifier = Modifier.size(30.dp)
         ) {
             AppIcons.Outline.Bell(30.dp)
-            if (!notificationsMock.areAllNotificationsRead())
+            if (!user.notifications.all { notification -> notification.read })
                 Box(
                     modifier = Modifier
                         .size(11.dp)
@@ -494,7 +494,8 @@ fun HomeScreenPreview() {
             "UFV",
             "****",
             true,
-            null
+            null,
+            listOf()
         ),
         navController = rememberNavController(),
         todayEvents = listOf()

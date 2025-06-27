@@ -1235,7 +1235,8 @@ fun EventDetailsScreenPreview() {
         "Universidade Federal de Viçosa (UFV)",
         "****",
         true,
-        null
+        null,
+        listOf()
     )
 
     EventDetailsScreen(navController = rememberNavController(), event = event, user = user)

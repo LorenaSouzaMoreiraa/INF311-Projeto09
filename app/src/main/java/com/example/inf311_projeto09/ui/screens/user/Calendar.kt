@@ -604,7 +604,8 @@ fun CalendarScreenPreview() {
             "UFV",
             "****",
             true,
-            null
+            null,
+            listOf()
         ),
         navController = rememberNavController(),
         allEvents = emptyList()

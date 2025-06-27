@@ -13,11 +13,12 @@ public class User {
     private String password;
     private boolean enableNotifications;
     private String imageUrl;
+    private List<Notification> notifications;
 
     public User(final int id, final String name, final UserRole type,
                 final String email, final String cpf, final String school,
                 final String password, final boolean enableNotifications,
-                final String imageUrl) {
+                final String imageUrl, final List<Notification> notifications) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -27,6 +28,7 @@ public class User {
         this.password = password;
         this.enableNotifications = enableNotifications;
         this.imageUrl = imageUrl;
+        this.notifications = notifications;
     }
 
     public int getId() {
@@ -99,6 +101,14 @@ public class User {
 
     public void setImageUrl(final String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public List<Notification> getNotifications() {
+        return this.notifications;
+    }
+
+    public void setNotifications(final List<Notification> notifications) {
+        this.notifications = notifications;
     }
 
     public enum UserRole {

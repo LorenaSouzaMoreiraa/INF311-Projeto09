@@ -27,7 +27,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
-import com.example.inf311_projeto09.model.NotificationsMock
 import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.screens.CheckRoomScreen
 import com.example.inf311_projeto09.ui.screens.EventDetailsScreen
@@ -70,8 +69,6 @@ enum class ScreenType(val route: String) {
     CHECK_OUT("check_out"),
     EVENT_DETAILS("event_details")
 }
-
-val notificationsMock = NotificationsMock()
 
 fun setHasSeenWelcome(activity: ComponentActivity) {
     val prefs = activity.getPreferences(Context.MODE_PRIVATE)
@@ -386,13 +383,20 @@ fun AppNavHost(
             }
 
             composable(ScreenType.NOTIFICATIONS.route) {
-                // TODO: apagar mock
-                NotificationsScreen(
-                    onBack = {
-                        navController.popBackStack()
-                    },
-                    notificationsMock = notificationsMock
-                )
+                user?.let { nonNullUser ->
+                    NotificationsScreen(
+                        user = nonNullUser,
+                        onBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                } ?: run {
+                    setRememberedEmail(activity, "")
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             }
 
             composable(ScreenType.QR_SCANNER.route) {

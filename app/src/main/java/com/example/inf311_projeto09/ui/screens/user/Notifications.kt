@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -26,19 +28,25 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
+import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Notification
-import com.example.inf311_projeto09.model.NotificationsMock
+import com.example.inf311_projeto09.model.User
 import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import java.time.Duration
+import java.time.Instant
+import java.util.Date
 
 @Composable
 fun NotificationsScreen(
-    onBack: () -> Unit = {},
-    notificationsMock: NotificationsMock
+    user: User,
+    onBack: () -> Unit = {}
 ) {
+    val notifications =
+        remember { mutableStateListOf<Notification>().apply { addAll(user.notifications) } }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -85,12 +93,19 @@ fun NotificationsScreen(
                     modifier = Modifier
                         .padding(end = 8.dp)
                         .clickable {
-                            notificationsMock.markAllNotificationsAsRead()
+                            notifications.forEachIndexed { index, notification ->
+                                if (!notification.read) {
+                                    notifications[index] = notification.readNotification()
+                                    user.notifications[index].read = true
+                                }
+                            }
+
+                            RubeusApi.updateUserNotifications(user, user.notifications)
                         }
                 )
             }
 
-            if (notificationsMock.getNotificationsList().isEmpty()) {
+            if (notifications.isEmpty()) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -106,12 +121,14 @@ fun NotificationsScreen(
                         .padding(top = 20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    items(notificationsMock.getNotificationsList()) { notification ->
+                    itemsIndexed(notifications) { index, notification ->
                         NotificationItem(
                             notification = notification,
                             onNotificationClick = { clickedNotification ->
-                                if (!clickedNotification.isRead) {
-                                    notificationsMock.markNotificationAsRead(clickedNotification.id)
+                                if (!clickedNotification.read) {
+                                    notifications[index] = notification.readNotification()
+                                    user.notifications[index].read = true
+                                    RubeusApi.updateUserNotifications(user, user.notifications)
                                 }
                             }
                         )
@@ -147,7 +164,7 @@ fun NotificationItem(
             .fillMaxWidth(0.95f)
             .padding(vertical = 8.dp)
             .background(
-                color = if (notification.isRead) AppColors().white else AppColors().lightYellow,
+                color = if (notification.read) AppColors().white else AppColors().lightYellow,
                 shape = RoundedCornerShape(10.dp)
             )
             .clickable { onNotificationClick(notification) }
@@ -162,7 +179,7 @@ fun NotificationItem(
                 fontSize = 16.sp
             )
             Text(
-                text = notification.description,
+                text = notification.subtitle,
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.SemiBold,
                 color = AppColors().black,
@@ -170,7 +187,7 @@ fun NotificationItem(
                 modifier = Modifier.padding(top = 4.dp)
             )
             Text(
-                text = notification.timeAgo,
+                text = timeAgo(notification.notificationTime),
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.Normal,
                 color = AppColors().grey,
@@ -181,10 +198,37 @@ fun NotificationItem(
     }
 }
 
+fun timeAgo(date: Date): String {
+    val now = Instant.now()
+    val dataInstant = date.toInstant()
+
+    val duration = Duration.between(dataInstant, now)
+
+    val seconds = duration.seconds
+
+    return when {
+        seconds < 60 -> "${seconds}s atrás"
+        seconds < 3600 -> "${seconds / 60}min atrás"
+        seconds < 86400 -> "${seconds / 3600}h atrás"
+        else -> "${seconds / 86400}d atrás"
+    }
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun NotificationsScreenPreview() {
     NotificationsScreen(
-        notificationsMock = NotificationsMock()
+        User(
+            0,
+            "Erick Soares",
+            User.UserRole.USER,
+            "teste@teste.com",
+            "12345678900",
+            "Universidade Federal de Viçosa (UFV)",
+            "****",
+            true,
+            null,
+            listOf()
+        )
     )
 }

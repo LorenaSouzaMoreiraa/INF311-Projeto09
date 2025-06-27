@@ -31,7 +31,8 @@ public class RubeusFields {
     public enum UserAccount {
         PASSWORD("campopersonalizado_2_compl_cont"),
         TYPE("campopersonalizado_3_compl_cont"),
-        ENABLE_NOTIFICATIONS("campopersonalizado_5_compl_cont");
+        ENABLE_NOTIFICATIONS("campopersonalizado_5_compl_cont"),
+        NOTIFICATIONS("campopersonalizado_6_compl_cont");
 
         private final String identifier;
 

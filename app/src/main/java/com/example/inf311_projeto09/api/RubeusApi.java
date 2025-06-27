@@ -1,12 +1,14 @@
 package com.example.inf311_projeto09.api;
 
 import com.example.inf311_projeto09.model.Event;
+import com.example.inf311_projeto09.model.Notification;
 import com.example.inf311_projeto09.model.User;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -33,6 +35,13 @@ public final class RubeusApi {
         user.setEnableNotifications(enableNotifications);
         user.setImageUrl(imageUrl);
         return helper.executeRequest(helper.updateUserCall(user.getId(), name, school, password, enableNotifications, imageUrl));
+    }
+
+    public static Boolean updateUserNotifications(final User user, final List<Notification> notifications) {
+        final List<String> rubeusNotification = notifications.stream()
+                .map(Notification::toRubeusNotification)
+                .collect(Collectors.toList());
+        return helper.executeRequest(helper.updateUserNotificationsCall(user.getId(), user.getName(), rubeusNotification));
     }
 
     public static Boolean deleteUser(final int userId) {
@@ -74,6 +83,19 @@ public final class RubeusApi {
                             .map(field -> (String) ((Map<String, Object>) field).get("valor"))
                             .collect(Collectors.toList())
                             .get(0);
+                    final List<String> notificationsString = customFields.stream()
+                            .filter(field -> RubeusFields.UserAccount.NOTIFICATIONS.getIdentifier()
+                                    .equals(((Map<String, Object>) field).get("coluna")))
+                            .map(field -> (List<String>) ((Map<String, Object>) field).get("valor"))
+                            .collect(Collectors.toList())
+                            .get(0);
+
+                    final List<Notification> notifications = notificationsString != null
+                            ? notificationsString.stream()
+                            .map(Notification::new).
+                            collect(Collectors.toList())
+                            : new ArrayList<>();
+                    notifications.sort(Comparator.comparing(Notification::getNotificationTime).reversed());
 
                     return new User(Integer.parseInt(user.id()),
                             user.nome(),
@@ -83,7 +105,8 @@ public final class RubeusApi {
                             user.escolaOrigem(),
                             password,
                             "1".equals(enableNotifications),
-                            user.imagem());
+                            user.imagem(),
+                            notifications);
                 })
                 .collect(Collectors.toList()).get(0);
 
@@ -204,11 +227,7 @@ public final class RubeusApi {
         return helper.executeRequest(helper.checkOutCall(userId, event.getCourse(), checkOutTime));
     }
 
-    private static String parseIsoDate(final Date date) {
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", new Locale("pt", "BR")).format(date);
-    }
-
-    private static Date parseIsoDate(final Object value) {
+    public static Date parseIsoDate(final Object value) {
         if (value instanceof final String string) {
             try {
                 return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", new Locale("pt", "BR")).parse(string);

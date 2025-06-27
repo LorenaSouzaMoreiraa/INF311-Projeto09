@@ -125,7 +125,8 @@ final class RubeusApiHelper {
                         "filtros", List.of(Map.of(
                                 "coluna", List.of(RubeusFields.UserAccount.PASSWORD.getIdentifier(),
                                         RubeusFields.UserAccount.TYPE.getIdentifier(),
-                                        RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier())))));
+                                        RubeusFields.UserAccount.ENABLE_NOTIFICATIONS.getIdentifier(),
+                                        RubeusFields.UserAccount.NOTIFICATIONS.getIdentifier())))));
     }
 
     public Call<ApiResponse<Object>> registerUserCall(final String name, final String email, final String school, final String password, final String cpf, final User.UserRole type) {
@@ -156,6 +157,19 @@ final class RubeusApiHelper {
         body.put("nome", name);
         body.put("escolaOrigem", school);
         body.put("imagemUrl", imageUrl);
+        body.put(CAMPOS_PERSONALIZADOS, customFields);
+
+        return this.service.updateUser(body);
+    }
+
+    public Call<ApiResponse<Object>> updateUserNotificationsCall(final int userId, final String name, final List<String> notifications) {
+        final Map<String, Object> body = this.defaultBody();
+        final Map<String, Object> customFields = new HashMap<>();
+
+        customFields.put(RubeusFields.UserAccount.NOTIFICATIONS.getIdentifier(), notifications);
+
+        body.put("id", userId);
+        body.put("nome", name);
         body.put(CAMPOS_PERSONALIZADOS, customFields);
 
         return this.service.updateUser(body);

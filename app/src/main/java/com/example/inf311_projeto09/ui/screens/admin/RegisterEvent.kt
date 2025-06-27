@@ -889,7 +889,8 @@ fun RegisterEventScreenPreview() {
             "Universidade Federal de Viçosa (UFV)",
             "****",
             true,
-            null
+            null,
+            listOf()
         ), navController = rememberNavController()
     )
 }
