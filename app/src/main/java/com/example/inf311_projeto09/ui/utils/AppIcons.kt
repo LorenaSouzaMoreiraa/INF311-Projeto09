@@ -78,6 +78,25 @@ class AppIcons {
         }
 
         @Composable
+        fun ArrowRight(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.arrow_right),
+                    contentDescription = "Seta para direita",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1f),
+                    tint = colorIcon
+                )
+            }
+        }
+
+        @Composable
         fun Mail(boxSize: Dp, colorIcon: Color = AppColors().white) {
             Box(
                 modifier = Modifier

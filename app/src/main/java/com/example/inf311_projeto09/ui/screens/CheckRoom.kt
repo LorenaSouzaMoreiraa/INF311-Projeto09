@@ -1,29 +1,42 @@
 package com.example.inf311_projeto09.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -31,100 +44,126 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import kotlinx.coroutines.delay
+import java.util.Date
 import kotlin.math.roundToInt
 
 @Composable
 fun CheckRoomScreen(
     onBack: () -> Unit = {},
+    event: Event,
     navController: NavHostController
 ) {
-    // Estado para o timer
-    var totalSeconds by remember { mutableStateOf(45 * 60 + 36) }
-
-    // Efeito para rodar o timer em segundo plano
-    LaunchedEffect(key1 = true) {
-        while (totalSeconds > 0) {
-            delay(1000L)
-            totalSeconds--
-        }
-    }
-
-    // Formata o tempo para o display
-    val formattedTime = remember(totalSeconds) {
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        "%02d:%02d".format(minutes, seconds)
-    }
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = AppColors().darkGreen,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppColors().darkGreen)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
+                .fillMaxWidth()
+                .padding(vertical = 50.dp, horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Header()
-            Spacer(Modifier.height(32.dp))
-            TimerRing(formattedTime = formattedTime)
-            Spacer(Modifier.height(48.dp))
-            EventDetails()
-            Spacer(Modifier.weight(1f)) // Empurra o botão para baixo
-            SwipeToConfirmButton(
-                onConfirmed = {
-                    println("Ação Confirmada!")
-                    // Coloque sua lógica de confirmação aqui
-                }
-            )
+            Header(onBack)
+
+            Spacer(Modifier.height(30.dp))
+
+            TimerRing(event)
+
+            Spacer(Modifier.height(30.dp))
+
+            EventDetails(event)
+
+            Spacer(Modifier.weight(1f))
+
+            SwipeToConfirmButton(navController)
         }
     }
 }
 
 @Composable
-fun Header() {
-    Row(
+fun Header(
+    onBack: () -> Unit = {}
+) {
+    Box(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "Check-in", // Título ajustado
-            color = AppColors().white,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
-        IconButton(onClick = { /* Lógica para fechar */ }) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Fechar",
-                tint = AppColors().white,
-                modifier = Modifier.size(30.dp)
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier.size(30.dp)
+        ) {
+            AppIcons.Filled.CircleClose(
+                boxSize = 30.dp,
+                colorIcon = AppColors().lightGreen,
+                backgroundColorIcon = AppColors().darkGreen
             )
         }
+
+        Text(
+            text = "Check-out",
+            fontFamily = AppFonts().montserrat,
+            fontWeight = FontWeight.SemiBold,
+            color = AppColors().white,
+            fontSize = 26.sp,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+        )
     }
 }
 
 @Composable
-fun TimerRing(formattedTime: String) {
-    val progressValue = 0.85f // Valor fixo para corresponder à imagem (entre 0.0 e 1.0)
+fun TimerRing(
+    event: Event
+) {
+    val participationSeconds = remember { mutableLongStateOf(0L) }
+    val progressValue = remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            val totalDurationMillis = (event.endTime.time - event.beginTime.time) / 1000
+
+            val now = Date()
+            val checkIn = event.checkInTime
+
+            val diffMillis = now.time - checkIn.time
+            participationSeconds.longValue = diffMillis / 1000
+
+            val progress = participationSeconds.longValue.toFloat() / totalDurationMillis
+            progressValue.floatValue = progress.coerceIn(0f, 1f)
+
+            delay(1000)
+        }
+    }
+
+    val formattedTime = remember(participationSeconds.longValue) {
+        val total = participationSeconds.longValue
+        val hours = total / 3600
+        val minutes = (total % 3600) / 60
+        val seconds = total % 60
+
+        if (hours > 0)
+            "%02d:%02d:%02d".format(hours, minutes, seconds)
+        else
+            "%02d:%02d".format(minutes, seconds)
+    }
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1f) // Garante que o Box seja um quadrado
+            .aspectRatio(1f)
+            .fillMaxWidth()
+            .padding(40.dp)
     ) {
-        // Usamos Canvas para desenhar os arcos do círculo
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeWidth = 15.dp.toPx()
-            // Arco de fundo
+
             drawArc(
                 color = AppColors().grey,
                 startAngle = -90f,
@@ -132,87 +171,152 @@ fun TimerRing(formattedTime: String) {
                 useCenter = false,
                 style = Stroke(width = strokeWidth)
             )
-            // Arco de progresso
+
             drawArc(
                 color = AppColors().lightGreen,
                 startAngle = -90f,
-                sweepAngle = 360 * progressValue,
+                sweepAngle = 360 * progressValue.floatValue,
                 useCenter = false,
                 style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
             )
         }
-        // Textos dentro do círculo
+
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = formattedTime,
-                color = AppColors().white,
-                fontSize = 64.sp,
-                fontWeight = FontWeight.Bold
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors().darkGrey,
+                fontSize = 40.sp
             )
+
+            Spacer(Modifier.height(10.dp))
+
             Text(
                 text = "de participação",
-                color = AppColors().grey,
-                fontSize = 16.sp
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                color = AppColors().darkGrey,
+                fontSize = 14.sp
             )
         }
     }
 }
 
 @Composable
-fun EventDetails() {
+fun EventDetails(
+    event: Event
+) {
+    val currentTime = remember { mutableStateOf(AppDateHelper().getCurrentTimeWithSeconds()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentTime.value = AppDateHelper().getCurrentTimeWithSeconds()
+            delay(1000)
+        }
+    }
+
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 40.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Text("Evento:", color = AppColors().lightGrey, fontSize = 16.sp)
         Text(
-            "INF 311 - Programação Dispositivos Móveis",
-            color = AppColors().white,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
+            text = "Evento:",
+            fontFamily = AppFonts().montserrat,
+            fontWeight = FontWeight.SemiBold,
+            color = AppColors().darkGrey,
+            fontSize = 16.sp
         )
-        Spacer(Modifier.height(16.dp))
-        Text("Data:", color = AppColors().lightGrey, fontSize = 16.sp)
+
+        Spacer(Modifier.height(4.dp))
+
         Text(
-            "29 de fevereiro de 2025",
+            text = event.title,
+            fontFamily = AppFonts().montserrat,
+            fontWeight = FontWeight.SemiBold,
             color = AppColors().white,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
+            fontSize = 16.sp
         )
+
         Spacer(Modifier.height(16.dp))
-        Text("Horário:", color = AppColors().lightGrey, fontSize = 16.sp)
+
         Text(
-            "13:50:03 - Brasil(UTC-3), Brasília",
+            text = "Data:",
+            fontFamily = AppFonts().montserrat,
+            fontWeight = FontWeight.SemiBold,
+            color = AppColors().darkGrey,
+            fontSize = 16.sp
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = AppDateHelper().getFullFormattedDate(),
+            fontFamily = AppFonts().montserrat,
+            fontWeight = FontWeight.SemiBold,
             color = AppColors().white,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
+            fontSize = 16.sp
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            text = "Horário:",
+            fontFamily = AppFonts().montserrat,
+            fontWeight = FontWeight.SemiBold,
+            color = AppColors().darkGrey,
+            fontSize = 16.sp
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = "${currentTime.value}\nBrasil (UTC-3), Brasília",
+            fontFamily = AppFonts().montserrat,
+            fontWeight = FontWeight.SemiBold,
+            color = AppColors().white,
+            fontSize = 16.sp
         )
     }
 }
 
 @Composable
-fun SwipeToConfirmButton(onConfirmed: () -> Unit) {
-    var offsetX by remember { mutableStateOf(0f) }
-    val buttonHeight: Dp = 60.dp
+fun SwipeToConfirmButton(
+    navController: NavHostController
+) {
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    val buttonHeight: Dp = 50.dp
     val thumbSize: Dp = buttonHeight
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .height(buttonHeight)
+            .padding(horizontal = 40.dp)
             .border(width = 2.dp, color = AppColors().lightGreen, shape = CircleShape)
+            .clip(CircleShape)
     ) {
+        val boxWidth = constraints.maxWidth.toFloat()
+        val thumbWidth = with(LocalDensity.current) { thumbSize.toPx() }
+        val maxDragX = boxWidth - thumbWidth
+
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(with(LocalDensity.current) { (offsetX + (thumbWidth / 2)).toDp() })
+                .background(AppColors().lightGreen.copy(alpha = 0.4f))
+        )
+
         Text(
             text = "Arraste para confirmar",
             color = AppColors().white,
             fontSize = 16.sp,
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 60.dp)
         )
-
-        val maxDragX = with(LocalDensity.current) {
-            // Calcula a largura máxima que o botão pode ser arrastado
-            (300.dp - thumbSize).toPx() // Usando um valor aproximado da largura do Box
-        }
 
         Box(
             modifier = Modifier
@@ -222,34 +326,51 @@ fun SwipeToConfirmButton(onConfirmed: () -> Unit) {
                 .draggable(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
-                        val newOffsetX = (offsetX + delta).coerceIn(0f, maxDragX)
-                        offsetX = newOffsetX
+                        offsetX = (offsetX + delta).coerceIn(0f, maxDragX)
                     },
                     onDragStopped = {
-                        if (offsetX >= maxDragX) {
-                            onConfirmed()
+                        if (offsetX >= maxDragX * 0.95f) {
+                            navController.previousBackStackEntry?.savedStateHandle?.set(
+                                "checkOutConfirm",
+                                true
+                            )
+                            navController.popBackStack()
                         } else {
-                            // Retorna à posição inicial se não foi arrastado até o fim
                             offsetX = 0f
                         }
                     }
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.ArrowForward,
-                contentDescription = "Arrastar",
-                tint = AppColors().green
+            AppIcons.Outline.ArrowRight(
+                boxSize = 24.dp,
+                colorIcon = AppColors().black
             )
         }
     }
 }
 
-
 @Preview(showBackground = true, backgroundColor = 0xFF0A3818)
 @Composable
 fun CheckRoomScreenPreview() {
-    MaterialTheme { // Use seu tema do app aqui
-        CheckRoomScreen(navController = rememberNavController())
-    }
+    CheckRoomScreen(
+        event = Event(
+            1,
+            "INF 311 - Programação Dispositivos móveis",
+            "Aula prática de Kotlin",
+            "Online",
+            Event.EventVerificationMethod.QR_CODE,
+            "ABC123",
+            false,
+            "Localização",
+            AppDateHelper().getDate(2025, 2, 25),
+            AppDateHelper().getDate(2025, 2, 25),
+            null,
+            null,
+            null,
+            null,
+            Event.EventStage.CURRENT,
+            listOf()
+        ), navController = rememberNavController()
+    )
 }

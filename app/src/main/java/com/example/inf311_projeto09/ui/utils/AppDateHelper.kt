@@ -73,6 +73,12 @@ class AppDateHelper {
         return format.format(Date()).replaceFirstChar { it.uppercase() }
     }
 
+    fun getFullFormattedDate(): String {
+        val format = SimpleDateFormat("dd 'de' MMMM 'de' yyyy", LOCALE_PT_BR)
+        format.timeZone = TIME_ZONE_SAO_PAULO
+        return format.format(Date())
+    }
+
     fun getCurrentMonth(): String {
         val format = SimpleDateFormat("MMMM", LOCALE_PT_BR)
         format.timeZone = TIME_ZONE_SAO_PAULO

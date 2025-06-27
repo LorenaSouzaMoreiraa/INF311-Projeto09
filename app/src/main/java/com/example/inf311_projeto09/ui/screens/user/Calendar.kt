@@ -86,11 +86,20 @@ fun CalendarScreen(
         mutableStateOf<String?>(null)
     }
 
+    val checkOutConfirm = remember {
+        mutableStateOf<Boolean?>(null)
+    }
+
     LaunchedEffect(navController) {
         val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
         savedStateHandle?.getLiveData<String>("scannedCode")?.observeForever { code ->
             scannedCode.value = code
             savedStateHandle.remove<String>("scannedCode")
+        }
+
+        savedStateHandle?.getLiveData<Boolean>("checkOutConfirm")?.observeForever { confirm ->
+            checkOutConfirm.value = confirm
+            savedStateHandle.remove<Boolean>("checkOutConfirm")
         }
     }
 
@@ -110,6 +119,21 @@ fun CalendarScreen(
                     AppSnackBarManager.showMessage("QR Code inválido")
                 } else {
                     AppSnackBarManager.showMessage("Código inválido")
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(checkOutConfirm.value) {
+        val confirm = checkOutConfirm.value
+        if (confirm != null && currentEvent != null) {
+            checkOutConfirm.value = null
+
+            if (confirm) {
+                val checkTime = AppDateHelper().getCurrentCompleteTime()
+
+                if (currentEvent.checkOutTime == null) {
+                    RubeusApi.checkOut(user.id, currentEvent, checkTime)
                 }
             }
         }

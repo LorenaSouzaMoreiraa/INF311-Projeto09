@@ -449,6 +449,7 @@ fun AppNavHost(
 
             composable(ScreenType.CHECK_OUT.route) {
                 CheckRoomScreen(
+                    event = todayEvents[0], // TODO: corrigir, passar o current event
                     onBack = {
                         navController.popBackStack()
                     },
