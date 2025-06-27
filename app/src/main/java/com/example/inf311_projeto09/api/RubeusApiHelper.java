@@ -302,6 +302,20 @@ final class RubeusApiHelper {
         return this.service.updateEvent(body);
     }
 
+    public Call<ApiResponse<Object>> deleteEventCall(final int userId, final int courseId) {
+        final Map<String, Object> body = this.defaultBody();
+        final Map<String, Object> customFields = new HashMap<>();
+
+        customFields.put(RubeusFields.UserEvent.ACTIVE.getIdentifier(), "0");
+
+        body.put("tipo", 121);
+        body.put("pessoa", Map.of("id", userId));
+        body.put("curso", courseId);
+        body.put(CAMPOS_PERSONALIZADOS, customFields);
+
+        return this.service.deleteEvent(body);
+    }
+
     public Call<ApiResponse<Object>> enableCheckInCall(final int userId, final int courseId, final String checkInTime) {
         final Map<String, Object> body = this.defaultBody();
 
