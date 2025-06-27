@@ -56,6 +56,7 @@ import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
 import kotlinx.coroutines.launch
 import java.text.DateFormatSymbols
 import java.util.Calendar
@@ -95,19 +96,21 @@ fun CalendarScreen(
 
     LaunchedEffect(scannedCode.value) {
         val code = scannedCode.value
-        if (code != null) {
+        if (code != null && currentEvent != null) {
             scannedCode.value = null
 
-            if (currentEvent != null && code == currentEvent.checkInCode) {
+            if (code == currentEvent.checkInCode) {
                 val checkTime = AppDateHelper().getCurrentCompleteTime()
 
                 if (currentEvent.checkInTime == null) {
                     RubeusApi.checkIn(user.id, currentEvent, checkTime)
-                } else if (currentEvent.checkOutTime == null) {
-                    RubeusApi.checkOut(user.id, currentEvent, checkTime)
                 }
             } else {
-                // TODO: código inválido, fazer também outras mensagens, igual checkout precisa de checkin
+                if (currentEvent.verificationMethod == Event.EventVerificationMethod.QR_CODE) {
+                    AppSnackBarManager.showMessage("QR Code inválido")
+                } else {
+                    AppSnackBarManager.showMessage("Código inválido")
+                }
             }
         }
     }
@@ -182,12 +185,21 @@ fun CalendarScreen(
                 .clip(RoundedCornerShape(12.dp))
                 .background(AppColors().darkGreen)
                 .clickable {
-                    if (currentEvent?.verificationMethod == Event.EventVerificationMethod.VERIFICATION_CODE)
-                        navController.navigate(ScreenType.VERIFICATION_CODE.route)
-                    else if (currentEvent?.verificationMethod == Event.EventVerificationMethod.QR_CODE)
-                        navController.navigate(ScreenType.QR_SCANNER.route)
-                    // TODO: colocar mensagem que não tem evento atual
-                    // TODO: tela de checkout (não precisa de código)
+                    if (currentEvent == null) {
+                        AppSnackBarManager.showMessage("Não existem eventos no momento")
+                    } else {
+                        if (currentEvent.checkInTime == null) {
+                            if (currentEvent.verificationMethod == Event.EventVerificationMethod.VERIFICATION_CODE) {
+                                navController.navigate(ScreenType.VERIFICATION_CODE.route)
+                            } else if (currentEvent.verificationMethod == Event.EventVerificationMethod.QR_CODE) {
+                                navController.navigate(ScreenType.QR_SCANNER.route)
+                            }
+                        } else if (currentEvent.checkOutTime == null) {
+                            navController.navigate(ScreenType.CHECK_OUT.route)
+                        } else {
+                            AppSnackBarManager.showMessage("Check-in e Check-out já realizados")
+                        }
+                    }
                 },
             contentAlignment = Alignment.Center
         ) {

@@ -67,8 +67,7 @@ enum class ScreenType(val route: String) {
     RECOVER_PASSWORD("recover_password"),
     EDIT_PROFILE("edit_profile"),
     REGISTER_EVENT("register_event"),
-    CHECK_OUT("check_out")
-    REGISTER_EVENT("register_event"),
+    CHECK_OUT("check_out"),
     EVENT_DETAILS("event_details")
 }
 
@@ -331,8 +330,32 @@ fun AppNavHost(
                     EventsScreen(
                         user = nonNullUser,
                         allEvents = userEvents,
-                        navController = navController
+                        navController = navController,
+                        onEventDetails = { event ->
+                            navController.navigate("${ScreenType.EVENT_DETAILS.route}/${event.course}")
+                        }
                     )
+                } ?: run {
+                    setRememberedEmail(activity, "")
+                    navController.navigate(ScreenType.LOGIN.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+
+            composable("${ScreenType.EVENT_DETAILS.route}/{event}") { backStackEntry ->
+                val courseId = backStackEntry.arguments?.getString("event")?.toIntOrNull()
+                val selectedEvent = userEvents.find { it.course == courseId }
+
+                user?.let { nonNullUser ->
+                    if (selectedEvent != null) {
+                        EventDetailsScreen(
+                            user = nonNullUser,
+                            event = selectedEvent,
+                            navController = navController
+                        )
+                    }
                 } ?: run {
                     setRememberedEmail(activity, "")
                     navController.navigate(ScreenType.LOGIN.route) {
@@ -423,6 +446,7 @@ fun AppNavHost(
                     }
                 }
             }
+
             composable(ScreenType.CHECK_OUT.route) {
                 CheckRoomScreen(
                     onBack = {

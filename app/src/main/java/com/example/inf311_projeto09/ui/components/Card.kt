@@ -74,6 +74,9 @@ import kotlinx.coroutines.delay
 import java.util.Date
 import java.util.Locale
 
+const val CHECK_IN = "Check-in"
+const val CHECK_OUT = "Check-out"
+
 @Composable
 fun EventCard(
     event: Event,
@@ -133,7 +136,7 @@ fun EventCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 EventActionButton(
-                    label = "Check-in",
+                    label = CHECK_IN,
                     eventTime = event.checkInEnabled,
                     checkTime = event.checkInTime,
                     isEnabled = event.checkInEnabled != null,
@@ -151,7 +154,7 @@ fun EventCard(
                 )
 
                 EventActionButton(
-                    label = "Check-out",
+                    label = CHECK_OUT,
                     eventTime = event.checkOutEnabled,
                     checkTime = event.checkOutTime,
                     isEnabled = event.checkOutEnabled != null,
@@ -406,11 +409,11 @@ fun handleCheckInClick(
     val now = Date()
 
     if (isAdminHome) {
-        handleEnableCheckClick(event, user, "Check-in")
+        handleEnableCheckClick(event, user, CHECK_IN)
     } else {
         val canCheckIn =
             event.checkInEnabled != null && event.checkInTime == null && now >= event.checkInEnabled
-        handleCheckClick(canCheckIn, event.verificationMethod, navController)
+        handleCheckClick(CHECK_IN, canCheckIn, event.verificationMethod, navController)
     }
 }
 
@@ -423,36 +426,41 @@ fun handleCheckOutClick(
     val now = Date()
 
     if (isAdminHome) {
-        handleEnableCheckClick(event, user, "Check-out")
+        handleEnableCheckClick(event, user, CHECK_OUT)
     } else {
         val canCheckOut =
             event.checkOutEnabled != null && event.checkInTime != null && event.checkOutTime == null && now >= event.checkOutEnabled
-        handleCheckClick(canCheckOut, event.verificationMethod, navController)
+        handleCheckClick(CHECK_OUT, canCheckOut, event.verificationMethod, navController)
     }
 }
 
 fun handleEnableCheckClick(
     event: Event,
     user: User,
-    checkType: String,
+    checkType: String
 ) {
     // TODO: confirmar se quer fazer a ação e exibir mensagens, check-out só depois de check-in...
-    if (checkType == "Check-in" && event.checkInEnabled == null) {
+    if (checkType == CHECK_IN && event.checkInEnabled == null) {
         RubeusApi.enableCheckIn(user.id, event, AppDateHelper().getCurrentCompleteTime())
-    } else if (checkType == "Check-out" && event.checkInEnabled != null && event.checkOutEnabled == null) {
+    } else if (checkType == CHECK_OUT && event.checkInEnabled != null && event.checkOutEnabled == null) {
         RubeusApi.enableCheckOut(user.id, event, AppDateHelper().getCurrentCompleteTime())
     }
 }
 
 fun handleCheckClick(
+    checkType: String,
     canCheck: Boolean,
     verificationMethod: Event.EventVerificationMethod,
     navController: NavHostController
 ) {
     if (canCheck) {
-        when (verificationMethod) {
-            Event.EventVerificationMethod.VERIFICATION_CODE -> navController.navigate(ScreenType.VERIFICATION_CODE.route)
-            else -> navController.navigate(ScreenType.QR_SCANNER.route)
+        if (checkType == CHECK_IN) {
+            when (verificationMethod) {
+                Event.EventVerificationMethod.VERIFICATION_CODE -> navController.navigate(ScreenType.VERIFICATION_CODE.route)
+                else -> navController.navigate(ScreenType.QR_SCANNER.route)
+            }
+        } else {
+            navController.navigate(ScreenType.CHECK_OUT.route)
         }
     }
 }
