@@ -26,6 +26,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.Event
@@ -138,7 +140,18 @@ fun AppNavHost(
         userEventsState.value = userEventsState.value.filterNot { it.course == event.course }
         todayEventsState.value = AppDateHelper().getEventsForDate(userEventsState.value, today.time)
     }
-    // TODO: atualizar os eventos de tempos em tempos?
+    // TODO: atualizar os eventos de tempos em tempos
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(25000L)
+            Log.d("AppNavHost", "Atualizando eventos...")
+            userState.value?.let { user ->
+                val updatedEvents = RubeusApi.listUserEvents(user.id)
+                userEventsState.value = updatedEvents
+                todayEventsState.value = AppDateHelper().getEventsForDate(updatedEvents, today.time)
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = {
