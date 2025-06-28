@@ -1,5 +1,6 @@
 package com.example.inf311_projeto09.ui.screens
 
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -46,6 +47,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -75,6 +77,7 @@ import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.model.Event
 import com.example.inf311_projeto09.model.Event.EventVerificationMethod
 import com.example.inf311_projeto09.model.User
+import com.example.inf311_projeto09.ui.components.FilterDialog
 import com.example.inf311_projeto09.ui.components.ReusableDatePickerDialog
 import com.example.inf311_projeto09.ui.components.ReusableTimePickerDialog
 import com.example.inf311_projeto09.ui.utils.AppColors
@@ -146,30 +149,39 @@ fun EventDetailsScreen(
     var endDateText by remember { mutableStateOf(dateFormatter.format(event.endTime)) }
     var endTimeText by remember { mutableStateOf(timeFormatter.format(event.endTime)) }
     val participants by remember { mutableStateOf(event.participants.toList()) }
-    val users = participants.mapNotNull { email ->
-        RubeusApi.searchUserByEmail(email)
+    val participantsWithEventStatus = remember { mutableStateListOf<Pair<User, Event>>() }
+
+    LaunchedEffect(participants) {
+        val tempParticipantsStatus = mutableListOf<Pair<User, Event>>()
+        participants.forEach { email ->
+            val participantUser = RubeusApi.searchUserByEmail(email)
+            participantUser?.let { user ->
+                val participantEvent = RubeusApi.getUserEvent(user.id, event.course)
+                if (participantEvent != null) {
+                    tempParticipantsStatus.add(Pair(user, participantEvent))
+                }
+            }
+        }
+        participantsWithEventStatus.clear()
+        participantsWithEventStatus.addAll(tempParticipantsStatus)
     }
-    // TODO: para cada usuario pegar o id (users[i].id) e o course (event.course)
-    // ai dessa forma vc ja tem os usuarios e consegue fazer o get desse evento específico
-    // RubeusApi.getUserEvent(, event.course)
 
     var isEditingMode by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Dados") }
 
-    val selectedFilters = remember { mutableStateOf(setOf<ParticipantsFilter>()) }
-    val showFilterDialog = remember { mutableStateOf(false) }
+    val (filteredParticipants, selectedParticipantsFilters, showParticipantFilterDialog) = rememberParticipantFilterState(event = event)
 
-    val filteredParticipants = remember(participants, selectedFilters.value) {
-        users.filter { _ ->
-            selectedFilters.value.all { filter ->
-                when (filter) {
-                    ParticipantsFilter.ABSENT -> userMissed(event)
-                    ParticipantsFilter.PRESENT -> userCheckedIn(event)
-                    ParticipantsFilter.LATE -> userWasLate(event)
-                    ParticipantsFilter.AT_TIME -> userWasOnTime(event)
-                }
+    if (showParticipantFilterDialog.value) {
+        FilterDialog(
+            title = "Filtrar Participantes",
+            filtersToShow = ParticipantsFilter.entries.map { it to it.label },
+            selected = selectedParticipantsFilters.value,
+            onDismiss = { showParticipantFilterDialog.value = false },
+            onConfirm = { newFilters ->
+                selectedParticipantsFilters.value = newFilters
+                showParticipantFilterDialog.value = false
             }
-        }
+        )
     }
 
     val currentTime = remember { Date() }
@@ -240,8 +252,8 @@ fun EventDetailsScreen(
                 onToggleEditing = { isEditingMode = !isEditingMode },
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it },
-                selectedFilters = selectedFilters,
-                showFilterDialog = showFilterDialog,
+                selectedFilters = selectedParticipantsFilters,
+                showFilterDialog = showParticipantFilterDialog,
                 user = user,
                 participants = filteredParticipants,
                 event = event
@@ -397,32 +409,30 @@ fun MainContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (user.type == User.UserRole.ADMIN && isBeforeStart) {
-                    if (selectedTab == "Dados") {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clickable { onToggleEditing() }
-                            ) {
-                                AppIcons.Outline.EditIcon(
-                                    boxSize = 24.dp,
-                                    colorIcon = if (isEditingMode) AppColors().green else AppColors().black
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-
                 when (selectedTab) {
                     "Dados" -> {
+                        if (user.type == User.UserRole.ADMIN && isBeforeStart) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clickable { onToggleEditing() }
+                                ) {
+                                    AppIcons.Outline.EditIcon(
+                                        boxSize = 24.dp,
+                                        colorIcon = if (isEditingMode) AppColors().green else AppColors().black
+                                    )
+                                }
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+
                         EventNameField(
                             eventName = eventName,
                             onEventNameChange = onEventNameChange,
@@ -592,60 +602,52 @@ fun MainContent(
 
                     "Participantes" -> {
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(0.81f)
-                                .horizontalScroll(rememberScrollState()),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            selectedFilters.value.forEach { filter ->
-                                FilterChip(text = filter.label) {
-                                    selectedFilters.value = selectedFilters.value - filter
-                                }
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Row(
+                        if (user.type == User.UserRole.ADMIN && !isBeforeStart) {
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxHeight()
-                                    .fillMaxWidth(0.81f)
-                                    .horizontalScroll(rememberScrollState()),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .fillMaxWidth()
+                                    .height(40.dp)
+                                    .padding(top = 0.dp)
                             ) {
-                                selectedFilters.value.forEach { filter ->
-                                    FilterChip(text = filter.label) {
-                                        selectedFilters.value = selectedFilters.value - filter
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .fillMaxWidth(0.81f)
+                                        .horizontalScroll(rememberScrollState()),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    selectedFilters.value.forEach { filter ->
+                                        FilterChip(text = filter.label) {
+                                            selectedFilters.value = selectedFilters.value - filter
+                                        }
+                                    }
+                                }
+
+                                Row(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .padding(end = 0.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clickable { showFilterDialog.value = true }
+                                            .padding(start = 4.dp)
+                                    ) {
+                                        AppIcons.Outline.Filter(24.dp, AppColors().black)
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .clickable { }
+                                    ) {
+                                        AppIcons.Outline.FileGenerator(24.dp, AppColors().black)
                                     }
                                 }
                             }
-
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .padding(end = 0.dp),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .clickable { showFilterDialog.value = true }
-                                        .padding(start = 4.dp)
-                                ) {
-                                    AppIcons.Outline.Filter(24.dp, AppColors().black)
-                                }
-
-                                Box(
-                                    modifier = Modifier
-                                        .clickable { }
-                                ) {
-                                    AppIcons.Outline.FileGenerator(24.dp, AppColors().black)
-                                }
-                            }
+                        }else {
+                            Spacer(modifier = Modifier.height(20.dp))
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -753,7 +755,7 @@ fun ParticipantItem(participant: User) {
             Spacer(modifier = Modifier.height(5.dp))
 
             Text(
-                text = participant.school,
+                text = participant.email,
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.Medium,
                 color = AppColors().lightBlack,
@@ -1329,24 +1331,86 @@ fun TabRow(
     }
 }
 
-fun userCheckedIn(event: Event): Boolean {
-    return event.checkInTime != null
+@Composable
+fun rememberParticipantFilterState(event: Event): Triple<List<User>, MutableState<Set<ParticipantsFilter>>, MutableState<Boolean>> {
+    val eventParticipantsEmails = remember(event.participants) { event.participants.toList() }
+    val participantsWithEventStatus = remember { mutableStateOf(emptyList<Pair<User, Event>>()) }
+
+    LaunchedEffect(eventParticipantsEmails) {
+        val tempParticipantsStatus = mutableListOf<Pair<User, Event>>()
+        eventParticipantsEmails.forEach { email ->
+            val participantUser = RubeusApi.searchUserByEmail(email)
+            participantUser?.let { user ->
+                val participantEvent = RubeusApi.getUserEvent(user.id, event.course)
+                if (participantEvent != null) {
+                    tempParticipantsStatus.add(Pair(user, participantEvent))
+                }
+            }
+        }
+        participantsWithEventStatus.value = tempParticipantsStatus
+    }
+
+    val selectedFilters = remember { mutableStateOf(setOf<ParticipantsFilter>()) }
+    val showFilterDialog = remember { mutableStateOf(false) }
+
+    val filteredParticipants = remember(participantsWithEventStatus.value, selectedFilters.value) {
+        if (selectedFilters.value.isEmpty()) {
+            participantsWithEventStatus.value.map { it.first } // Use .value aqui
+        } else {
+            participantsWithEventStatus.value.filter { (_, participantEvent) ->
+                selectedFilters.value.all { filter ->
+                    when (filter) {
+                        ParticipantsFilter.ABSENT -> isUserMissed(participantEvent, event.endTime)
+                        ParticipantsFilter.PRESENT -> isUserCheckedIn(participantEvent)
+                        ParticipantsFilter.LATE -> isUserLate(participantEvent)
+                        ParticipantsFilter.AT_TIME -> isUserOnTime(participantEvent)
+                    }
+                }
+            }.map { it.first }
+        }
+    }
+
+    return Triple(filteredParticipants, selectedFilters, showFilterDialog)
 }
 
-fun userWasLate(event: Event): Boolean {
-    val checkIn = event.checkInTime
-    val scheduled = event.checkInEnabled
-    return checkIn != null && scheduled != null && checkIn.after(scheduled)
+fun isUserCheckedIn(userEvent: Event): Boolean {
+    return userEvent.checkInTime != null
 }
 
-fun userWasOnTime(event: Event): Boolean {
-    val checkIn = event.checkInTime
-    val scheduled = event.checkInEnabled
-    return checkIn != null && scheduled != null && checkIn == scheduled
+fun isUserLate(userEvent: Event): Boolean {
+    val checkIn = userEvent.checkInTime
+    val scheduledCheckInStart = userEvent.checkInEnabled
+
+    if (checkIn == null || scheduledCheckInStart == null) {
+        return false
+    }
+
+    val lateThreshold = Calendar.getInstance().apply {
+        time = scheduledCheckInStart
+        add(Calendar.MINUTE, 10)
+    }.time
+
+    return checkIn.after(lateThreshold)
 }
 
-fun userMissed(event: Event): Boolean {
-    return event.checkInTime == null
+fun isUserOnTime(userEvent: Event): Boolean {
+    val checkIn = userEvent.checkInTime
+    val scheduledCheckInStart = userEvent.checkInEnabled
+
+    if (checkIn == null || scheduledCheckInStart == null) {
+        return false
+    }
+
+    val lateThreshold = Calendar.getInstance().apply {
+        time = scheduledCheckInStart
+        add(Calendar.MINUTE, 10)
+    }.time
+
+    return (checkIn.before(lateThreshold) || checkIn == lateThreshold)
+}
+
+fun isUserMissed(userEvent: Event, eventEndTime: Date): Boolean {
+    return userEvent.checkInTime == null && Date().after(eventEndTime)
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -1361,8 +1425,8 @@ fun EventDetailsScreenPreview() {
         "ABC123",
         true,
         "XYZ789",
-        AppDateHelper().getFullDate(2025, 6, 25, 23, 56, 0),
-        AppDateHelper().getFullDate(2025, 6, 25, 23, 56, 0),
+        AppDateHelper().getFullDate(2025, 5, 25, 23, 56, 0),
+        AppDateHelper().getFullDate(2025, 5, 25, 23, 56, 0),
         null,
         null,
         null,

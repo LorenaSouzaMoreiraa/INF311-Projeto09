@@ -223,6 +223,8 @@ fun EventsContent(
 
         if (showFilterDialog.value) {
             FilterDialog(
+                title = "Filtrar Eventos",
+                filtersToShow = EventFilter.entries.map { it to it.label },
                 selected = selectedFilters.value,
                 onDismiss = { showFilterDialog.value = false },
                 onConfirm = {
