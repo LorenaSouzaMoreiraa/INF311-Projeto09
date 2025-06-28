@@ -88,7 +88,6 @@ import com.inf311_projeto09.model.User
 import com.inf311_projeto09.ui.components.FilterDialog
 import com.inf311_projeto09.ui.components.ReusableDatePickerDialog
 import com.inf311_projeto09.ui.components.ReusableTimePickerDialog
-import com.inf311_projeto09.ui.screens.admin.LocationField
 import com.inf311_projeto09.ui.utils.AppColors
 import com.inf311_projeto09.ui.utils.AppDateHelper
 import com.inf311_projeto09.ui.utils.AppFonts
@@ -340,7 +339,12 @@ fun EventDetailsScreen(
             if (location != null) {
                 selectedLocation = location
                 selectedLocationText =
-                    "Lat: %.5f, Lng: %.5f".format(location.latitude, location.longitude)
+                    String.format(
+                        Locale.US,
+                        "Lat: %.5f, Lng: %.5f",
+                        location.latitude,
+                        location.longitude
+                    )
             } else {
                 AppSnackBarManager.showMessage("Não foi possível obter a localização atual")
             }
@@ -384,7 +388,12 @@ fun EventDetailsScreen(
                     onLocationSelected = { latLng ->
                         selectedLocation = latLng
                         selectedLocationText =
-                            "Lat: %.5f, Lng: %.5f".format(latLng.latitude, latLng.longitude)
+                            String.format(
+                                Locale.US,
+                                "Lat: %.5f, Lng: %.5f",
+                                latLng.latitude,
+                                latLng.longitude
+                            )
                     }
                 )
             },
@@ -575,6 +584,7 @@ fun MainContent(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         LocationField(
+                            isEditingMode = isEditingMode,
                             locationText = selectedLocationText,
                             onClickSelectLocation = onOpenMapDialog
                         )
@@ -1139,6 +1149,7 @@ fun DescriptionField(
 
 @Composable
 fun LocationField(
+    isEditingMode: Boolean,
     locationText: String,
     onClickSelectLocation: () -> Unit
 ) {
@@ -1156,7 +1167,11 @@ fun LocationField(
         },
         readOnly = true,
         trailingIcon = {
-            IconButton(onClick = onClickSelectLocation) {
+            IconButton(onClick = {
+                if (isEditingMode) {
+                    onClickSelectLocation()
+                }
+            }) {
                 AppIcons.Outline.Map(30.dp, AppColors().black)
             }
         },

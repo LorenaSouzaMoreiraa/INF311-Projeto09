@@ -236,7 +236,12 @@ fun RegisterEventScreen(
             if (location != null) {
                 selectedLocation = location
                 selectedLocationText =
-                    "Lat: %.5f, Lng: %.5f".format(location.latitude, location.longitude)
+                    String.format(
+                        Locale.US,
+                        "Lat: %.5f, Lng: %.5f",
+                        location.latitude,
+                        location.longitude
+                    )
             } else {
                 AppSnackBarManager.showMessage("Não foi possível obter a localização atual")
             }
@@ -280,7 +285,12 @@ fun RegisterEventScreen(
                     onLocationSelected = { latLng ->
                         selectedLocation = latLng
                         selectedLocationText =
-                            "Lat: %.5f, Lng: %.5f".format(latLng.latitude, latLng.longitude)
+                            String.format(
+                                Locale.US,
+                                "Lat: %.5f, Lng: %.5f",
+                                latLng.latitude,
+                                latLng.longitude
+                            )
                     }
                 )
             },
