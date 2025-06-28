@@ -84,8 +84,6 @@ import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
-// TODO: pedir permissão para acessar galeria?
-
 @Composable
 fun EditProfileScreen(
     user: User,

@@ -2,6 +2,7 @@ package com.inf311_projeto09.ui.screens.admin
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -950,53 +951,64 @@ fun AuthMethodSelection(
     }
 }
 
-// TODO: fazer importação do arquivo de uma forma melhor, agora ta gambiarrado
 @Composable
 fun ImportParticipantsSection(
+    modifier: Modifier = Modifier,
     onEmailsImported: (List<String>) -> Unit
 ) {
     val context = LocalContext.current
+    val selectedFileName = remember { mutableStateOf<String?>(null) }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
             val emails = readEmailsFromCsv(context, it)
-            onEmailsImported(emails)
+            selectedFileName.value = getFileNameFromUri(context, it)
+
+            if (emails.isNotEmpty()) {
+                onEmailsImported(emails)
+                AppSnackBarManager.showMessage("Participantes importados com sucesso.")
+            } else {
+                AppSnackBarManager.showMessage("Nenhum e-mail válido encontrado.")
+            }
         }
     }
 
-    Text(
-        text = "Importar participantes",
-        fontFamily = AppFonts().montserrat,
-        fontWeight = FontWeight.SemiBold,
-        color = AppColors().black,
-        fontSize = 16.sp,
-        textAlign = TextAlign.Start,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 20.dp)
-    )
-
-    Button(
-        onClick = {
-            launcher.launch("text/csv")
-        },
-        colors = ButtonDefaults.buttonColors(
-            containerColor = AppColors().white,
-            contentColor = AppColors().grey
-        ),
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(BorderStroke(1.dp, AppColors().lightGrey), RoundedCornerShape(8.dp))
-    ) {
+    Column(modifier = modifier) {
         Text(
-            text = "Clique aqui para selecionar o arquivo",
+            text = "Importar participantes",
             fontFamily = AppFonts().montserrat,
-            fontWeight = FontWeight.Medium,
-            fontSize = 14.sp,
-            color = AppColors().grey
+            fontWeight = FontWeight.SemiBold,
+            color = AppColors().black,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp)
         )
+
+        Button(
+            onClick = { launcher.launch("text/csv") },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors().white,
+                contentColor = AppColors().grey
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(BorderStroke(1.dp, AppColors().lightGrey), RoundedCornerShape(8.dp))
+        ) {
+            Text(
+                text = selectedFileName.value ?: "Clique aqui para selecionar o arquivo",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = AppColors().grey
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -1015,6 +1027,18 @@ fun readEmailsFromCsv(context: Context, uri: Uri): List<String> {
         e.printStackTrace()
     }
     return emails
+}
+
+fun getFileNameFromUri(context: Context, uri: Uri): String {
+    var name = "arquivo.csv"
+    val cursor = context.contentResolver.query(uri, null, null, null, null)
+    cursor?.use {
+        val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (it.moveToFirst() && nameIndex >= 0) {
+            name = it.getString(nameIndex)
+        }
+    }
+    return name
 }
 
 @Composable
