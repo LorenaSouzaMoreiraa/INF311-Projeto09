@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import java.text.DateFormatSymbols
 import java.util.Calendar
 import java.util.Date
+import java.text.SimpleDateFormat
 
 @Composable
 fun CalendarScreen(
@@ -586,8 +587,14 @@ class CalendarViewModel {
     }
 
     private fun getMonthName(month: Int): String {
-        val locale = AppDateHelper.LOCALE_PT_BR
-        return DateFormatSymbols(locale).months[month].replaceFirstChar { it.uppercaseChar() }
+        val appDateHelper = AppDateHelper()
+
+        val calendar = Calendar.getInstance(appDateHelper.timeZone, appDateHelper.locale).apply {
+            set(Calendar.MONTH, month)
+        }
+        val format = SimpleDateFormat("MMMM", appDateHelper.locale)
+        format.timeZone = appDateHelper.timeZone
+        return format.format(calendar.time).replaceFirstChar { it.uppercaseChar() }
     }
 }
 

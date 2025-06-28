@@ -140,7 +140,7 @@ fun AppNavHost(
         userEventsState.value = userEventsState.value.filterNot { it.course == event.course }
         todayEventsState.value = AppDateHelper().getEventsForDate(userEventsState.value, today.time)
     }
-    // TODO: atualizar os eventos de tempos em tempos
+
     LaunchedEffect(Unit) {
         while (true) {
             delay(120000L)

@@ -319,6 +319,8 @@ fun DateTimeSection() {
     val currentDayAndDate = remember { mutableStateOf(AppDateHelper().getCurrentDayAndDate()) }
     val currentMonthYear = remember { mutableStateOf(AppDateHelper().getCurrentMonthYear()) }
 
+    val appDateHelper = remember { AppDateHelper() }
+    val timeZoneText = appDateHelper.getTimeZoneReferenceText()
     LaunchedEffect(Unit) {
         while (true) {
             currentTime.value = AppDateHelper().getCurrentTimeWithSeconds()
@@ -344,7 +346,7 @@ fun DateTimeSection() {
             )
 
             Text(
-                text = "Brasil (UTC-3), Brasília",
+                text = timeZoneText,
                 fontFamily = AppFonts().montserrat,
                 fontWeight = FontWeight.Medium,
                 color = AppColors().grey,
