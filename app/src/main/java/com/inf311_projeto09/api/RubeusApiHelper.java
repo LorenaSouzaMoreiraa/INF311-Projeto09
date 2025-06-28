@@ -291,6 +291,7 @@ final class RubeusApiHelper {
         customFields.put(RubeusFields.UserEvent.END_TIME.getIdentifier(), this.formatDate(event.getEndTime()));
         customFields.put(RubeusFields.UserEvent.TYPE.getIdentifier(), event.getType());
         customFields.put(RubeusFields.UserEvent.DESCRIPTION.getIdentifier(), event.getDescription());
+        customFields.put(RubeusFields.UserEvent.LOCATION.getIdentifier(), event.getLocation());
         customFields.put(RubeusFields.UserEvent.VERIFICATION_TYPE.getIdentifier(), event.getVerificationMethod().getIdentifier());
         customFields.put(RubeusFields.UserEvent.AUTO_CHECK.getIdentifier(), event.getAutoCheck() ? "1" : "0");
 

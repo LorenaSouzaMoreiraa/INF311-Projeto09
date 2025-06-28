@@ -62,6 +62,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import com.inf311_projeto09.api.RubeusApi
 import com.inf311_projeto09.helper.EventAuthenticationHelper
 import com.inf311_projeto09.model.Event
@@ -74,11 +79,6 @@ import com.inf311_projeto09.ui.utils.AppFonts
 import com.inf311_projeto09.ui.utils.AppIcons
 import com.inf311_projeto09.ui.utils.AppSnackBarManager
 import com.inf311_projeto09.ui.utils.rememberLocationHelper
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -825,6 +825,10 @@ fun LocationSelector(
 ) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
+
+    val markerRef = remember { mutableStateOf<Marker?>(null) }
+    val mapInitialized = remember { mutableStateOf(false) }
+
     DisposableEffect(Unit) {
         mapView.onCreate(null)
         mapView.onResume()
@@ -839,24 +843,28 @@ fun LocationSelector(
         modifier = modifier,
         update = { mv ->
             mv.getMapAsync { googleMap ->
-                googleMap.uiSettings.isZoomControlsEnabled = true
+                if (!mapInitialized.value) {
+                    googleMap.uiSettings.isZoomControlsEnabled = true
 
-                var marker: Marker? = null
-                initialLocation?.let {
-                    val pos = LatLng(it.latitude, it.longitude)
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 15f))
-                    marker = googleMap.addMarker(
-                        MarkerOptions().position(pos).title("Local selecionado")
-                    )
-                }
+                    initialLocation?.let {
+                        val pos = LatLng(it.latitude, it.longitude)
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 15f))
+                        markerRef.value = googleMap.addMarker(
+                            MarkerOptions().position(pos).title("Local selecionado")
+                        )
+                    }
 
-                googleMap.setOnMapClickListener { latLng ->
-                    marker?.remove()
-                    marker = googleMap.addMarker(
-                        MarkerOptions().position(latLng).title("Local selecionado")
-                    )
-                    onLocationSelected(latLng)
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+                    googleMap.setOnMapClickListener { latLng ->
+                        markerRef.value?.remove()
+                        val newMarker = googleMap.addMarker(
+                            MarkerOptions().position(latLng).title("Local selecionado")
+                        )
+                        markerRef.value = newMarker
+                        onLocationSelected(latLng)
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+                    }
+
+                    mapInitialized.value = true
                 }
             }
         }

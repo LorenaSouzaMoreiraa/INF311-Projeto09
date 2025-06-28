@@ -1,5 +1,7 @@
 package com.inf311_projeto09.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -41,6 +43,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
@@ -67,10 +70,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import com.inf311_projeto09.R
 import com.inf311_projeto09.api.RubeusApi
 import com.inf311_projeto09.model.Event
@@ -79,11 +88,13 @@ import com.inf311_projeto09.model.User
 import com.inf311_projeto09.ui.components.FilterDialog
 import com.inf311_projeto09.ui.components.ReusableDatePickerDialog
 import com.inf311_projeto09.ui.components.ReusableTimePickerDialog
+import com.inf311_projeto09.ui.screens.admin.LocationField
 import com.inf311_projeto09.ui.utils.AppColors
 import com.inf311_projeto09.ui.utils.AppDateHelper
 import com.inf311_projeto09.ui.utils.AppFonts
 import com.inf311_projeto09.ui.utils.AppIcons
 import com.inf311_projeto09.ui.utils.AppSnackBarManager
+import com.inf311_projeto09.ui.utils.rememberLocationHelper
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -150,6 +161,20 @@ fun EventDetailsScreen(
     var endTimeText by remember { mutableStateOf(timeFormatter.format(event.endTime)) }
     val participants by remember { mutableStateOf(event.participants.toList()) }
     val participantsWithEventStatus = remember { mutableStateListOf<Pair<User, Event>>() }
+
+    var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
+    var selectedLocationText by remember { mutableStateOf(event.location) }
+    var showMapDialog by remember { mutableStateOf(false) }
+
+    val locationHelper = rememberLocationHelper()
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = {}
+    )
+
+    LaunchedEffect(Unit) {
+        locationHelper.getCurrentLocation(permissionLauncher)
+    }
 
     LaunchedEffect(participants) {
         val tempParticipantsStatus = mutableListOf<Pair<User, Event>>()
@@ -244,6 +269,8 @@ fun EventDetailsScreen(
                 onSelectedEventTypeChange = { selectedEventType = it },
                 eventDescription = eventDescription,
                 onDescriptionChange = { eventDescription = it },
+                selectedLocationText = selectedLocationText,
+                onOpenMapDialog = { showMapDialog = true },
                 selectedAuthMethod = selectedAuthMethod,
                 onSelectedAuthMethodChange = { selectedAuthMethod = it },
                 autoCheckInOut = autoCheck,
@@ -259,7 +286,6 @@ fun EventDetailsScreen(
                 user = user,
                 participants = filteredParticipants,
                 event = event,
-                navController = navController,
                 onDelete = onDelete
             )
         }
@@ -307,6 +333,64 @@ fun EventDetailsScreen(
             showEndTimePicker = false
         }
     )
+
+    if (showMapDialog) {
+        LaunchedEffect(Unit) {
+            val location = locationHelper.getCurrentLocation(permissionLauncher)
+            if (location != null) {
+                selectedLocation = location
+                selectedLocationText =
+                    "Lat: %.5f, Lng: %.5f".format(location.latitude, location.longitude)
+            } else {
+                AppSnackBarManager.showMessage("Não foi possível obter a localização atual")
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = { showMapDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showMapDialog = false
+                }) {
+                    Text(
+                        text = "Selecionar",
+                        color = AppColors().darkGreen,
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    selectedLocationText = ""
+                    showMapDialog = false
+                }) {
+                    Text(
+                        text = "Limpar",
+                        color = AppColors().darkGreen,
+                        fontFamily = AppFonts().montserrat,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
+                }
+            },
+            text = {
+                com.inf311_projeto09.ui.screens.admin.LocationSelector(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp),
+                    initialLocation = selectedLocation,
+                    onLocationSelected = { latLng ->
+                        selectedLocation = latLng
+                        selectedLocationText =
+                            "Lat: %.5f, Lng: %.5f".format(latLng.latitude, latLng.longitude)
+                    }
+                )
+            },
+            containerColor = AppColors().offWhite
+        )
+    }
 }
 
 @Composable
@@ -369,6 +453,8 @@ fun MainContent(
     onSelectedEventTypeChange: (String) -> Unit,
     eventDescription: String,
     onDescriptionChange: (String) -> Unit,
+    selectedLocationText: String,
+    onOpenMapDialog: () -> Unit,
     selectedAuthMethod: EventVerificationMethod,
     onSelectedAuthMethodChange: (EventVerificationMethod) -> Unit,
     autoCheckInOut: Boolean,
@@ -384,7 +470,6 @@ fun MainContent(
     user: User,
     participants: List<User>,
     event: Event,
-    navController: NavHostController,
     onDelete: () -> Unit
 ) {
     val customDropdownShape =
@@ -489,6 +574,13 @@ fun MainContent(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
+                        LocationField(
+                            locationText = selectedLocationText,
+                            onClickSelectLocation = onOpenMapDialog
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
                         AuthMethodSelection(
                             selectedAuthMethod = selectedAuthMethod,
                             onSelectedAuthMethodChange = onSelectedAuthMethodChange,
@@ -569,6 +661,11 @@ fun MainContent(
                                             return@ActionButton
                                         }
 
+                                        selectedEventType == "Presencial" && selectedLocationText.isEmpty() -> {
+                                            AppSnackBarManager.showMessage("O campo 'Local do evento' é obrigatório")
+                                            return@ActionButton
+                                        }
+
                                         selectedAuthMethod == EventVerificationMethod.NONE -> {
                                             AppSnackBarManager.showMessage("O campo 'Método de autenticação' é obrigatório")
                                             return@ActionButton
@@ -580,6 +677,7 @@ fun MainContent(
                                         event.endTime == endTime &&
                                         event.type == selectedEventType &&
                                         event.description == eventDescription &&
+                                        event.location == selectedLocationText &&
                                         event.verificationMethod == selectedAuthMethod &&
                                         event.autoCheck == autoCheckInOut
                                     ) {
@@ -592,6 +690,7 @@ fun MainContent(
                                     event.endTime = endTime
                                     event.type = selectedEventType
                                     event.description = eventDescription
+                                    event.location = selectedLocationText
                                     event.verificationMethod = selectedAuthMethod
                                     event.autoCheck = autoCheckInOut
                                     RubeusApi.updateEvent(user.id, event)
@@ -1035,6 +1134,95 @@ fun DescriptionField(
         ),
         readOnly = !isEditingMode,
         maxLines = Int.MAX_VALUE
+    )
+}
+
+@Composable
+fun LocationField(
+    locationText: String,
+    onClickSelectLocation: () -> Unit
+) {
+    OutlinedTextField(
+        value = locationText,
+        onValueChange = {},
+        label = {
+            Text(
+                "Local do evento",
+                fontFamily = AppFonts().montserrat,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = AppColors().grey
+            )
+        },
+        readOnly = true,
+        trailingIcon = {
+            IconButton(onClick = onClickSelectLocation) {
+                AppIcons.Outline.Map(30.dp, AppColors().black)
+            }
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = AppColors().black,
+            unfocusedTextColor = AppColors().black,
+            focusedBorderColor = AppColors().lightGrey,
+            unfocusedBorderColor = AppColors().lightGrey,
+            cursorColor = AppColors().black
+        ),
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun LocationSelector(
+    modifier: Modifier = Modifier,
+    initialLocation: LatLng? = null,
+    onLocationSelected: (LatLng) -> Unit
+) {
+    val context = LocalContext.current
+    val mapView = remember { MapView(context) }
+
+    val markerRef = remember { mutableStateOf<Marker?>(null) }
+    val mapInitialized = remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        mapView.onCreate(null)
+        mapView.onResume()
+        onDispose {
+            mapView.onPause()
+            mapView.onDestroy()
+        }
+    }
+
+    AndroidView(
+        factory = { mapView },
+        modifier = modifier,
+        update = { mv ->
+            mv.getMapAsync { googleMap ->
+                if (!mapInitialized.value) {
+                    googleMap.uiSettings.isZoomControlsEnabled = true
+
+                    initialLocation?.let {
+                        val pos = LatLng(it.latitude, it.longitude)
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 15f))
+                        markerRef.value = googleMap.addMarker(
+                            MarkerOptions().position(pos).title("Local selecionado")
+                        )
+                    }
+
+                    googleMap.setOnMapClickListener { latLng ->
+                        markerRef.value?.remove()
+                        val newMarker = googleMap.addMarker(
+                            MarkerOptions().position(latLng).title("Local selecionado")
+                        )
+                        markerRef.value = newMarker
+                        onLocationSelected(latLng)
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+                    }
+
+                    mapInitialized.value = true
+                }
+            }
+        }
     )
 }
 
