@@ -101,7 +101,8 @@ enum class ParticipantsFilter(val label: String) {
 fun EventDetailsScreen(
     navController: NavHostController,
     event: Event,
-    user: User
+    user: User,
+    onDelete: () -> Unit
 ) {
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")) }
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale("pt", "BR")) }
@@ -256,7 +257,9 @@ fun EventDetailsScreen(
                 showFilterDialog = showParticipantFilterDialog,
                 user = user,
                 participants = filteredParticipants,
-                event = event
+                event = event,
+                navController = navController,
+                onDelete = onDelete
             )
         }
     }
@@ -379,7 +382,9 @@ fun MainContent(
     showFilterDialog: MutableState<Boolean>,
     user: User,
     participants: List<User>,
-    event: Event
+    event: Event,
+    navController: NavHostController,
+    onDelete: () -> Unit
 ) {
     val customDropdownShape =
         RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
@@ -667,7 +672,8 @@ fun MainContent(
         ConfirmEnableCheckDialog(
             onConfirm = {
                 showConfirmDialog = false
-                // TODO: fazer na api da rubeus a deleção
+                RubeusApi.deleteEvent(user.id, event)
+                onDelete()
             },
             onDismiss = {
                 showConfirmDialog = false
@@ -1448,5 +1454,9 @@ fun EventDetailsScreenPreview() {
         listOf()
     )
 
-    EventDetailsScreen(navController = rememberNavController(), event = event, user = user)
+    EventDetailsScreen(
+        navController = rememberNavController(),
+        event = event,
+        user = user,
+        onDelete = {})
 }

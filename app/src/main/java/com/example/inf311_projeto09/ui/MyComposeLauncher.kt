@@ -13,6 +13,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +26,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import com.example.inf311_projeto09.api.RubeusApi
 import com.example.inf311_projeto09.helper.PasswordHelper
 import com.example.inf311_projeto09.model.Event
@@ -121,11 +124,34 @@ fun AppNavHost(
 ) {
     val today = remember { Calendar.getInstance() }
     val rememberedEmail = hasRememberedEmail(activity)
-    var user =
-        if (rememberedEmail.isNotEmpty()) RubeusApi.searchUserByEmail(rememberedEmail) else null
-    var userEvents = user?.let { RubeusApi.listUserEvents(it.id) } ?: emptyList()
-    var todayEvents = AppDateHelper().getEventsForDate(userEvents, today.time)
-    // TODO: atualizar os eventos de tempos em tempos?
+    val userState = remember {
+        mutableStateOf(
+            if (rememberedEmail.isNotEmpty()) RubeusApi.searchUserByEmail(rememberedEmail) else null
+        )
+    }
+    val userEventsState = remember {
+        mutableStateOf(userState.value?.let { RubeusApi.listUserEvents(it.id) } ?: emptyList())
+    }
+    val todayEventsState = remember {
+        mutableStateOf(AppDateHelper().getEventsForDate(userEventsState.value, today.time))
+    }
+
+    fun deleteEvent(event: Event) {
+        userEventsState.value = userEventsState.value.filterNot { it.course == event.course }
+        todayEventsState.value = AppDateHelper().getEventsForDate(userEventsState.value, today.time)
+    }
+    // TODO: atualizar os eventos de tempos em tempos
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(120000L)
+            Log.d("AppNavHost", "Atualizando eventos...")
+            userState.value?.let { user ->
+                val updatedEvents = RubeusApi.listUserEvents(user.id)
+                userEventsState.value = updatedEvents
+                todayEventsState.value = AppDateHelper().getEventsForDate(updatedEvents, today.time)
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = {
@@ -199,22 +225,29 @@ fun AppNavHost(
                         } else if (password.isEmpty()) {
                             AppSnackBarManager.showMessage("O campo 'Senha' é obrigatório")
                         } else {
-                            user = RubeusApi.searchUserByEmail(email)
-                            if (user == null) {
+                            userState.value = RubeusApi.searchUserByEmail(email)
+                            if (userState.value == null) {
                                 AppSnackBarManager.showMessage("Dados inválidos")
                             } else {
                                 val isValidPassword =
-                                    PasswordHelper.verifyPassword(password, user?.password)
+                                    PasswordHelper.verifyPassword(
+                                        password,
+                                        userState.value?.password
+                                    )
 
                                 if (isValidPassword) {
                                     if (rememberUser) {
                                         setRememberedEmail(activity, email)
                                     }
 
-                                    userEvents =
-                                        user?.let { RubeusApi.listUserEvents(it.id) } ?: emptyList()
-                                    todayEvents =
-                                        AppDateHelper().getEventsForDate(userEvents, today.time)
+                                    userEventsState.value =
+                                        userState.value?.let { RubeusApi.listUserEvents(it.id) }
+                                            ?: emptyList()
+                                    todayEventsState.value =
+                                        AppDateHelper().getEventsForDate(
+                                            userEventsState.value,
+                                            today.time
+                                        )
 
                                     navController.navigate(ScreenType.HOME.route) {
                                         popUpTo(ScreenType.WELCOME.route) { inclusive = true }
@@ -292,10 +325,10 @@ fun AppNavHost(
             }
 
             composable(ScreenType.HOME.route) {
-                user?.let { nonNullUser ->
+                userState.value?.let { nonNullUser ->
                     HomeScreen(
                         user = nonNullUser,
-                        todayEvents = todayEvents,
+                        todayEvents = todayEventsState.value,
                         navController = navController
                     )
                 } ?: run {
@@ -308,10 +341,10 @@ fun AppNavHost(
             }
 
             composable(ScreenType.CALENDAR.route) {
-                user?.let { nonNullUser ->
+                userState.value?.let { nonNullUser ->
                     CalendarScreen(
                         user = nonNullUser,
-                        allEvents = userEvents,
+                        allEvents = userEventsState.value,
                         navController = navController
                     )
                 } ?: run {
@@ -324,10 +357,10 @@ fun AppNavHost(
             }
 
             composable(ScreenType.EVENTS.route) {
-                user?.let { nonNullUser ->
+                userState.value?.let { nonNullUser ->
                     EventsScreen(
                         user = nonNullUser,
-                        allEvents = userEvents,
+                        allEvents = userEventsState.value,
                         navController = navController,
                         onEventDetails = { event ->
                             navController.navigate("${ScreenType.EVENT_DETAILS.route}/${event.course}")
@@ -344,14 +377,18 @@ fun AppNavHost(
 
             composable("${ScreenType.EVENT_DETAILS.route}/{event}") { backStackEntry ->
                 val courseId = backStackEntry.arguments?.getString("event")?.toIntOrNull()
-                val selectedEvent = userEvents.find { it.course == courseId }
+                val selectedEvent = userEventsState.value.find { it.course == courseId }
 
-                user?.let { nonNullUser ->
+                userState.value?.let { nonNullUser ->
                     if (selectedEvent != null) {
                         EventDetailsScreen(
                             user = nonNullUser,
                             event = selectedEvent,
-                            navController = navController
+                            navController = navController,
+                            onDelete = {
+                                deleteEvent(selectedEvent)
+                                navController.popBackStack()
+                            }
                         )
                     }
                 } ?: run {
@@ -364,10 +401,10 @@ fun AppNavHost(
             }
 
             composable(ScreenType.PROFILE.route) {
-                user?.let { nonNullUser ->
+                userState.value?.let { nonNullUser ->
                     ProfileScreen(
                         user = nonNullUser,
-                        allEvents = userEvents,
+                        allEvents = userEventsState.value,
                         navController = navController,
                         onLogout = {
                             setRememberedEmail(activity, "")
@@ -384,7 +421,7 @@ fun AppNavHost(
             }
 
             composable(ScreenType.NOTIFICATIONS.route) {
-                user?.let { nonNullUser ->
+                userState.value?.let { nonNullUser ->
                     NotificationsScreen(
                         user = nonNullUser,
                         onBack = {
@@ -419,7 +456,7 @@ fun AppNavHost(
             }
 
             composable(ScreenType.EDIT_PROFILE.route) {
-                user?.let { nonNullUser ->
+                userState.value?.let { nonNullUser ->
                     EditProfileScreen(
                         user = nonNullUser,
                         navController = navController,
@@ -438,7 +475,7 @@ fun AppNavHost(
             }
 
             composable(ScreenType.REGISTER_EVENT.route) {
-                user?.let { nonNullUser ->
+                userState.value?.let { nonNullUser ->
                     RegisterEventScreen(
                         user = nonNullUser,
                         navController = navController
@@ -453,7 +490,8 @@ fun AppNavHost(
             }
 
             composable(ScreenType.CHECK_OUT.route) {
-                val currentEvent = todayEvents.find { it.eventStage == Event.EventStage.CURRENT }
+                val currentEvent =
+                    todayEventsState.value.find { it.eventStage == Event.EventStage.CURRENT }
 
                 currentEvent?.let { nonNullCurrentEvent ->
                     CheckRoomScreen(

@@ -206,6 +206,10 @@ public final class RubeusApi {
     public static List<Event> listUserEvents(final int userId) {
         final Function<List<Event.RawEventResponse>, List<Event>> toCustomList = events -> events.stream()
                 .filter(event -> "Eventos".equals(event.processoNome()))
+                .filter(event -> {
+                    final String active = (String) event.camposPersonalizados().get(RubeusFields.UserEvent.ACTIVE.getIdentifier());
+                    return active == null || active.equals("Sim");
+                })
                 .map(event -> {
                     final Map<String, Object> customFields = event.camposPersonalizados();
 
@@ -255,6 +259,19 @@ public final class RubeusApi {
             final User participant = searchUserByEmail(participantEmail);
             if (participant != null) {
                 helper.executeRequest(helper.updateEventCall(participant.getId(), event.getCourse(), event));
+            }
+        });
+
+        return result;
+    }
+
+    public static Boolean deleteEvent(final int userId, final Event event) {
+        final Boolean result = helper.executeRequest(helper.deleteEventCall(userId, event.getCourse()));
+
+        event.getParticipants().forEach(participantEmail -> {
+            final User participant = searchUserByEmail(participantEmail);
+            if (participant != null) {
+                helper.executeRequest(helper.deleteEventCall(participant.getId(), event.getCourse()));
             }
         });
 
