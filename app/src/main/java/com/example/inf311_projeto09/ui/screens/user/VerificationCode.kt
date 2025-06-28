@@ -1,5 +1,7 @@
 package com.example.inf311_projeto09.ui.screens.user
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -43,12 +46,22 @@ import androidx.navigation.compose.rememberNavController
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
+import com.example.inf311_projeto09.ui.utils.rememberLocationHelper
 
 @Composable
 fun VerificationCodeScreen(
     onBack: () -> Unit = {},
     navController: NavHostController
 ) {
+    val locationHelper = rememberLocationHelper()
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = {}
+    )
+    LaunchedEffect(Unit) {
+        locationHelper.getCurrentLocation(permissionLauncher)
+    }
+
     val code = remember { mutableStateListOf("", "", "", "") }
     val focusRequesters = remember { List(4) { FocusRequester() } }
 

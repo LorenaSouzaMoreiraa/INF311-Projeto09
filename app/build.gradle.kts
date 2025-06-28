@@ -47,6 +47,12 @@ android {
             "IMGBB_API_KEY",
             "\"${localProperties.getProperty("imgbb.api.key")}\""
         )
+        buildConfigField(
+            "String",
+            "MAPS_API_KEY",
+            "\"${localProperties.getProperty("google.maps.api.key")}\""
+        )
+        resValue("string", "google_maps_key", localProperties.getProperty("google.maps.api.key"))
     }
 
     buildTypes {
@@ -106,6 +112,8 @@ dependencies {
     implementation(libs.zxing.android.embedded)
     implementation(libs.bcrypt)
     implementation(libs.coil.compose)
+    implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

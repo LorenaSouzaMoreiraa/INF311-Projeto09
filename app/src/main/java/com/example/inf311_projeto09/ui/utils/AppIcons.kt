@@ -535,6 +535,25 @@ class AppIcons {
                 )
             }
         }
+
+        @Composable
+        fun Map(boxSize: Dp, colorIcon: Color = AppColors().white) {
+            Box(
+                modifier = Modifier
+                    .size(boxSize)
+                    .background(color = AppColors().transparent, shape = RectangleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = lucide.map),
+                    contentDescription = "Localização",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(0.8f),
+                    tint = colorIcon
+                )
+            }
+        }
     }
 
     object Filled {

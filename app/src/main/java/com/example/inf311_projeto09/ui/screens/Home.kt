@@ -56,11 +56,13 @@ import com.example.inf311_projeto09.ui.components.EmptyEventCard
 import com.example.inf311_projeto09.ui.components.EventCard
 import com.example.inf311_projeto09.ui.components.NavBar
 import com.example.inf311_projeto09.ui.components.NavBarOption
+import com.example.inf311_projeto09.ui.components.SplashScreen
 import com.example.inf311_projeto09.ui.utils.AppColors
 import com.example.inf311_projeto09.ui.utils.AppDateHelper
 import com.example.inf311_projeto09.ui.utils.AppFonts
 import com.example.inf311_projeto09.ui.utils.AppIcons
 import com.example.inf311_projeto09.ui.utils.AppSnackBarManager
+import com.example.inf311_projeto09.ui.utils.rememberLocationHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -84,6 +86,9 @@ fun HomeScreen(
         mutableStateOf<Boolean?>(null)
     }
 
+    val locationHelper = rememberLocationHelper()
+    val isLoading = remember { mutableStateOf(false) }
+
     LaunchedEffect(navController) {
         val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
         savedStateHandle?.getLiveData<String>("scannedCode")?.observeForever { code ->
@@ -102,10 +107,36 @@ fun HomeScreen(
         if (code != null && currentEvent != null) {
             scannedCode.value = null
 
+            if (!locationHelper.hasLocationPermission()) {
+                AppSnackBarManager.showMessage("É necessário ativar a localização para fazer o check-in.")
+                return@LaunchedEffect
+            }
+
+            isLoading.value = true
+
+            val currentLocation = locationHelper.getFreshLocation()
+
+            isLoading.value = false
+
+            if (currentLocation == null) {
+                AppSnackBarManager.showMessage("É necessário ativar a localização para fazer o check-in.")
+                return@LaunchedEffect
+            }
+
             if (code == currentEvent.checkInCode) {
-                val checkTime = AppDateHelper().getCurrentCompleteTime()
+                val eventLocationString = currentEvent.location
+
+                if (!locationHelper.isWithinDistance(
+                        currentLocation,
+                        eventLocationString
+                    )
+                ) {
+                    AppSnackBarManager.showMessage("Você precisa estar próximo ao local do evento (até 200m)")
+                    return@LaunchedEffect
+                }
 
                 if (currentEvent.checkInTime == null) {
+                    val checkTime = AppDateHelper().getCurrentCompleteTime()
                     RubeusApi.checkIn(user.id, currentEvent, checkTime)
                 }
             } else {
@@ -123,72 +154,107 @@ fun HomeScreen(
         if (confirm != null && currentEvent != null) {
             checkOutConfirm.value = null
 
+            if (!locationHelper.hasLocationPermission()) {
+                AppSnackBarManager.showMessage("É necessário ativar a localização para fazer o check-in.")
+                return@LaunchedEffect
+            }
+
+            isLoading.value = true
+
+            val currentLocation = locationHelper.getFreshLocation()
+
+            isLoading.value = false
+
+            if (currentLocation == null) {
+                AppSnackBarManager.showMessage("É necessário ativar a localização para fazer o check-in.")
+                return@LaunchedEffect
+            }
+
             if (confirm) {
-                val checkTime = AppDateHelper().getCurrentCompleteTime()
+                val eventLocationString = currentEvent.location
+
+                if (!locationHelper.isWithinDistance(
+                        currentLocation,
+                        eventLocationString
+                    )
+                ) {
+                    AppSnackBarManager.showMessage("Você precisa estar próximo ao local do evento (até 200m)")
+                    return@LaunchedEffect
+                }
 
                 if (currentEvent.checkOutTime == null) {
+                    val checkTime = AppDateHelper().getCurrentCompleteTime()
                     RubeusApi.checkOut(user.id, currentEvent, checkTime)
                 }
             }
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors().darkGreen)
-    ) {
-        Column(
+    if (isLoading.value) {
+        SplashScreen()
+    } else {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(AppColors().darkGreen)
         ) {
-            TopBarSection(user, navController)
-
-            Spacer(modifier = Modifier.height(15.dp))
-
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .background(
-                        AppColors().offWhite,
-                        shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
-                    )
-                    .padding(horizontal = 30.dp)
-                    .padding(top = 20.dp)
-                    .verticalScroll(rememberScrollState())
+                    .fillMaxSize()
             ) {
-                DateTimeSection()
+                TopBarSection(user, navController)
+
+                Spacer(modifier = Modifier.height(15.dp))
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
+                        .background(
+                            AppColors().offWhite,
+                            shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+                        )
+                        .padding(horizontal = 30.dp)
+                        .padding(top = 20.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Text(
-                        text = "Acontecendo agora",
-                        fontFamily = AppFonts().montserrat,
-                        fontWeight = FontWeight.SemiBold,
-                        color = AppColors().darkGreen,
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(bottom = 15.dp)
-                    )
+                    DateTimeSection()
 
-                    CurrentEvent(user, currentEvent, navController)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = "Acontecendo agora",
+                            fontFamily = AppFonts().montserrat,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColors().darkGreen,
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(bottom = 15.dp)
+                        )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                        CurrentEvent(user, currentEvent, navController)
 
-                    NextEventsSection(user, nextEvents, navController)
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    Spacer(modifier = Modifier.weight(1f))
+                        NextEventsSection(user, nextEvents, navController)
+
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
+
+                NavBar(navController, NavBarOption.HOME, user)
             }
 
-            NavBar(navController, NavBarOption.HOME, user)
+            QuickAccessButton(
+                user,
+                currentEvent,
+                Modifier.align(Alignment.BottomEnd),
+                navController
+            )
         }
-
-        QuickAccessButton(user, currentEvent, Modifier.align(Alignment.BottomEnd), navController)
     }
 }
 
