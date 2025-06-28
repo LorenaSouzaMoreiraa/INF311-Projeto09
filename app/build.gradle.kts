@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.inf311_projeto09"
+    namespace = "com.inf311_projeto09"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.inf311_projeto09"
+        applicationId = "com.inf311_projeto09"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
